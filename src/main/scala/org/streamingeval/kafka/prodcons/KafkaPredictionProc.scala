@@ -31,7 +31,7 @@ import scala.collection.concurrent.TrieMap
   * @see https://agilesde.atlassian.net/wiki/spaces/DS/pages/2419195989/Kafka+interfaces
   *
   * @author Patrick Nicolas
-  * @version 0.6
+  * @version 0.0.1
   */
 private[streamingeval] final class KafkaPredictionProc private(
   override val consumer: TypedKafkaConsumer[RequestMessage],

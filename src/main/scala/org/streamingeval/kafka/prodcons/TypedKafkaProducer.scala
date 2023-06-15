@@ -23,12 +23,12 @@ import java.util.Properties
 /**
  * Generic wrapper for Typed Kafka producer
  * @param valueSerializerClass Serializer for the value sent by the producer
- * @param topic Topic to which produce Kafka responses
+ * @param producerTopic Topic to which produce Kafka responses
  *
  * @author Patrick Nicolas
- * @version 0.5
+ * @version 0.0.1
  */
-private[streamingeval] final class TypedKafkaProducer[T](valueSerializerClass: String, topic: String)  {
+private[streamingeval] final class TypedKafkaProducer[T](valueSerializerClass: String, producerTopic: String)  {
   import TypedKafkaProducer._
 
   private[this] val producerProperties: Option[Properties] = getProducerProperties(valueSerializerClass)
@@ -45,7 +45,7 @@ private[streamingeval] final class TypedKafkaProducer[T](valueSerializerClass: S
    */
   def send(producingMessage: (String, T)): Unit = try {
     val (key, value) = producingMessage
-    val producer = new ProducerRecord[String, T](topic, key, value)
+    val producer = new ProducerRecord[String, T](producerTopic, key, value)
     kafkaProducer.send(producer)
   }
   catch {

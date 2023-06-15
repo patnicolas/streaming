@@ -27,12 +27,11 @@ import scala.jdk.CollectionConverters._
  * Generic, typed Kafka consumer
  * The kafka consumer is responsible to keep the connectivity to Kafka service open
  * @param valueDeserializerClass Class used to deserialize the value retrieved from Kafka
- * @param pollTimeIntervalMs Timeout for polling in milliseconds
+ * @param kafkaTopic Topic from which messages are consumed
  * @tparam T Type of the value or payload
- * @see https://agilesde.atlassian.net/wiki/spaces/DS/pages/2419195989/Kafka+interfaces
  *
  * @author Patrick Nicolas
- * @version 0.5
+ * @version 0.0.1
  */
 private[streamingeval] case class TypedKafkaConsumer[T](
   valueDeserializerClass: String,

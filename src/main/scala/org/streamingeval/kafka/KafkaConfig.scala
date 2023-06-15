@@ -27,7 +27,7 @@ import java.io.IOException
  * @throws IllegalArgumentException If no parameters are found in the configuration file
  *
  * @author Patrick Nicolas
- * @version 0.3.1.0
+ * @version 0.0.1
  */
 private[streamingeval] case class KafkaConfig(kafkaParameters: Seq[ParameterDefinition]) extends TuningParameters[KafkaConfig] {
   require(kafkaParameters.nonEmpty, "MlKafkaConfig is empty")

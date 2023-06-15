@@ -22,7 +22,7 @@ import org.slf4j.{Logger, LoggerFactory}
   * Generic trait for defining the package-class name for serialization and de-serialization class.
   * Serialization and deserialization uses Jackson library
   * @author Patrick Nicolas
-  * @version 0.5
+  * @version 0.0.1
   */
 private[streamingeval] trait SerDe {
   val serializingClass: String

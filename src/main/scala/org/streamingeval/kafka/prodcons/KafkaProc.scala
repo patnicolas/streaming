@@ -13,12 +13,12 @@ package org.streamingeval.kafka.prodcons
 
 
 /**
-  * Generic Kafka Pipeline
+  * Generic Kafka procedure consuming messages of type REQ and producing messages of type RESP
   * @tparam REQ Type of request or input to the pipeline
   * @tparam RESP Type of response or output from the pipeline
   *
   * @author Patrick Nicolas
-  * @version 0.5
+  * @version 0.0.1
   */
 private[kafka] trait KafkaProc[REQ, RESP] {
   val consumer: TypedKafkaConsumer[REQ]
@@ -27,8 +27,8 @@ private[kafka] trait KafkaProc[REQ, RESP] {
   /**
     * Close consumer and producer of this pipeline
     */
-  def close: Unit = {
-    consumer.close
-    producer.close
+  def close(): Unit = {
+    consumer.close()
+    producer.close()
   }
 }

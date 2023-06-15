@@ -35,9 +35,9 @@ private[streamingeval] final class ResponseSerializer extends Serializer[Respons
 
 
 /**
-  * Deserializer for the prediction response
+  * Deserializer for the response
   * @author Patrick Nicolas
-  * @version 0.5
+  * @version 0.0.1
   */
 private[streamingeval] final class ResponseDeserializer extends Deserializer[ResponseMessage] {
   override def deserialize(topic: String, bytes: Array[Byte]): ResponseMessage =
@@ -49,9 +49,9 @@ private[streamingeval] final class ResponseDeserializer extends Deserializer[Res
 
 
 /**
-  * Singleton for serializing and deserializing classes for prediction response
+  * Singleton for serializing and deserializing classes for response messages
   * @author Patrick Nicolas
-  * @version 0.5
+  * @version 0.0.1
   */
 private[streamingeval] object ResponseSerDe extends SerDe {
   override val serializingClass = s"${serDePrefix}.ResponseSerializer"

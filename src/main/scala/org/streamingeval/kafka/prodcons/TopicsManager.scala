@@ -25,7 +25,7 @@ import scala.collection._
  * Manager of Kafka topics given a properties
  * @param properties Properties defined from the consumer
  * @author Patrick Nicolas
- * @version 0.2
+ * @version 0.0.1
  */
 private[streamingeval] final class TopicsManager private(properties: Properties) {
   import TopicsManager._

@@ -20,9 +20,9 @@ import org.streamingeval.kafka.serde.SerDe.serDePrefix
 
 
 /**
-  * Serializer for the prediction request
+  * Serializer for request messages
   * @author Patrick Nicolas
-  * @version 0.5
+  * @version 0.0.1
   */
 final class RequestSerializer extends Serializer[RequestMessage] {
   override def serialize(topic: String, request: RequestMessage): Array[Byte] = {
@@ -38,9 +38,8 @@ final class RequestSerializer extends Serializer[RequestMessage] {
 
 /**
   * Deserializer for the prediction request
-  * @see org.mlops.nlp.medical.MedicalCodeTypes
   * @author Patrick Nicolas
-  * @version 0.5
+  * @version 0.0.1
   */
 private[streamingeval] final class RequestDeserializer extends Deserializer[RequestMessage] {
 
@@ -56,9 +55,9 @@ private[streamingeval] final class RequestDeserializer extends Deserializer[Requ
 
 
 /**
-  * Singleton for serializing and deserializing classes for prediction response
+  * Singleton for serializing and deserializing classes for response
   * @author Patrick Nicolas
-  * @version 0.6
+  * @version 0.0.1
   */
 private[streamingeval] object RequestSerDe extends SerDe {
   override val serializingClass = s"$serDePrefix.RequestSerializer"

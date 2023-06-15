@@ -31,7 +31,7 @@ import scala.reflect.ClassTag
  *       file does not meet strict UTF-8 standard. In this case, a decoder has to be added
  *       as curried argument.
  * @author Patrick Nicolas
- * @version 0.1
+ * @version 0.0.1
  */
 private[streamingeval] object LocalFileUtil {
   import scala.reflect.runtime.universe.TypeTag

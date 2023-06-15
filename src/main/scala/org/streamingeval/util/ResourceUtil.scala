@@ -16,7 +16,11 @@ import java.util.Properties
 import java.io.{FileNotFoundException, IOException}
 
 
-
+/**
+ * Interface for managing local resource files
+ * @author Patrick Nicolas
+ * @version 0.0.1
+ */
 trait ResourceUtil {
   self =>
   import ResourceUtil._

@@ -1,3 +1,14 @@
+/**
+ * Copyright 2022,2023 Patrick R. Nicolas. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
+ * with the License. A copy of the License is located at
+ *
+ * http://aws.amazon.com/apache2.0/
+ *
+ * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+ * OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
+ */
 package org.streamingeval.kafka.streams
 
 import org.apache.kafka.common.serialization.{Serde, Serdes}
@@ -10,8 +21,11 @@ import org.slf4j.{Logger, LoggerFactory}
 
 
 /**
- *
+ * Specialized pipeline ot process request of type RequestMessage and produces response of type ResponseMessage
  * @param proc Transformation function
+ *
+ * @author Patrick Nicolas
+ * @version 0.0.1
  */
 private[kafka] final class RequestsStreams(proc: RequestPayload => ResponsePayload)
   extends PipelineStreams[RequestMessage](RequestSerDe.deserializingClass) {

@@ -19,7 +19,7 @@ import org.streamingeval.kafka.serde.SerDe.serDePrefix
 /**
   * Serializer for acknowledgment message
   * @author Patrick Nicolas
-  * @version 0.6
+  * @version 0.0.1
   */
 final class AckSerializer extends Serializer[AckMessage] {
   override def serialize(topic: String, request: AckMessage): Array[Byte] = {
