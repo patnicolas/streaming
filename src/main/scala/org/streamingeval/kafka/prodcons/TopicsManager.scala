@@ -13,8 +13,9 @@
 package org.streamingeval.kafka.prodcons
 
 import org.apache.kafka.clients.admin.{AdminClient, ConsumerGroupListing, NewTopic, SupportedVersionRange, TopicListing}
-import org.streamingeval.kafka.prodcons.TypedKafkaConsumer.getConsumerProperties
 import org.slf4j.{Logger, LoggerFactory}
+import org.apache.kafka.common.errors.TimeoutException
+import org.streamingeval.kafka.KafkaAdminClient.isAlive
 
 import scala.jdk.CollectionConverters._
 import java.util.Properties
@@ -29,7 +30,6 @@ import scala.collection._
  */
 private[streamingeval] final class TopicsManager private(properties: Properties) {
   import TopicsManager._
-
 
   def describeTopic(topic: String): String = {
     val adminClient = AdminClient.create(properties)
@@ -56,24 +56,56 @@ private[streamingeval] final class TopicsManager private(properties: Properties)
   }
 
 
-
   /**
-   * List the current topics associated with this consumer
+   * List the current topics associated with this consumer with self created admin client
    * @return List of topics for this consumer
    */
-  def listTopics: Iterable[String] = {
-    val adminClient = AdminClient.create(properties)
-    val listingsFuture = adminClient.listTopics.listings
-    val listings = listingsFuture.get
-    val topics = listings.asScala.map(_.name)
-    adminClient.close()
-    topics
+  def listTopics: Set[String] = try {
+    val adminClient: AdminClient = AdminClient.create(properties)
+    if (isAlive(adminClient)) {
+      val topicNames = adminClient.listTopics().names().get()
+      //val listings = listingsFuture.get
+      val topics = topicNames.asScala
+      adminClient.close()
+      topics
+    }
+    else {
+      logger.error("Kafka server is not running")
+      Set.empty[String]
+    }
+  }
+  catch {
+    case e: TimeoutException =>
+      logger.error(s"Time out: ${e.getMessage}")
+      Set.empty[String]
+    case e: Exception =>
+      logger.error(s"Undefined exception ${e.getMessage}")
+      Set.empty[String]
   }
 
   /**
    * Create a new topic, if it does not exist, yet
    * @param topic Name of the topic to create
+   * @param adminClient Admin client used to access the Kafka service
    * @param numPartitions Number of partitions (default 6)
+   * @param numReplications Number of replications (default 3)
+   * @return Updated list of topics
+   */
+  def createTopic(
+    topic: String,
+    adminClient: AdminClient,
+    numPartitions: Int,
+    numReplications: Short): Iterable[String] = {
+    val newTopic = new NewTopic(topic, numPartitions, numReplications)
+    val results = adminClient.createTopics(scala.collection.immutable.List[NewTopic](newTopic).asJava)
+    if (!results.values.isEmpty) Seq[String](topic) else Seq.empty[String]
+  }
+
+  /**
+   * Create a new topic, if it does not exist, yet, with a self created admin client
+   *
+   * @param topic           Name of the topic to create
+   * @param numPartitions   Number of partitions (default 6)
    * @param numReplications Number of replications (default 3)
    * @return Updated list of topics
    */
@@ -81,19 +113,13 @@ private[streamingeval] final class TopicsManager private(properties: Properties)
     topic: String,
     numPartitions: Int = defaultNumPartitions,
     numReplications: Short = defaultNumReplications): Iterable[String] = {
-
-    val topicsSeq = listTopics.toSeq
-    // If the topic does not exist, create it
-    if(!topicsSeq.contains(topic)) {
-      val adminClient = AdminClient.create(properties)
-      val newTopic = new NewTopic(topic, numPartitions, numReplications)
-
-      val results = adminClient.createTopics(scala.collection.immutable.List[NewTopic](newTopic).asJava)
-      if(!results.values.isEmpty) topicsSeq ++ Seq[String](topic) else topicsSeq
-    }
+    val adminClient = AdminClient.create(properties)
+    val topics = listTopics(adminClient)
+    if(!topics.contains(topic))
+      this.createTopic(topic, AdminClient.create(properties), numPartitions, numReplications)
     else {
-      logger.warn(s"Topic $topic already exists")
-      topicsSeq
+      logger.error(s"Topic $topic already exists")
+      Iterable.empty[String]
     }
   }
 
@@ -104,7 +130,6 @@ private[streamingeval] final class TopicsManager private(properties: Properties)
    * @return Updated list of topics
    */
   def deleteTopic(topic: String): Iterable[String] = {
-
     val adminClient: AdminClient = AdminClient.create(properties)
     adminClient.deleteTopics(Seq[String](topic).asJava)
 
@@ -114,13 +139,42 @@ private[streamingeval] final class TopicsManager private(properties: Properties)
     adminClient.close()
     topics
   }
+
+      // -------------------  Supporting methods ------------------
+
+  /**
+   * List the current topics associated with this consumer
+   * @param adminClient : Administrator client used to access the list of topics
+   * @return List of topics for this consumer
+   */
+  private def listTopics(adminClient: AdminClient): Set[String] = try {
+    if (isAlive(adminClient)) {
+      val topicNames = adminClient.listTopics().names().get()
+      //val listings = listingsFuture.get
+      val topics = topicNames.asScala
+      adminClient.close()
+      topics
+    }
+    else {
+      logger.error("Kafka server is not running")
+      Set.empty[String]
+    }
+  }
+  catch {
+    case e: TimeoutException =>
+      logger.error(s"Time out: ${e.getMessage}")
+      Set.empty[String]
+    case e: Exception =>
+      logger.error(s"Undefined exception ${e.getMessage}")
+      Set.empty[String]
+  }
 }
 
 
 /**
  * Singleton for constructors and default values
  */
-private[streamingeval] object TopicsManager {
+private[kafka] object TopicsManager {
   private val logger: Logger = LoggerFactory.getLogger("TopicsManager")
 
   private val defaultNumPartitions: Int = 2
@@ -128,9 +182,12 @@ private[streamingeval] object TopicsManager {
 
   def apply(properties: Properties): TopicsManager = new TopicsManager(properties)
 
-  def apply(valueDeserializerClass: String): Option[TopicsManager] = {
-    val properties = getConsumerProperties(valueDeserializerClass)
-    properties.map(new TopicsManager(_))
+  def apply(valueDeserializerClass: String): TopicsManager = {
+    val props = new Properties()
+    props.put("bootstrap.servers", "localhost:9092")
+    props.put("request.timeout.ms", 2000)
+    props.put("connections.max.idle.ms", 3000)
+    new TopicsManager(props)
   }
 }
 

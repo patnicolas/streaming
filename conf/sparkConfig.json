@@ -1,0 +1,208 @@
+{
+  "sparkParameters": [
+    {
+      "key": "spark.master",
+      "value":"local[8]",
+      "isDynamic": false,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.driver.host",
+      "value":"localhost",
+      "isDynamic": false,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.eventLog.enabled",
+      "value":true,
+      "isDynamic": false,
+      "paramType":"Boolean"
+    },
+    {
+      "key": "spark.io.compression.codec",
+      "value":"snappy",
+      "isDynamic": false,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.local.dir",
+      "value":"temp",
+      "isDynamic": false,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.eventLog.dir",
+      "value":"logs",
+      "isDynamic": false,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.serializer",
+      "value":"org.apache.spark.serializer.KryoSerializer",
+      "isDynamic": false,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.executor.heartbeatInterval",
+      "value":650,
+      "isDynamic": false,
+      "paramType":"Int"
+    },
+    {
+      "key": "spark.network.timeout",
+      "value":2200,
+      "isDynamic": false,
+      "paramType":"Int"
+    },
+    {
+      "key": "spark.log.level",
+      "value":"ERROR",
+      "isDynamic": false,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.kryoserializer.buffer.max",
+      "value":"1200m",
+      "isDynamic": false,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.driver.maxResultSize",
+      "value":1250,
+      "isDynamic": false,
+      "paramType":"Int"
+    },
+    {
+      "key": "spark.sql.warehouse.dir",
+      "value":"spark-warehouse",
+      "isDynamic": false,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.hadoop.fs.s3a.multiobjectdelete.enable",
+      "value":false,
+      "isDynamic": false,
+      "paramType":"Boolean"
+    },
+    {
+      "key": "spark.hadoop.fs.s3a.fast.upload",
+      "value":true,
+      "isDynamic": false,
+      "paramType":"Boolean"
+    },
+    {
+      "key": "spark.worker.cleanup.enabled",
+      "value":true,
+      "isDynamic": false,
+      "paramType":"Boolean"
+    },
+    {
+      "key": "spark.worker.cleanup.interval",
+      "value":1200,
+      "isDynamic": false,
+      "paramType":"Int"
+    },
+    {
+      "key": "spark.hadoop.mapreduce.fileoutputcommitter.algorithm.version",
+      "value":"2",
+      "isDynamic": false,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.hadoop.mapreduce.fileoutputcommitter.cleanup-failures.ignored",
+      "value":true,
+      "isDynamic": false,
+      "paramType":"Boolean"
+    },
+    {
+      "key": "spark.hadoop.parquet.enable.summary-metadata",
+      "value":false,
+      "isDynamic": false,
+      "paramType":"Boolean"
+    },
+    {
+      "key": "park.sql.parquet.mergeSchema",
+      "value":false,
+      "isDynamic": false,
+      "paramType":"Boolean"
+    },
+    {
+      "key": "spark.hadoop.fs.s3a.impl",
+      "value":"org.apache.hadoop.fs.s3a.S3AFileSystem",
+      "isDynamic": false,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.yarn.access.hadoopFileSystems",
+      "value":"s3a://aideo-tech-autocoding-v1",
+      "isDynamic": false,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.driver.extraJavaOptions",
+      "value":"-XX:+UseG1GC -XX:+UnlockDiagnosticVMOptions -XX:+G1SummarizeConcMark -XX:InitiatingHeapOccupancyPercent=35 -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:OnOutOfMemoryError='kill -9 %p",
+      "isDynamic": false,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.driver.memory",
+      "value":"6g",
+      "isDynamic": true,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.executor.memory",
+      "value":"4g",
+      "isDynamic": true,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.default.parallelism",
+      "value":8,
+      "isDynamic": true,
+      "paramType":"Int"
+    },
+    {
+      "key": "spark.driver.cores",
+      "value":4,
+      "isDynamic": true,
+      "paramType":"Int"
+    },
+    {
+      "key": "spark.executor.cores",
+      "value":3,
+      "isDynamic": true,
+      "paramType":"Int"
+    },
+    {
+      "key": "spark.sql.shuffle.partitions",
+      "value":24,
+      "isDynamic": true,
+      "paramType":"Int"
+    },
+    {
+      "key": "spark.executor.instances",
+      "value":2,
+      "isDynamic": true,
+      "paramType":"Int"
+    },
+    {
+      "key": "spark.broadcast.compress",
+      "value":true,
+      "isDynamic": true,
+      "paramType":"Boolean"
+    },
+    {
+      "key": "spark.dynamicAllocation.enabled",
+      "value":true,
+      "isDynamic": true,
+      "paramType":"Boolean"
+    },
+    {
+      "key": "spark.sql.tungsten.enabled",
+      "value":true,
+      "isDynamic": true,
+      "paramType":"Boolean"
+    }
+  ]
+}

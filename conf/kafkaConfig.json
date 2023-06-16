@@ -1,0 +1,46 @@
+{
+  "kafkaParameters": [
+    {
+      "key": "bootstrap.servers",
+      "value": "localhost:9092",
+      "isDynamic": false,
+      "paramType": "String"
+    },
+    {
+      "key": "kafkaProducerConfiguration%group.id",
+      "value": "group-1",
+      "isDynamic": false,
+      "paramType": "String"
+    },
+    {
+      "key": "kafkaProducerConfiguration%linger.ms",
+      "value": 180,
+      "isDynamic": true,
+      "paramType": "Int"
+    },
+    {
+      "key": "kafkaProducerConfiguration%batch.size",
+      "value": 24576,
+      "isDynamic": true,
+      "paramType": "Int"
+    },
+    {
+      "key": "kafkaProducerConfiguration%compression.type",
+      "value": "snappy",
+      "isDynamic": false,
+      "paramType": "String"
+    },
+    {
+      "key": "kafkaConsumerConfiguration%poolTimeIntervalMs",
+      "value": 5300,
+      "isDynamic": true,
+      "paramType": "Int"
+    },
+    {
+      "key": "kafkaConsumerConfiguration%max.poll.records",
+      "value": 512,
+      "isDynamic": true,
+      "paramType": "Int"
+    }
+  ]
+}

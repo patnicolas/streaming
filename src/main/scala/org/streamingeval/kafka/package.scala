@@ -11,8 +11,27 @@
  */
 package org.streamingeval
 
+import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.common.serialization.{Serde, Serdes}
+
+import java.util.Properties
 
 package object kafka {
   val stringSerde: Serde[String] = Serdes.String()
+
+
+  object KafkaAdminClient {
+    def isAlive: Boolean = {
+      val props = new Properties()
+      props.put("bootstrap.servers", "localhost:9092")
+      props.put("request.timeout.ms", 2000)
+      props.put("connections.max.idle.ms", 3000)
+      isAlive(AdminClient.create(props))
+    }
+
+    def isAlive(adminClient: AdminClient): Boolean = {
+      val nodes = adminClient.describeCluster().nodes().get()
+      nodes != null && nodes.size() > 0
+    }
+  }
 }
