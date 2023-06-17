@@ -8,7 +8,7 @@ final class TopicsManagerTest extends AnyFlatSpec{
 
   it should "Succeed creating a new topic" in {
     assert(KafkaAdminClient.isAlive, "Failed to connect to Kafka")
-    val newTopic = "test-1"
+    val newTopic = "test-responses"
     val topicsManager = TopicsManager(RequestSerDe.deserializingClass)
     val topics = topicsManager.createTopic(newTopic)
 

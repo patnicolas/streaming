@@ -14,8 +14,9 @@ package org.streamingeval.kafka.prodcons
 import org.apache.kafka.clients.consumer._
 import org.apache.kafka.common.errors.WakeupException
 import org.streamingeval.kafka.KafkaConfig.getParameterValue
-import org.streamingeval.{initialProperties, saslJaasConfigLabel}
+import org.streamingeval.saslJaasConfigLabel
 import org.slf4j._
+import org.streamingeval.kafka.KafkaAdminClient.KafkaProperties
 
 import java.io.IOException
 import java.time.Duration
@@ -40,15 +41,12 @@ private[streamingeval] case class TypedKafkaConsumer[T](
 
   private[this] var isStarted = false
   private[this] val consumerProperties = getConsumerProperties(valueDeserializerClass)
-  private[this] val kafkaConsumer =
-    consumerProperties.map(new KafkaConsumer[String, T](_)).getOrElse(
-      throw new IllegalStateException("Could not instantiate consumer")
-    )
+  private[this] val kafkaConsumer = new KafkaConsumer[String, T](consumerProperties)
   kafkaConsumer.subscribe(Collections.singletonList(kafkaTopic))
 
 
   private[this] val pollTimeDurationMs: Duration = {
-    val pollTimeInterval = consumerProperties.map(_.getProperty("poolTimeIntervalMs").toInt).getOrElse(5200)
+    val pollTimeInterval = consumerProperties.getProperty("poolTimeIntervalMs").toInt
     Duration.ofMillis(pollTimeInterval)
   }
 
@@ -131,20 +129,7 @@ private[streamingeval] object TypedKafkaConsumer {
    * @param valueDeserializerClass Class for the deserializer of the value
    * @return Properties
    */
-  def getConsumerProperties(valueDeserializerClass: String): Option[Properties] =
-    initialProperties.map(
-      props => {
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, getParameterValue(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, ""))
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer")
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializerClass)
-        props.put("poolTimeIntervalMs", getParameterValue("poolTimeIntervalMs", "5200"))
-        props.put(saslJaasConfigLabel, getParameterValue(saslJaasConfigLabel, ""))
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, getParameterValue(ConsumerConfig.GROUP_ID_CONFIG, "group-1"))
-        props.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, getParameterValue(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, "52428800"))
-        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, getParameterValue(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "512"))
-        props.put(ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG, getParameterValue(ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG, "1048576"))
-        props
-      }
-    )
+  private def getConsumerProperties(valueDeserializerClass: String): Properties = KafkaProperties
+
 }
 

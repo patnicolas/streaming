@@ -13,9 +13,9 @@ package org.streamingeval.kafka.streams
 
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig, Topology}
 import org.apache.kafka.streams.scala.StreamsBuilder
-import org.streamingeval.initialProperties
 import org.streamingeval.kafka.streams.PipelineStreams.getProperties
 import org.slf4j.{Logger, LoggerFactory}
+import org.streamingeval.kafka.KafkaAdminClient.KafkaProperties
 
 import java.time.Duration
 import java.util.Properties
@@ -24,12 +24,13 @@ import java.util.Properties
  * Basic pipeline streams that consumes requests of type T
  * @param valueDeserializerClass Class or type used in the deserialization for Kafka consumer
  * @tparam T Type of Kafka message consumed
+ * @see org.streamingeval.kafka.streams.PipelineStreams
  *
  * @author Patrick Nicolas
  * @version 0.0.1
  */
 private[kafka] abstract class PipelineStreams[T](valueDeserializerClass: String) {
-  protected[this] val properties: Option[Properties] = getProperties(valueDeserializerClass)
+  protected[this] val properties: Properties = getProperties(valueDeserializerClass)
   protected[this] val streamBuilder: StreamsBuilder = new StreamsBuilder
 
   /**
@@ -40,10 +41,10 @@ private[kafka] abstract class PipelineStreams[T](valueDeserializerClass: String)
   def start(requestTopic: String, responseTopic: String): Unit =
     for {
       topology <- createTopology(requestTopic, responseTopic)
-      prop <- properties
     } yield {
-      val streams = new KafkaStreams(topology, prop)
+      val streams = new KafkaStreams(topology, properties)
       streams.start()
+      print(s"Streaming for $requestTopic requests and $responseTopic responses started")
       sys.ShutdownHookThread {
         streams.close(Duration.ofSeconds(12))
       }
@@ -64,13 +65,10 @@ private[kafka] object PipelineStreams {
    * @param valueDeserializerClass Class for the deserialization of the consumer
    * @return Optional properties
    */
-  def getProperties(valueDeserializerClass: String): Option[Properties] =
-    initialProperties.map(
-      props => {
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "AI_ML")
-        props
-      }
-    )
+  def getProperties(valueDeserializerClass: String): Properties = {
+    KafkaProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "AI_ML")
+    KafkaProperties
+  }
 }
 
 

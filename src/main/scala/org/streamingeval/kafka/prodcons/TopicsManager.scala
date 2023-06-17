@@ -15,7 +15,7 @@ package org.streamingeval.kafka.prodcons
 import org.apache.kafka.clients.admin.{AdminClient, ConsumerGroupListing, NewTopic, SupportedVersionRange, TopicListing}
 import org.slf4j.{Logger, LoggerFactory}
 import org.apache.kafka.common.errors.TimeoutException
-import org.streamingeval.kafka.KafkaAdminClient.isAlive
+import org.streamingeval.kafka.KafkaAdminClient.{KafkaProperties, isAlive}
 
 import scala.jdk.CollectionConverters._
 import java.util.Properties
@@ -182,12 +182,6 @@ private[kafka] object TopicsManager {
 
   def apply(properties: Properties): TopicsManager = new TopicsManager(properties)
 
-  def apply(valueDeserializerClass: String): TopicsManager = {
-    val props = new Properties()
-    props.put("bootstrap.servers", "localhost:9092")
-    props.put("request.timeout.ms", 2000)
-    props.put("connections.max.idle.ms", 3000)
-    new TopicsManager(props)
-  }
+  def apply(valueDeserializerClass: String): TopicsManager = new TopicsManager(KafkaProperties)
 }
 

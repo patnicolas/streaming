@@ -16,18 +16,30 @@ import org.apache.kafka.common.serialization.{Serde, Serdes}
 
 import java.util.Properties
 
+/**
+ * Functions and singletons shared by all Kafka related classes
+ * @author Patrick Nicolas
+ * @version 0.0.2
+ */
 package object kafka {
   val stringSerde: Serde[String] = Serdes.String()
 
 
+  /**
+   * Basic object to evaluate if a connection to Kafka service
+   * is still alive..
+   */
   object KafkaAdminClient {
-    def isAlive: Boolean = {
+
+    lazy val KafkaProperties: java.util.Properties = {
       val props = new Properties()
       props.put("bootstrap.servers", "localhost:9092")
       props.put("request.timeout.ms", 2000)
       props.put("connections.max.idle.ms", 3000)
-      isAlive(AdminClient.create(props))
+      props
     }
+
+    def isAlive: Boolean = isAlive(AdminClient.create(KafkaProperties))
 
     def isAlive(adminClient: AdminClient): Boolean = {
       val nodes = adminClient.describeCluster().nodes().get()

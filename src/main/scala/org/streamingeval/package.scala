@@ -1,6 +1,5 @@
 package org
 
-
 import org.streamingeval.util.ResourceUtil.getFileFromResourceAsStream
 
 import java.util.Properties
@@ -71,15 +70,7 @@ package object streamingeval {
       ResponseMessage(System.currentTimeMillis(), 200, "OK", responsePayload)
   }
 
-
   private final val applicationPropertiesFile: String = "application.properties"
 
-  final val testPredictRequestTopic = "testPredictRequest"
-  final val testPredictResponseTopic = "testPredictResponse"
-  final val testFeedbackRequestTopic = "testFeedbackRequest"
-  final val testFeedbackResponseTopic = "testFeedbackResponse"
   final val saslJaasConfigLabel = "sasl.jaas.config"
-
-  lazy val initialProperties: Option[Properties] = getFileFromResourceAsStream(applicationPropertiesFile, "=")
-
 }

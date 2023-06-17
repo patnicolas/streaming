@@ -55,7 +55,10 @@ private[kafka] final class RequestsStreams(proc: RequestPayload => ResponsePaylo
 
 }
 
-
+/**
+ * Singleton for Request streams that define the Serialization/Deserialization
+ * of request and response messages
+ */
 private[streamingeval] object RequestsStreams {
   private val logger: Logger = LoggerFactory.getLogger("RequestsStreams")
 

@@ -71,26 +71,6 @@
             <version>1.7.30</version>
         </dependency>
 
-        <!-- Akka -->
-        <!--
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor_2.13</artifactId>
-            <version>${akka.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-http_2.13</artifactId>
-            <version>${akka.http.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-http-spray-json_2.13</artifactId>
-            <version>${akka.http.version}</version>
-        </dependency>
-        -->
 
         <!--      Kubernetes API      -->
         <!--
@@ -111,10 +91,7 @@
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
-            <!--
             <version>${kafka.version}</version>
-            -->
-            <version>7.0.1-ccs</version>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
@@ -136,103 +113,6 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-rds</artifactId>
-        </dependency>
-
-        <!--     Deep Java learning library      -->
-        <dependency>
-            <groupId>ai.djl</groupId>
-            <artifactId>api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ai.djl</groupId>
-            <artifactId>basicdataset</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ai.djl.aws</groupId>
-            <artifactId>aws-ai</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ai.djl</groupId>
-            <artifactId>model-zoo</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ai.djl.mxnet</groupId>
-            <artifactId>mxnet-engine</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ai.djl.mxnet</groupId>
-            <artifactId>mxnet-model-zoo</artifactId>
-        </dependency>
-<!--
-        <dependency>
-            <groupId>ai.djl.pytorch</groupId>
-            <artifactId>pytorch-engine</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ai.djl.pytorch</groupId>
-            <artifactId>pytorch-model-zoo</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ai.djl.fasttext</groupId>
-            <artifactId>fasttext-engine</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ai.djl.tensorflow</groupId>
-            <artifactId>tensorflow-engine</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ai.djl.tensorflow</groupId>
-            <artifactId>tensorflow-model-zoo</artifactId>
-        </dependency>
-          -->
-        <dependency>
-            <groupId>ai.djl.mxnet</groupId>
-            <artifactId>mxnet-native-cu112mkl</artifactId>
-            <classifier>linux-x86_64</classifier>
-            <version>1.9.1</version>
-            <scope>runtime</scope>
-        </dependency>
-
-        <!--
-        <dependency>
-            <groupId>com.nvidia</groupId>
-            <artifactId>rapids-4-spark_2.12</artifactId>
-            <version>22.10.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.nvidia</groupId>
-            <artifactId>rapids-4-spark-tools_2.12</artifactId>
-            <version>22.10.0</version>
-        </dependency>
-        -->
-        <!--
-        <dependency>
-            <groupId>ai.djl.pytorch</groupId>
-            <artifactId>pytorch-native-cu111</artifactId>
-            <classifier>linux-x86_64</classifier>
-            <version>1.9.0</version>
-            <scope>runtime</scope>
-        </dependency>
-        -->
-
-        <dependency>
-            <groupId>ai.djl.mxnet</groupId>
-            <artifactId>mxnet-native-mkl</artifactId>
-            <classifier>linux-x86_64</classifier>
-            <scope>runtime</scope>
-            <version>1.9.1</version>
-        </dependency>
-
-        <!-- Tabular representation lib -->
-        <dependency>
-            <groupId>tech.tablesaw</groupId>
-            <artifactId>tablesaw-jsplot</artifactId>
-            <version>${tablesaw.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>tech.tablesaw</groupId>
-            <artifactId>tablesaw-core</artifactId>
-            <version>${tablesaw.version}</version>
         </dependency>
 
         <!--  Jackson -->
