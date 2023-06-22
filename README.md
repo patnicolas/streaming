@@ -1,5 +1,9 @@
 # streaming  0.0.2 Patrick Nicolas Last update 06.03.203
 
+
+![Banner](images/streaming.jpg)
+
+
 Evaluation of Apache Kafka and Spark streaming functionality in Scala
 
 
