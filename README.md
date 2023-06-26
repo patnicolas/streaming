@@ -1,10 +1,13 @@
-### streaming  0.0.2 Patrick Nicolas Last update 06.03.203
+### streaming  0.0.2 Patrick Nicolas Last update 06.03.2023
 
 
-![Banner](images/streaming.jpg)
+![Evaluation and tips for Kafka and Spark streaming](images/streaming.jpg)
 
 
 Evaluation of Apache Kafka and Spark streaming functionality in Scala
+
+## Reference
+- [Open Source Lambda Architecture for Deep Learning](http://patricknicolas.blogspot.com/2021/06/open-source-lambda-architecture-for.html)
 
 
 ## Environment
