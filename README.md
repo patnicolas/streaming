@@ -33,5 +33,12 @@ Evaluation of Apache Kafka and Spark streaming functionality in Scala
 |:--|:--|
 |util|Utilities classes|
 |kafka|Classes related to Kafka producer/consumer, service management and streaming|
-|spark|Classes related to spark datasets and streaming|
+|spark|Classes related to spark datasets and streaming     
+
+
+## Deployment
+From dockerfile for local deployment for a root directory 'myhome':    
+Linux X64: **docker --build-args jdk_target=linux_x64 home=myhome build -t streaming**         
+MacOS X64: **docker --build-args jdk_target=macos_x64 home=myhome build -t streaming**
+MacOS ARM: **docker --build-args jdk_target=macos_aarch64 home=myhome build -t streaming**
 
