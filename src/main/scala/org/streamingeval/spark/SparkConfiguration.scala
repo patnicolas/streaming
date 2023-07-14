@@ -26,9 +26,8 @@ import scala.util.Try
  * @author Patrick Nicolas
  * @version 0.0.2
  */
-private[mlops] case class SparkConfiguration(
-                                              sparkParameters: Seq[ParameterDefinition]
-                                            ) extends TuningParameters[SparkConfiguration] {
+private[streamingeval] case class SparkConfiguration(sparkParameters: Seq[ParameterDefinition])
+  extends TuningParameters[SparkConfiguration] {
   require(sparkParameters.nonEmpty, "Spark configuration parameters are undefined")
   /**
    * Extracts the tunable parameters
@@ -41,7 +40,7 @@ private[mlops] case class SparkConfiguration(
 
 
 
-private[mlops] final object SparkConfiguration {
+private[streamingeval] final object SparkConfiguration {
   import org.streamingeval.util.LocalFileUtil._
 
   final val log: Logger = LoggerFactory.getLogger("SparkConfiguration")
@@ -80,7 +79,7 @@ private[mlops] final object SparkConfiguration {
    * @return Execution context initialized by a configuration file
    */
   def loadSpark: Try[SparkConf] = Try { SparkConfiguration.buildConf }
-  
+
   /**
    * Implicit conversion from a configuration file to a SparkSession
    * @param confFile Spark configuration file

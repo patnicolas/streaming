@@ -8,6 +8,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 private[spark] final class SparkDStreamsTest extends AnyFlatSpec {
   import SparkDStreamsTest._
+  import org.streamingeval.spark.implicits.sparkSession
 
   it should "process Kafka streams" in {
     val streamsFromKafka = createStreamFromKafka
