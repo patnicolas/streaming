@@ -15,7 +15,7 @@ import org.apache.kafka.streams.{KafkaStreams, StreamsConfig, Topology}
 import org.apache.kafka.streams.scala.StreamsBuilder
 import org.streamingeval.kafka.streams.PipelineStreams.getProperties
 import org.slf4j.{Logger, LoggerFactory}
-import org.streamingeval.kafka.KafkaAdminClient.KafkaProperties
+import org.streamingeval.kafka.KafkaAdminClient.consumerProperties
 
 import java.time.Duration
 import java.util.Properties
@@ -30,7 +30,7 @@ import java.util.Properties
  * @version 0.0.1
  */
 private[kafka] abstract class PipelineStreams[T](valueDeserializerClass: String) {
-  protected[this] val properties: Properties = getProperties(valueDeserializerClass)
+  protected[this] val properties: Properties = getProperties
   protected[this] val streamBuilder: StreamsBuilder = new StreamsBuilder
 
   /**
@@ -62,12 +62,11 @@ private[kafka] object PipelineStreams {
 
   /**
    * Load the properties from the resource file
-   * @param valueDeserializerClass Class for the deserialization of the consumer
    * @return Optional properties
    */
-  def getProperties(valueDeserializerClass: String): Properties = {
-    KafkaProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "AI_ML")
-    KafkaProperties
+  def getProperties: Properties = {
+    consumerProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "AI_ML")
+    consumerProperties
   }
 }
 

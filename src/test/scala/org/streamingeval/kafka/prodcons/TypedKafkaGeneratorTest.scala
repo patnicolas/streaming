@@ -2,11 +2,10 @@ package org.streamingeval.kafka.prodcons
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.streamingeval.{RequestMessage, RequestPayload}
-import org.streamingeval.kafka.serde.RequestSerDe
 import org.streamingeval.util.LocalFileUtil
 
-private[prodcons] final class TypedKafkaProducerTest extends AnyFlatSpec {
-  import TypedKafkaProducerTest._
+private[prodcons] final class TypedKafkaGeneratorTest extends AnyFlatSpec {
+  import TypedKafkaGeneratorTest._
 
   it should "Succeed producing kafka messages" in {
     val topic = "test-streaming"
@@ -19,22 +18,25 @@ private[prodcons] final class TypedKafkaProducerTest extends AnyFlatSpec {
     // generate the messages
     val generatedMessages = generateMessages
     // Produce messages to Kafka
-    val kafkaProducer = new TypedKafkaProducer[RequestMessage](RequestSerDe.serializingClass, topic)
-    generatedMessages.indices.foreach(
-      index => kafkaProducer.send((index.toString, generatedMessages(index)))
-    )
+    val kafkaProducer = new TypedKafkaGenerator[RequestMessage](topic)
+    kafkaProducer.send(generatedMessages)
   }
 }
 
 
-private[prodcons] object TypedKafkaProducerTest {
-  private def generateMessages: Seq[RequestMessage] = {
+private[prodcons] object TypedKafkaGeneratorTest {
+  private def generateMessages: Seq[(String, RequestMessage)] = {
     val contents = Array[String](
-      "input/note1.txt", "input/note3.txt", "input/note4.txt"
-    ).flatMap(LocalFileUtil.Load.local(_))
+      "input/note1.txt", "input/note3.txt", "input/note4.txt", "input/note3.txt", "input/note1.txt"
+    ).flatMap(LocalFileUtil.Load.local)
       .map(_.replaceAll("\n", " ").replaceAll("\r", ""))
-    contents.indices.map(
-      index => RequestMessage(System.currentTimeMillis(), RequestPayload(index.toString, contents(index)))
+    (0 until 25).map(
+      index => {
+        val relIndex = index % contents.length
+        val key = index.toString
+        val msg = RequestMessage(System.currentTimeMillis(), RequestPayload(key, contents(relIndex)))
+        (key, msg)
+      }
     )
   }
 }

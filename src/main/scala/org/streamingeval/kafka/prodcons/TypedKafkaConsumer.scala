@@ -13,10 +13,8 @@ package org.streamingeval.kafka.prodcons
 
 import org.apache.kafka.clients.consumer._
 import org.apache.kafka.common.errors.WakeupException
-import org.streamingeval.kafka.KafkaConfig.getParameterValue
-import org.streamingeval.saslJaasConfigLabel
 import org.slf4j._
-import org.streamingeval.kafka.KafkaAdminClient.KafkaProperties
+import org.streamingeval.kafka.KafkaAdminClient.consumerProperties
 
 import java.io.IOException
 import java.time.Duration
@@ -40,13 +38,12 @@ private[streamingeval] case class TypedKafkaConsumer[T](
   import TypedKafkaConsumer._
 
   private[this] var isStarted = false
-  private[this] val consumerProperties = getConsumerProperties(valueDeserializerClass)
   private[this] val kafkaConsumer = new KafkaConsumer[String, T](consumerProperties)
   kafkaConsumer.subscribe(Collections.singletonList(kafkaTopic))
 
 
   private[this] val pollTimeDurationMs: Duration = {
-    val pollTimeInterval = consumerProperties.getProperty("poolTimeIntervalMs").toInt
+    val pollTimeInterval = consumerProperties.getProperty("max.poll.interval.ms").toLong
     Duration.ofMillis(pollTimeInterval)
   }
 
@@ -116,20 +113,5 @@ private[streamingeval] case class TypedKafkaConsumer[T](
  */
 private[streamingeval] object TypedKafkaConsumer {
   val logger: Logger = LoggerFactory.getLogger("TypedKafkaConsumer")
-
-  /**
-   * Constructor for the consumer configuration
-   * {{{
-   *   BOOTSTRAP_SERVERS_CONFIG
-   *   GROUP_ID_CONFIG
-   *   ENABLE_AUTO_COMMIT_CONFIG
-   *   AUTO_COMMIT_INTERVAL_MS_CONFIG
-   *   SESSION_TIMEOUT_MS_CONFIG
-   * }}}
-   * @param valueDeserializerClass Class for the deserializer of the value
-   * @return Properties
-   */
-  private def getConsumerProperties(valueDeserializerClass: String): Properties = KafkaProperties
-
 }
 

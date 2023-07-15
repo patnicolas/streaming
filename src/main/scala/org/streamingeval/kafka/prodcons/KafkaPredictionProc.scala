@@ -35,7 +35,7 @@ import scala.collection.concurrent.TrieMap
   */
 private[streamingeval] final class KafkaPredictionProc private(
   override val consumer: TypedKafkaConsumer[RequestMessage],
-  override val producer: TypedKafkaProducer[ResponseMessage],
+  override val producer: TypedKafkaResult[ResponseMessage],
   override val transform: Seq[RequestMessage] => Seq[ResponseMessage]
 ) extends KafkaProc[RequestMessage, ResponseMessage] {
   private[this] val keyEncounterPredictMap = new RequestKeyMap
@@ -103,13 +103,13 @@ private[streamingeval] object KafkaPredictionProc {
         throw new IllegalStateException(s"Request id $requestId has no matching key")
       )
 
-    def clear: Unit = if(requestKeyMap.size > maxEncounterKeyMap) requestKeyMap.clear
+    def clear(): Unit = if(requestKeyMap.size > maxEncounterKeyMap) requestKeyMap.clear
   }
 
 
   def apply(
     consumer: TypedKafkaConsumer[RequestMessage],
-    producer: TypedKafkaProducer[ResponseMessage],
+    producer: TypedKafkaResult[ResponseMessage],
     transform: Seq[RequestMessage] => Seq[ResponseMessage]): KafkaPredictionProc =
     new KafkaPredictionProc(consumer, producer, transform)
 
@@ -118,17 +118,18 @@ private[streamingeval] object KafkaPredictionProc {
     * Constructor with output S3 bucket and folder and direct execution of prediction pipeline
     * @param consumeTopic Topic for prediction requests
     * @param produceTopic Topic for prediction responses
-    * @param predictionPipeline Execution of prediction pipeline (<=> Virtual coder)
+    * @param executionPipeline Execution of prediction pipeline (<=> Virtual coder)
     * @return Instance of Kafka prediction handler
     */
   def apply(
     consumeTopic: String,
     produceTopic: String,
-    predictionPipeline: Seq[RequestPayload] => Seq[ResponsePayload]): KafkaPredictionProc = {
+    executionPipeline: Seq[RequestPayload] => Seq[ResponsePayload]): KafkaPredictionProc = {
+
     // Constructs the transform of Kafka messages for prediction
     val transform = (requestMsg: Seq[RequestMessage]) => {
       // Invoke the execution of the pipeline
-      val predictions = predictionPipeline(requestMsg.map(_.requestPayload))
+      val predictions = executionPipeline(requestMsg.map(_.requestPayload))
       // If status = 0, 1, 2, ... from virtual coder then HTTP 200 statue
       predictions.map(
         predictResp =>
@@ -138,7 +139,7 @@ private[streamingeval] object KafkaPredictionProc {
     // Build the Kafka consumer for prediction request
     val consumer = new TypedKafkaConsumer[RequestMessage](RequestSerDe.deserializingClass, consumeTopic)
     // Build the Kafka producer for prediction response
-    val producer = new TypedKafkaProducer[ResponseMessage](ResponseSerDe.serializingClass, produceTopic)
+    val producer = new TypedKafkaResult[ResponseMessage](produceTopic)
     new KafkaPredictionProc(consumer, producer, transform)
   }
 
@@ -168,13 +169,18 @@ private[streamingeval] object KafkaPredictionProc {
     * @param produceTopic Topic to produce messages to (response)
     * @param maxNumResponses Maximum number of responses (-1 for no limit)
     */
-  def executeBatch(consumeTopic: String, produceTopic: String, maxNumResponses: Int): Int = {
-    val kafkaHandler = KafkaPredictionProc(consumeTopic, produceTopic, predictionPipeline)
+  def executeBatch(
+    consumeTopic: String,
+    produceTopic: String,
+    maxNumResponses: Int,
+    executionPipeline: Seq[RequestPayload] => Seq[ResponsePayload]): Int = {
+    val kafkaHandler = KafkaPredictionProc(consumeTopic, produceTopic, executionPipeline)
     var counter = 0
 
     while((maxNumResponses == -1 || counter < maxNumResponses)) {
       // Pool the request topic (has its own specific Kafka exception handler)
       val consumerRecords = kafkaHandler.consumer.receive
+      println(s"Retrieve ${consumerRecords.size} records")
       if (consumerRecords.nonEmpty) {
         // Generate and apply transform to the batch
         val start = System.currentTimeMillis()
@@ -231,7 +237,7 @@ private[streamingeval] object KafkaPredictionProc {
         logger.debug("No input to consumed")
     }
     logger.warn(s"Exit Kafka prediction handler and close $consumeTopic after $counter messages")
-    kafkaHandler.close
+    kafkaHandler.close()
     counter
   }
 

@@ -14,26 +14,22 @@ package org.streamingeval.kafka.prodcons
 import org.apache.kafka.clients.producer._
 import org.apache.kafka.common.KafkaException
 import org.apache.kafka.common.errors.{InterruptException, SerializationException, TimeoutException}
-import org.streamingeval.kafka.KafkaConfig.getParameterValue
-import org.streamingeval.saslJaasConfigLabel
 import org.slf4j._
-import org.streamingeval.kafka.KafkaAdminClient.KafkaProperties
 
 import java.util.Properties
 
 /**
  * Generic wrapper for Typed Kafka producer
- * @param valueSerializerClass Serializer for the value sent by the producer
- * @param producerTopic Topic to which produce Kafka responses
+ * @param properties Serializer for the value sent by the producer
+ * @param topic Topic to which produce Kafka responses
  *
  * @author Patrick Nicolas
  * @version 0.0.1
  */
-private[streamingeval] final class TypedKafkaProducer[T](valueSerializerClass: String, producerTopic: String)  {
+private[streamingeval] abstract class TypedKafkaProducer[T](properties: Properties, topic: String)  {
   import TypedKafkaProducer._
 
-  private[this] val producerProperties: Properties = getProducerProperties(valueSerializerClass)
-  private[this] val kafkaProducer = new KafkaProducer[String, T](producerProperties)
+  private[this] val kafkaProducer = new KafkaProducer[String, T](properties)
 
 
   /**
@@ -42,7 +38,7 @@ private[streamingeval] final class TypedKafkaProducer[T](valueSerializerClass: S
    */
   def send(producingMessage: (String, T)): Unit = try {
     val (key, value) = producingMessage
-    val producer = new ProducerRecord[String, T](producerTopic, key, value)
+    val producer = new ProducerRecord[String, T](topic, key, value)
     kafkaProducer.send(producer)
   }
   catch {
@@ -70,11 +66,4 @@ private[streamingeval] final class TypedKafkaProducer[T](valueSerializerClass: S
  */
 private[streamingeval] object TypedKafkaProducer {
   val logger: Logger = LoggerFactory.getLogger("TypedKafkaProducer")
-
-  /**
-   * Constructor for the producer configuration
-   * @param valueDeserializerClass Class for the serializer of the value
-   * @return Optional; Properties
-   */
-  private def getProducerProperties(valueDeserializerClass: String): Properties = KafkaProperties
 }

@@ -12,7 +12,8 @@
 package org.streamingeval
 
 import org.apache.kafka.clients.admin.AdminClient
-import org.apache.kafka.common.serialization.{Serde, Serdes}
+import org.apache.kafka.common.serialization.{Serde, Serdes, StringDeserializer, StringSerializer}
+import org.streamingeval.kafka.serde.{RequestDeserializer, RequestSerializer, ResponseDeserializer, ResponseSerializer}
 
 import java.util.Properties
 
@@ -30,16 +31,38 @@ package object kafka {
    * is still alive..
    */
   object KafkaAdminClient {
-
-    lazy val KafkaProperties: java.util.Properties = {
+        // Default Kafka properties
+    lazy val consumerProperties: java.util.Properties = {
       val props = new Properties()
       props.put("bootstrap.servers", "localhost:9092")
-      props.put("request.timeout.ms", 2000)
-      props.put("connections.max.idle.ms", 3000)
+      props.put("request.timeout.ms", "5000")
+      props.put("connections.max.idle.ms", "3000")
+      props.put("max.poll.interval.ms", "6000")
+      props.put("key.deserializer", classOf[StringDeserializer])
+      props.put("value.deserializer", classOf[RequestDeserializer])
+      props.put("key.serializer", classOf[StringSerializer])
+      props.put("value.serializer", classOf[RequestSerializer])
+      props.put("group.id", "group_1")
       props
     }
 
-    def isAlive: Boolean = isAlive(AdminClient.create(KafkaProperties))
+    lazy val producerProperties: java.util.Properties = {
+      val props = new Properties()
+      props.put("bootstrap.servers", "localhost:9092")
+      props.put("connections.max.idle.ms", "3000")
+      props.put("key.deserializer", classOf[StringDeserializer])
+      props.put("value.deserializer", classOf[ResponseDeserializer])
+      props.put("key.serializer", classOf[StringSerializer])
+      props.put("value.serializer", classOf[ResponseSerializer])
+      props.put("group.id", "group_1")
+      props
+    }
+
+    /**
+     * Test if the  server is available for the default (fallback Kafka properties)
+     * @return
+     */
+    def isAlive: Boolean = isAlive(AdminClient.create(consumerProperties))
 
     def isAlive(adminClient: AdminClient): Boolean = {
       val nodes = adminClient.describeCluster().nodes().get()

@@ -15,7 +15,7 @@ package org.streamingeval.kafka.prodcons
 import org.apache.kafka.clients.admin.{AdminClient, ConsumerGroupListing, NewTopic, SupportedVersionRange, TopicListing}
 import org.slf4j.{Logger, LoggerFactory}
 import org.apache.kafka.common.errors.TimeoutException
-import org.streamingeval.kafka.KafkaAdminClient.{KafkaProperties, isAlive}
+import org.streamingeval.kafka.KafkaAdminClient.{consumerProperties, isAlive}
 
 import scala.jdk.CollectionConverters._
 import java.util.Properties
@@ -182,6 +182,6 @@ private[streamingeval] object TopicsManager {
 
   def apply(properties: Properties): TopicsManager = new TopicsManager(properties)
 
-  def apply(): TopicsManager = new TopicsManager(KafkaProperties)
+  def apply(): TopicsManager = new TopicsManager(consumerProperties)
 }
 
