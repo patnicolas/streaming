@@ -174,7 +174,7 @@ private[streamingeval] final class TopicsManager private(properties: Properties)
 /**
  * Singleton for constructors and default values
  */
-private[kafka] object TopicsManager {
+private[streamingeval] object TopicsManager {
   private val logger: Logger = LoggerFactory.getLogger("TopicsManager")
 
   private val defaultNumPartitions: Int = 2
@@ -182,6 +182,6 @@ private[kafka] object TopicsManager {
 
   def apply(properties: Properties): TopicsManager = new TopicsManager(properties)
 
-  def apply(valueDeserializerClass: String): TopicsManager = new TopicsManager(KafkaProperties)
+  def apply(): TopicsManager = new TopicsManager(KafkaProperties)
 }
 

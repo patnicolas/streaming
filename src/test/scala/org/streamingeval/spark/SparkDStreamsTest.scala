@@ -5,15 +5,26 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.spark.streaming.Seconds
 import org.apache.spark.streaming.dstream.InputDStream
 import org.scalatest.flatspec.AnyFlatSpec
+import org.streamingeval.RequestMessage
+import org.streamingeval.kafka.KafkaAdminClient
+import org.streamingeval.kafka.prodcons.TopicsManager
+import org.streamingeval.kafka.serde.RequestSerDe
 
 private[spark] final class SparkDStreamsTest extends AnyFlatSpec {
   import SparkDStreamsTest._
   import org.streamingeval.spark.implicits.sparkSession
 
   it should "process Kafka streams" in {
+    assert(KafkaAdminClient.isAlive, "Failed to connect to Kafka")
+    val topic = "test-streaming"
+    val topicsManager = TopicsManager()
+    if (!topicsManager.listTopics.contains(topic))
+      topicsManager.createTopic(topic, numPartitions = 2)
+    println(s"Current list of topics: ${topicsManager.listTopics.mkString(" ")}")
+
     val streamsFromKafka = createStreamFromKafka
     val checkpointDir = "~/temp"
-    val sparkDStreams = new SparkDStreams(streamsFromKafka, 1500L,Some(checkpointDir))
+    val sparkDStreams = new SparkDStreams[RequestMessage](streamsFromKafka, 1500L,Some(checkpointDir))
     sparkDStreams(countWords)
   }
 }
@@ -32,8 +43,8 @@ private[spark] object SparkDStreamsTest {
     StreamFromKafka(Array[String](topics), kafkaParams)
   }
 
-  private val countWords: InputDStream[ConsumerRecord[String, String]] => Unit =
-    (stream: InputDStream[ConsumerRecord[String, String]]) => {
+  private val countWords: InputDStream[ConsumerRecord[String, RequestMessage]] => Unit =
+    (stream: InputDStream[ConsumerRecord[String, RequestMessage]]) => {
 
       def reduceFunction(wordPair: (String, Int), anotherWordPair: (String, Int)): (String, Int) =
         "total" -> (wordPair._2 + anotherWordPair._2)
@@ -41,7 +52,12 @@ private[spark] object SparkDStreamsTest {
       def inverseReduceFunction(wordPair: (String, Int), anotherWordPair: (String, Int)): (String, Int) =
         "total" -> (wordPair._2 - anotherWordPair._2)
 
-      val wordPairs = stream.map(record => (record.value(), 1))
+      // Extract word pairs from text
+      val wordPairs = stream.flatMap(record => {
+        val content: String = record.value().requestPayload.consumedPayload
+        content.split(",").map((_, 1))
+      })
+
       // A more efficient implementation using inverse function
       val efficientTotalWordCount = wordPairs.reduceByWindow(reduceFunction, inverseReduceFunction, Seconds(30), Seconds(15))
       // Built-in functionality

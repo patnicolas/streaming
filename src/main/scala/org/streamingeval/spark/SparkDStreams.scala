@@ -36,7 +36,7 @@ case class StreamFromKafka(topics: Array[String], kafkaParams: Map[String, Objec
  * @author Patrick Nicolas
  * @version 0.0.3
  */
-private[streamingeval] final class SparkDStreams(
+private[streamingeval] final class SparkDStreams[T](
   streamType: StreamType,
   streamingDurationMs: Long,
   checkpointDir: Option[String])(implicit sparkSession: SparkSession) {
@@ -53,18 +53,18 @@ private[streamingeval] final class SparkDStreams(
 
   private def streamingFromKafka(
     streamFromKafka: StreamFromKafka,
-    process: InputDStream[ConsumerRecord[String, String]] => Unit): InputDStream[ConsumerRecord[String, String]]  = {
+    process: InputDStream[ConsumerRecord[String, T]] => Unit): InputDStream[ConsumerRecord[String, T]]  = {
 
-    val inputStream: InputDStream[ConsumerRecord[String, String]] = KafkaUtils.createDirectStream[String, String](
+    val inputStream: InputDStream[ConsumerRecord[String, T]] = KafkaUtils.createDirectStream[String, T](
       ssc,
       PreferConsistent,
-      Subscribe[String, String](streamFromKafka.topics, streamFromKafka.kafkaParams)
+      Subscribe[String, T](streamFromKafka.topics, streamFromKafka.kafkaParams)
     )
     process(inputStream)
     inputStream
   }
 
-  def apply(process: InputDStream[ConsumerRecord[String, String]] => Unit): Unit = {
+  def apply(process: InputDStream[ConsumerRecord[String, T]] => Unit): Unit = {
     val inputStream = streamType match {
       case kafkaStreamType: StreamFromKafka => streamingFromKafka(kafkaStreamType, process)
       case _ => throw new UnsupportedOperationException(s"Stream type ${streamType.toString} not supported")
@@ -74,7 +74,6 @@ private[streamingeval] final class SparkDStreams(
       val offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
       inputStream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)
     }
-
     ssc.start()
     ssc.awaitTermination()
   }
