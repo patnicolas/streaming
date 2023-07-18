@@ -69,4 +69,6 @@ package object kafka {
       nodes != null && nodes.size() > 0
     }
   }
+
+  final class KafkaTopicException(msg: String) extends Exception(msg) {}
 }

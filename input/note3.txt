@@ -1,0 +1,18 @@
+InternalRequest(481483_ROYAL1993570120230324_10398174,
+claimType:         
+Age:               75
+Gender:            M 
+Taxonomy:          2085R0202X
+PoS:               DOC
+DoS:               2023-03-24
+Customer:          CMBS
+Client:            RII
+Modality:          CT
+EMR Cpts:          Cpt: 74176, modifiers: , icds: 
+Provider:          11
+Patient:           481483
+Plan id:           
+Meta data:         
+,List(\r\n================================================================================\r\n\r\n                              FAIR HUNTINGTON HILL IMAGING CENTER\r\n\r\nPatient Name: XXXXX
+
+\r\n\r\nTECHNIQUE:\r\nMultiple axial sections were obtained through the abdomen and pelvis without the use of intravenous contrast.  Multiplanar reconstruction was performed.\r\n\r\nIV Contrast:  None\r\nOral Contrast: None\r\n\r\nCTDI: 9.2 mGy; DLP: 457.5 mGy.cm\r\n\r\nDose reduction technique with one or more of the following methods was performed: automated exposure control, adjustment of the mA and/or kV according to patient size, use of iterative reconstruction\r\ntechnique.\r\n\r\nCOMPARISON:\r\nNone.\r\n\r\nFINDINGS:\r\nLung Bases: Minimal scarring/atelectatic change noted.\r\n\r\nLiver:  No significant abnormality.\r\n\r\nGallbladder: No significant abnormality.\r\n\r\nBile Duct: No significant abnormality.\r\n\r\nSpleen:  No significant abnormality.\r\n\r\nPancreas:  No significant abnormality.\r\n\r\nAdrenals: No significant abnormality.\r\n\r\nKidneys:  Renal hypodensities measuring up to 3.6 cm identified.\r\n\r\nAorta: Atherosclerotic changes are seen.  No aneurysmal dilatation was identified.\r\n\r\nLymph Nodes:  No significant abnormality.\r\n\r\nBladder:  No significant abnormality.\r\n\r\nPelvis: Enlarged prostate measuring on the order of 4.9 x 5.6 cm identified.  Seminal vesicles appear roughly symmetrical.\r\n\r\nBowel:  There is diverticulosis.  Stranding adjacent to the distal descending colon consistent with diverticulitis identified.\r\n\r\nBone: Degenerative changes are seen.\r\n\r\nAscites: No significant abnormality.\r\n\r\nFree Gas: No significant abnormality.\r\n\r\nLeft lateral flank lipoma measuring 3.1 x 1.6 cm (image 56, series 4) identified.\r\n\r\nIMPRESSION:\r\n1.  Diverticulosis with distal descending diverticulitis.  No drainable abscess noted.\r\n2.  Probable renal cysts.\r\n3.  Nonobstructive bowel gas pattern.\r\n4.  Enlarged prostate.\r\nUnit Location: GD-RAD5\r\n\r\nElectronically signed by:\r\nAndrew King, M.D\r\nwww.hillmedical.com\r\n\r\nDictated: 03/27/2023  08:29\r\nTranscribed  : 03/27/2023 08:29 AM /LE\r\n\r\nDictated by: Andrew T. King M.D. on 03/27/2023 08:29\r\n))

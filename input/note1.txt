@@ -1,0 +1,16 @@
+InternalRequest(49040_12097426_726447320221018,
+claimType:         
+Age:               1
+Gender:            M 
+Taxonomy:          2085R0202X
+PoS:               OP
+DoS:               2022-10-18
+Customer:          Cornerstone
+Client:            TVR
+Modality:          DIAGNOSTIC
+EMR Cpts:          Cpt: 71046, modifiers: 26, icds: 
+Provider:          1
+Patient:           49040
+Plan id:           
+Meta data:         
+,List(\r\n================================================================================\r\n\r\n                              SWEETWATER HOSPITAL\r\n\r\nPatient Name: XXXXXX\r\nBirth Date: XXXXXX\r\n\r\nReferring Doctor: XXXXX \r\nReading Doctor: XXXXX\r\nVisit No.:LAT\r\n================================================================================\r\n\r\n\r                            S\r\r\r===============================================================================\r                     R A D I O L O G Y   R E P O R T\r===============================================================================\rPROCEDURE:  PA AND LATERAL CHEST X-RAY 10/18/2022.\r\rHISTORY: Bronchiolitis.\r\rCOMPARISON: 9/11/2022 and 10/2/2022.\r\rTECHNIQUE: 2 view(s) of the chest obtained.\r\rFINDINGS: The heart size is normal. The lungs are well aerated. There is no\rfocal consolidation or pleural fluid accumulation appreciated. The perihilar\rregions are better aerated than on 10/2/2022. The bony structures appear\rintact.\r\rAdditional findings: None.\r\rIMPRESSION:\r1. No active infiltrate is identified.\r2. The perihilar region is better aerated bilaterally compared to 10/2/2022.\r\rSigner Name: David Norris, MD\rSigned: 10/19/2022 8:03 AM\r\rElectronically Signed By:\rDavid Norris, M.D.\rRadiologist\r\rDate/Time:\r10/19/22 07:03\r))
