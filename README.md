@@ -1,4 +1,5 @@
-### streaming  0.0.2 Patrick Nicolas Last update 06.03.2023
+### streaming  0.0.2 Patrick Nicolas Last update 06.03.2023.    
+2023
 
 
 ![Evaluation and tips for Kafka and Spark streaming](images/streaming.jpg)
@@ -17,7 +18,7 @@ Evaluation of Apache Kafka and Spark streaming functionality in Scala
 | Apache Spark | 3.3.2   |
 | Apache Kafka | 3.4.0   |
 | Jackson ser  | 2.13.1  |
-| Kubernetes   | 16.0.0. |
+| Kubernetes   | 16.0.0  |
 
 
 
