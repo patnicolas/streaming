@@ -15,7 +15,6 @@ import org.apache.kafka.streams.{KafkaStreams, StreamsConfig, Topology}
 import org.apache.kafka.streams.scala.StreamsBuilder
 import org.streamingeval.kafka.streams.PipelineStreams.getProperties
 import org.slf4j.{Logger, LoggerFactory}
-import org.streamingeval.kafka.KafkaAdminClient.consumerProperties
 
 import java.time.Duration
 import java.util.Properties
@@ -43,12 +42,22 @@ private[kafka] abstract class PipelineStreams[T](valueDeserializerClass: String)
       topology <- createTopology(requestTopic, responseTopic)
     } yield {
       val streams = new KafkaStreams(topology, properties)
+      streams.cleanUp()
       streams.start()
       print(s"Streaming for $requestTopic requests and $responseTopic responses started")
+      val delayMs = 2000L
+      delay(delayMs)
+
       sys.ShutdownHookThread {
         streams.close(Duration.ofSeconds(12))
       }
     }
+
+  private def delay(delayMs: Long): Unit = try {
+    Thread.sleep(delayMs)
+  } catch {
+    case e: InterruptedException => println(s"ERROR: ${e.getMessage}")
+  }
 
   protected[this] def createTopology(inputTopic: String, outputTopic: String): Option[Topology]
 }
@@ -65,8 +74,22 @@ private[kafka] object PipelineStreams {
    * @return Optional properties
    */
   def getProperties: Properties = {
-    consumerProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "AI_ML")
+    val p = new Properties()
+    p.put(
+      StreamsConfig.APPLICATION_ID_CONFIG,
+      "map-function-scala-example"
+    )
+    val bootstrapServers = "localhost:9092"
+    p.put(
+      StreamsConfig.BOOTSTRAP_SERVERS_CONFIG,
+      bootstrapServers
+    )
+    p
+    /*
+    consumerProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "AI-ML")
     consumerProperties
+
+     */
   }
 }
 

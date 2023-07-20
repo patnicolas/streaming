@@ -14,6 +14,8 @@ package org.streamingeval.kafka.streams
 import org.apache.kafka.common.serialization.{Serde, Serdes}
 import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.kstream.{Consumed, Produced}
+import org.apache.kafka.streams.scala.StreamsBuilder
+import org.apache.kafka.streams.scala.kstream.{KStream, KTable}
 import org.streamingeval.kafka.serde.{RequestDeserializer, RequestSerDe, RequestSerializer, ResponseDeserializer, ResponseSerializer}
 import org.streamingeval.kafka.stringSerde
 import org.streamingeval.{RequestMessage, RequestPayload, ResponseMessage, ResponsePayload}
@@ -27,15 +29,14 @@ import org.slf4j.{Logger, LoggerFactory}
  * @author Patrick Nicolas
  * @version 0.0.1
  */
-private[kafka] final class RequestsStreams(proc: RequestPayload => ResponsePayload)
+private[streamingeval] final class RequestsStreams(proc: RequestPayload => ResponsePayload)
   extends PipelineStreams[RequestMessage](RequestSerDe.deserializingClass) {
   import RequestsStreams._
 
   override protected[this] def createTopology(requestTopic: String, responseTopic: String): Option[Topology] = try {
     // Invoke the implicit for Consumed[String, PredictRequestMessage]
-    val requestMessages = streamBuilder.stream[String, RequestMessage](requestTopic)
-
-    val responseValues = requestMessages.mapValues(
+    val requestMessages: KStream[String, RequestMessage] = streamBuilder.stream[String, RequestMessage](requestTopic)
+    val responseValues: KStream[String, ResponseMessage] = requestMessages.mapValues(
       requestMessage => {
         val responsePayload = proc(requestMessage.requestPayload)
         ResponseMessage(System.currentTimeMillis(),

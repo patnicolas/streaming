@@ -11,35 +11,19 @@ final class RequestsStreamsTest extends AnyFlatSpec{
     val requestTopic = "test-requests"
     val responseTopic = "test-responses"
 
-    if(TopicsManager().isTopicDefined(Seq[String](requestTopic, responseTopic))) {
-      val requestsStreams = new RequestsStreams(simpleProc)
-      requestsStreams.start(
-        requestTopic,
-        responseTopic
-      )
-    }
-    else {
-      val condition = false
-      assert(condition, s"Cannot test with undefined requests $requestTopic and $responseTopic")
-    }
+    val requestsStreams = new RequestsStreams(simpleProc)
+    requestsStreams.start(
+      requestTopic,
+      responseTopic
+    )
   }
 
   ignore should "Succeed processing a streaming request with delay" in {
     val requestTopic = "test-requests"
     val responseTopic = "test-responses"
-    if(TopicsManager().isTopicDefined(Seq[String](requestTopic, responseTopic))) {
-      val requestsStreams = new RequestsStreams(simpleProc)
-      requestsStreams.start(
-        requestTopic,
-        responseTopic
-      )
-    } else {
-      val condition = false
-      assert(
-        condition,
-        s"Cannot test with undefined requests $requestTopic and $responseTopic"
-      )
-    }
+
+    val requestsStreams = new RequestsStreams(simpleProc)
+    requestsStreams.start(requestTopic, responseTopic)
   }
 }
 
@@ -48,6 +32,7 @@ object RequestsStreamsTest {
   final val simpleProc: RequestPayload => ResponsePayload =
     (reqPayload: RequestPayload) => {
       val response = s"${reqPayload.consumedPayload}_produced"
+      println(response)
       ResponsePayload(reqPayload.id, response)
     }
 

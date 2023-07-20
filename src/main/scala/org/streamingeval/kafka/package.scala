@@ -65,8 +65,9 @@ package object kafka {
     def isAlive: Boolean = isAlive(AdminClient.create(consumerProperties))
 
     def isAlive(adminClient: AdminClient): Boolean = {
-      val nodes = adminClient.describeCluster().nodes().get()
-      nodes != null && nodes.size() > 0
+      val result = adminClient.listTopics()
+      val futures = result.listings()
+      result != null && futures.get().size() > 0
     }
   }
 

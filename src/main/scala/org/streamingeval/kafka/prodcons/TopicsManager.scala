@@ -200,14 +200,14 @@ private[streamingeval] object TopicsManager {
   private val defaultNumPartitions: Int = 2
   private val defaultNumReplications: Short = 3
 
-  private object AdminClientState {
+  object AdminClientState {
     private var adminClient: Option[AdminClient] = None
 
     final def get: AdminClient = adminClient.get
 
     def start(): Unit = {
       close()
-      adminClient = Some(   AdminClient.create(consumerProperties))
+      adminClient = Some(AdminClient.create(consumerProperties))
     }
     def close(): Unit= {
       adminClient.foreach(_.close())

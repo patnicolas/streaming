@@ -1,6 +1,7 @@
 package org.streamingeval.kafka.prodcons
 
 import org.scalatest.flatspec.AnyFlatSpec
+import org.streamingeval.kafka.prodcons.TopicsManager.AdminClientState
 import org.streamingeval.{RequestMessage, RequestPayload}
 import org.streamingeval.util.LocalFileUtil
 
@@ -8,18 +9,14 @@ private[prodcons] final class TypedKafkaGeneratorTest extends AnyFlatSpec {
   import TypedKafkaGeneratorTest._
 
   it should "Succeed producing kafka messages" in {
-    val topic = "test-streaming"
-    // Create the topic if it does not exists
-    val topicsManager = TopicsManager()
-    if(!topicsManager.listTopics.contains(topic))
-      topicsManager.createTopic(topic, numPartitions = 2)
-    println(s"Current list of topics: ${topicsManager.listTopics.mkString(" ")}")
-
+    AdminClientState.start()
+    val topic = "test-requests"
     // generate the messages
     val generatedMessages = generateMessages
     // Produce messages to Kafka
     val kafkaProducer = new TypedKafkaGenerator[RequestMessage](topic)
     kafkaProducer.send(generatedMessages)
+    AdminClientState.close()
   }
 }
 
