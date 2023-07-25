@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import org.streamingeval.util.LocalFileUtil.{Json, Load}
 import org.streamingeval.{ParameterDefinition, TuningParameters}
 import org.slf4j.{Logger, LoggerFactory}
+import org.streamingeval.kafka.KafkaConfig.kafkaProdCcnfig
 
 import java.io.IOException
 
@@ -29,7 +30,9 @@ import java.io.IOException
  * @author Patrick Nicolas
  * @version 0.0.1
  */
-private[streamingeval] case class KafkaConfig(kafkaParameters: Seq[ParameterDefinition]) extends TuningParameters[KafkaConfig] {
+private[streamingeval] case class KafkaConfig(
+  kafkaParameters: Seq[ParameterDefinition]
+) extends TuningParameters[KafkaConfig] {
   require(kafkaParameters.nonEmpty, "MlKafkaConfig is empty")
 
   override def getTunableParams: Seq[ParameterDefinition] = kafkaParameters.filter(_.isDynamic)
@@ -41,8 +44,9 @@ private[streamingeval] object KafkaConfig {
   final val logger: Logger = LoggerFactory.getLogger("KafkaConfig")
 
   private final val mlKafkaConfigFile = "conf/kafkaConfig.json"
-  private final val kafkaConsumerConfigurationMarker = "kafkaConsumerConfiguration%"
-  private final val kafkaProducerConfigurationMarker = "kafkaProducerConfiguration%"
+  private final val kafkaConsumerConfigurationMarker = "kafkaConsumerConfiguration"
+  private final val kafkaProducerConfigurationMarker = "kafkaProducerConfiguration"
+  private final val kafkaStreamingConfigurationMarker = "kafkaStreamingConfiguration"
 
   /**
    * Instantiate the dynamic Kafka configuration
@@ -52,15 +56,12 @@ private[streamingeval] object KafkaConfig {
    *   Step 3: Instantiate the Kafka configuration
    * }}}
    */
-  private val kafkaConfig: KafkaConfig = try {
-    val content = Load
-      .local(fsFilename = mlKafkaConfigFile)
-      .map(stripParamCategory(_, kafkaConsumerConfigurationMarker))
-      .map(stripParamCategory(_, kafkaProducerConfigurationMarker))
-
-    content.map( Json.mapper.readValue(_, classOf[KafkaConfig])).getOrElse(
-      throw new IllegalStateException("Kafka dynamic configuration improperly loaded")
-    )
+  val (kafkaProdCcnfig, kafkaConsConfig, kafkaStreamConfig): (KafkaConfig, KafkaConfig, KafkaConfig) = try {
+    val content= Load.local(fsFilename = mlKafkaConfigFile)
+    val prodConfig  = getKafkaConfig(content, kafkaProducerConfigurationMarker)
+    val consConfig = getKafkaConfig(content, kafkaConsumerConfigurationMarker)
+    val streamingConfig = getKafkaConfig(content, kafkaStreamingConfigurationMarker)
+    (prodConfig, consConfig, streamingConfig)
   } catch {
     case e: JsonParseException =>
       throw new IllegalStateException(s"Failed to parse configuration file ${e.getMessage}")
@@ -70,19 +71,42 @@ private[streamingeval] object KafkaConfig {
       throw new IllegalStateException(s"Failed to find configuration file ${e.getMessage}")
   }
 
+  val (
+    kafkaProdCcnfigMap,
+    kafkaConsConfigMap,
+    kafkaStreamConfigMap): (Map[String, String], Map[String, String], Map[String, String]) =
+    (
+      kafkaProdCcnfig.kafkaParameters.map(param => (param.key, param.value)).toMap,
+      kafkaConsConfig.kafkaParameters.map(param => (param.key, param.value)).toMap,
+      kafkaStreamConfig.kafkaParameters.map(param => (param.key, param.value)).toMap
+    )
+
   /**
    * Retrieve the value associated with a Kafka dynamic parameter
    * @param key Official name of the Kafka parameter
    * @param elseValue Default value
    * @return Value of the Kafka parameters defined in the configuration file
    */
-  def getParameterValue(key: String, elseValue: String): String = parametersMap.getOrElse(key, elseValue)
+  def getProdParameterValue(key: String, elseValue: String): String =
+    kafkaProdCcnfigMap.getOrElse(key, elseValue)
 
+  def getConsParameterValue(key: String, elseValue: String): String =
+    kafkaConsConfigMap.getOrElse(key, elseValue)
+
+  def getStreamsParameterValue(key: String, elseValue: String): String =
+    kafkaStreamConfigMap.getOrElse(key, elseValue)
 
   private def stripParamCategory(content: String, categoryMarker: String): String =
-    content.replace(categoryMarker, "")
+    content.replace(s"${categoryMarker}%", "")
 
-  final private val parametersMap = kafkaConfig.kafkaParameters.map(param => (param.key, param.value)).toMap
+  private def getKafkaConfig(
+    content: Option[String],
+    configType: String
+  ): KafkaConfig = content.map(stripParamCategory(_, configType))
+    .map(Json.mapper.readValue(_, classOf[KafkaConfig]))
+    .getOrElse(
+      throw new IllegalStateException("Kafka dynamic configuration improperly loaded")
+    )
 }
 
 

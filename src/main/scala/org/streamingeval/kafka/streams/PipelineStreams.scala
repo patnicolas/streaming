@@ -15,6 +15,7 @@ import org.apache.kafka.streams.{KafkaStreams, StreamsConfig, Topology}
 import org.apache.kafka.streams.scala.StreamsBuilder
 import org.streamingeval.kafka.streams.PipelineStreams.getProperties
 import org.slf4j.{Logger, LoggerFactory}
+import org.streamingeval.kafka.KafkaAdminClient.streamingProperties
 
 import java.time.Duration
 import java.util.Properties
@@ -74,24 +75,7 @@ private[kafka] object PipelineStreams {
    * Load the properties from the resource file
    * @return Optional properties
    */
-  def getProperties: Properties = {
-    val p = new Properties()
-    p.put(
-      StreamsConfig.APPLICATION_ID_CONFIG,
-      "map-function-scala-example"
-    )
-    val bootstrapServers = "localhost:9092"
-    p.put(
-      StreamsConfig.BOOTSTRAP_SERVERS_CONFIG,
-      bootstrapServers
-    )
-    p
-    /*
-    consumerProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "AI-ML")
-    consumerProperties
-
-     */
-  }
+  def getProperties: Properties = streamingProperties
 }
 
 
