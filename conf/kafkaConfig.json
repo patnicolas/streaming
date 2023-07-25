@@ -13,6 +13,12 @@
       "paramType": "String"
     },
     {
+      "key": "kafkaConsumerConfiguration%enable.auto.commit",
+      "value": true,
+      "isDynamic": true,
+      "paramType": "String"
+    },
+    {
       "key": "kafkaProducerConfiguration%linger.ms",
       "value": 180,
       "isDynamic": true,
@@ -31,6 +37,12 @@
       "paramType": "String"
     },
     {
+      "key": "kafkaProducerConfiguration%retries",
+      "value": "8",
+      "isDynamic": true,
+      "paramType": "String"
+    },
+    {
       "key": "kafkaConsumerConfiguration%poolTimeIntervalMs",
       "value": 5300,
       "isDynamic": true,
@@ -39,6 +51,18 @@
     {
       "key": "kafkaConsumerConfiguration%max.poll.records",
       "value": 512,
+      "isDynamic": true,
+      "paramType": "Int"
+    },
+    {
+      "key": "kafkaStreamingConfiguration%num.stream.threads",
+      "value": 8,
+      "isDynamic": true,
+      "paramType": "Int"
+    },
+    {
+      "key": "kafkaStreamingConfiguration%replication.factor",
+      "value": 2,
       "isDynamic": true,
       "paramType": "Int"
     }

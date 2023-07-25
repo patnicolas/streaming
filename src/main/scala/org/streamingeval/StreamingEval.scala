@@ -49,7 +49,7 @@ object StreamingEval extends App {
       "input/note4.txt",
       "input/note3.txt",
       "input/note1.txt"
-    ).flatMap(LocalFileUtil.Load.local).map(
+    ).flatMap(LocalFileUtil.Load.local(_)).map(
       _.replaceAll(
         "\n",
         " "

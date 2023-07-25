@@ -16,7 +16,7 @@
         <mockito.version>1.10.19</mockito.version>
         <scalatest.version>3.2.16</scalatest.version>
         <spark.version>3.3.2</spark.version>
-        <scala.version>2.13.11</scala.version>
+        <scala.version>2.12.15</scala.version>
         <slf4j.version>2.0.0</slf4j.version>
         <s3.aws.version>1.12.262</s3.aws.version>
         <akka.http.version>10.2.9</akka.http.version>
@@ -86,7 +86,7 @@
         <!--       Kafka components      -->
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.13</artifactId>
+            <artifactId>kafka_2.12</artifactId>
             <version>${kafka.version}</version>
         </dependency>
 
@@ -105,7 +105,7 @@
 
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-streams-scala_2.13</artifactId>
+            <artifactId>kafka-streams-scala_2.12</artifactId>
             <version>${kafka.version}</version>
         </dependency>
 
@@ -164,7 +164,7 @@
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.13</artifactId>
+            <artifactId>scalatest_2.12</artifactId>
             <version>3.2.16</version>
             <scope>test</scope>
             <exclusions>
@@ -184,7 +184,7 @@
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.13</artifactId>
+            <artifactId>scalatest_2.12</artifactId>
             <version>${scalatest.version}</version>
             <exclusions>
                 <exclusion>
@@ -206,13 +206,13 @@
         <!--     Apache Spark      -->
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_2.13</artifactId>
+            <artifactId>spark-core_2.12</artifactId>
             <version>${spark.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_2.13</artifactId>
+            <artifactId>spark-sql_2.12</artifactId>
             <version>${spark.version}</version>
             <exclusions>
                 <exclusion>
@@ -232,7 +232,7 @@
 
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-mllib_2.13</artifactId>
+            <artifactId>spark-mllib_2.12</artifactId>
             <version>${spark.version}</version>
             <exclusions>
                 <exclusion>
@@ -251,7 +251,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-hadoop-cloud_2.13</artifactId>
+            <artifactId>spark-hadoop-cloud_2.12</artifactId>
             <version>${spark.version}</version>
         </dependency>
         <dependency>

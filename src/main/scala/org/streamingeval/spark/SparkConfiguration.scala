@@ -20,7 +20,7 @@ import org.slf4j._
 import scala.util.Try
 
 /**
- * Spark configuration file thqt distinguish between dynamic and static parameters
+ * Spark configuration file distinguishes between dynamic and static parameters
  * @param sparkParameters List of Spark parameters definition
  *
  * @author Patrick Nicolas
@@ -40,13 +40,16 @@ private[streamingeval] case class SparkConfiguration(sparkParameters: Seq[Parame
 
 
 
-private[streamingeval] final object SparkConfiguration {
+private[streamingeval] object SparkConfiguration {
   import org.streamingeval.util.LocalFileUtil._
 
   final val log: Logger = LoggerFactory.getLogger("SparkConfiguration")
 
   private final val mlSparkConfigFile = "conf/sparkConfig.json"
 
+  /**
+   * Load the configuration for Spark from the JSON configuration file
+   */
   final val mlSparkConfig: SparkConfiguration = try {
     val content = Load.local(fsFilename = mlSparkConfigFile)
     content.map( Json.mapper.readValue(_, classOf[SparkConfiguration])).getOrElse(
@@ -78,11 +81,10 @@ private[streamingeval] final object SparkConfiguration {
    * Main factory for the execution context created from a configuration file
    * @return Execution context initialized by a configuration file
    */
-  def loadSpark: Try[SparkConf] = Try { SparkConfiguration.buildConf }
+  private def loadSpark: Try[SparkConf] = Try { SparkConfiguration.buildConf }
 
   /**
    * Implicit conversion from a configuration file to a SparkSession
-   * @param confFile Spark configuration file
    * @return SparkSession instance
    */
   def confToSessionFromFile: SparkSession =

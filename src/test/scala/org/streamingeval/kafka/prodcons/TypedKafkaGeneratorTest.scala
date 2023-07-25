@@ -25,7 +25,7 @@ private[prodcons] object TypedKafkaGeneratorTest {
   private def generateMessages: Seq[(String, RequestMessage)] = {
     val contents = Array[String](
       "input/note1.txt", "input/note3.txt", "input/note4.txt", "input/note3.txt", "input/note1.txt"
-    ).flatMap(LocalFileUtil.Load.local)
+    ).flatMap(LocalFileUtil.Load.local(_))
       .map(_.replaceAll("\n", " ").replaceAll("\r", ""))
     (0 until 25).map(
       index => {

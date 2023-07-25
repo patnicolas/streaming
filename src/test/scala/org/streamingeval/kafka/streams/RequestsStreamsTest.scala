@@ -1,7 +1,6 @@
 package org.streamingeval.kafka.streams
 
 import org.scalatest.flatspec.AnyFlatSpec
-import org.streamingeval.kafka.prodcons.TopicsManager
 import org.streamingeval.{RequestPayload, ResponsePayload}
 
 final class RequestsStreamsTest extends AnyFlatSpec{
@@ -31,7 +30,7 @@ final class RequestsStreamsTest extends AnyFlatSpec{
 object RequestsStreamsTest {
   final val simpleProc: RequestPayload => ResponsePayload =
     (reqPayload: RequestPayload) => {
-      val response = s"${reqPayload.consumedPayload}_produced"
+      val response = s"** ${reqPayload.consumedPayload}_produced"
       println(response)
       ResponsePayload(reqPayload.id, response)
     }
@@ -39,6 +38,7 @@ object RequestsStreamsTest {
 
   final val procWithDelay: RequestPayload => ResponsePayload =
     (reqPayload: RequestPayload) => {
+      print(s"** Payload: ${reqPayload.toString}")
       val msg = reqPayload.consumedPayload
       val sleepTime: Long = try { msg.toLong }
       catch {
@@ -54,6 +54,7 @@ object RequestsStreamsTest {
           println(s"Failed to delay the procedure ${e.getMessage}")
       }
       val response = s"Produced after $sleepTime milliseconds"
+      println(response)
       ResponsePayload(reqPayload.id, response)
     }
 }

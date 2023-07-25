@@ -41,10 +41,11 @@ private[streamingeval] final class SparkDStreams[T](
   streamingDurationMs: Long,
   checkpointDir: Option[String])(implicit sparkSession: SparkSession) {
 
+    // Initialize the streaming context with appropriate checkpoint
   private[this] val ssc = {
     val duration = Duration(streamingDurationMs)
     val streamingContext = new StreamingContext(sparkSession.sparkContext, duration)
-    checkpointDir.foreach( streamingContext.checkpoint(_))
+    checkpointDir.foreach( streamingContext.checkpoint )
     streamingContext
   }
 
@@ -53,9 +54,11 @@ private[streamingeval] final class SparkDStreams[T](
 
   private def streamingFromKafka(
     streamFromKafka: StreamFromKafka,
-    process: InputDStream[ConsumerRecord[String, T]] => Unit): InputDStream[ConsumerRecord[String, T]]  = {
-
-    val inputStream: InputDStream[ConsumerRecord[String, T]] = KafkaUtils.createDirectStream[String, T](
+    process: InputDStream[ConsumerRecord[String, T]] => Unit
+  ): InputDStream[ConsumerRecord[String, T]]  = {
+      // Create the input DStream
+    val inputStream: InputDStream[ConsumerRecord[String, T]] =
+      KafkaUtils.createDirectStream[String, T](
       ssc,
       PreferConsistent,
       Subscribe[String, T](streamFromKafka.topics, streamFromKafka.kafkaParams)
@@ -64,16 +67,22 @@ private[streamingeval] final class SparkDStreams[T](
     inputStream
   }
 
+  /**
+   * Generic method to process streams of the Type T
+   * @param process processor/transform
+   */
   def apply(process: InputDStream[ConsumerRecord[String, T]] => Unit): Unit = {
     val inputStream = streamType match {
       case kafkaStreamType: StreamFromKafka => streamingFromKafka(kafkaStreamType, process)
       case _ => throw new UnsupportedOperationException(s"Stream type ${streamType.toString} not supported")
     }
 
+    // Enforces asynchronous commit
     inputStream.foreachRDD { rdd =>
       val offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
       inputStream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)
     }
+    // Start the streaming context and block until termination
     ssc.start()
     ssc.awaitTermination()
   }

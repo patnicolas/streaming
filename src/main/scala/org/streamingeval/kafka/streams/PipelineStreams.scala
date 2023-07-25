@@ -48,6 +48,7 @@ private[kafka] abstract class PipelineStreams[T](valueDeserializerClass: String)
       val delayMs = 2000L
       delay(delayMs)
 
+      // Shut down the streaming
       sys.ShutdownHookThread {
         streams.close(Duration.ofSeconds(12))
       }

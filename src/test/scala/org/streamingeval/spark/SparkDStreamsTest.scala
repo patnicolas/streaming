@@ -8,6 +8,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.streamingeval.RequestMessage
 import org.streamingeval.kafka.KafkaAdminClient
 import org.streamingeval.kafka.prodcons.TopicsManager
+import org.streamingeval.kafka.prodcons.TopicsManager.AdminClientState
 import org.streamingeval.kafka.serde.RequestSerDe
 
 private[spark] final class SparkDStreamsTest extends AnyFlatSpec {
@@ -15,11 +16,10 @@ private[spark] final class SparkDStreamsTest extends AnyFlatSpec {
   import org.streamingeval.spark.implicits.sparkSession
 
   it should "process Kafka streams" in {
-    assert(KafkaAdminClient.isAlive, "Failed to connect to Kafka")
+    AdminClientState.start()
+
     val topic = "test-streaming"
     val topicsManager = TopicsManager()
-    if (!topicsManager.listTopics.contains(topic))
-      topicsManager.createTopic(topic, numPartitions = 2)
     println(s"Current list of topics: ${topicsManager.listTopics.mkString(" ")}")
 
     val streamsFromKafka = createStreamFromKafka

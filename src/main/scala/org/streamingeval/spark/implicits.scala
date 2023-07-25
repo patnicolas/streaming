@@ -15,7 +15,8 @@ import org.apache.spark.sql.SparkSession
 import org.slf4j.{Logger, LoggerFactory}
 import org.streamingeval.spark.SparkConfiguration.confToSessionFromFile
 
-import scala.jdk.CollectionConverters.{CollectionHasAsScala, MapHasAsScala}
+import scala.jdk.CollectionConverters.{asScalaBufferConverter, collectionAsScalaIterableConverter, mapAsScalaMapConverter}
+
 
 
 
