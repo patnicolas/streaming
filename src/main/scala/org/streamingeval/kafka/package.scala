@@ -35,24 +35,20 @@ package object kafka {
   object KafkaAdminClient {
         // Default Kafka properties
     lazy val consumerProperties: java.util.Properties = {
-      val props = load(KafkaConfig.kafkaConsConfig)
-      props.put("bootstrap.servers", "localhost:9092")
+      val props = load(KafkaConfig.kafkaStreamConfig)
       props.put("key.deserializer", classOf[StringDeserializer])
       props.put("value.deserializer", classOf[RequestDeserializer])
       props.put("key.serializer", classOf[StringSerializer])
       props.put("value.serializer", classOf[RequestSerializer])
-      props.put("group.id", "group_1")
       props
     }
 
     lazy val producerProperties: java.util.Properties = {
       val props = load(kafkaProdCcnfig)
-      props.put("bootstrap.servers", "localhost:9092")
       props.put("key.deserializer", classOf[StringDeserializer])
       props.put("value.deserializer", classOf[ResponseDeserializer])
       props.put("key.serializer", classOf[StringSerializer])
       props.put("value.serializer", classOf[ResponseSerializer])
-      props.put("group.id", "group_1")
       props
     }
 
@@ -60,8 +56,11 @@ package object kafka {
     lazy val streamingProperties: java.util.Properties = {
       val props = load(KafkaConfig.kafkaStreamConfig)
       props.put(StreamsConfig.APPLICATION_ID_CONFIG, "map-function-scala-example")
+      /*
       val bootstrapServers = "localhost:9092"
       props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers)
+
+       */
       props
     }
 
@@ -69,7 +68,7 @@ package object kafka {
     private def load(config: KafkaConfig): java.util.Properties =
       config.kafkaParameters.foldLeft(new Properties()) (
         (props, param) => {
-          props.put(param.key, param.value.toString)
+          props.put(param.key, param.value)
           props
         }
       )

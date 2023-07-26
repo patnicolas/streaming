@@ -27,6 +27,7 @@ package object streamingeval {
    * @version 0.0.2
    */
   case class ParameterDefinition(key: String, value: String, isDynamic: Boolean, paramType: String) {
+
     override def toString: String = s"$key $value ${if (isDynamic) "dynamic" else "static"}, $paramType"
   }
 
@@ -60,7 +61,7 @@ package object streamingeval {
    *
    * @param timestamp         Time stamp the response was created
    * @param status            HTTP status
-   * @param error             HTTP error descripiton
+   * @param error             HTTP error description
    * @param responsePayload Prediction response
    */
   case class ResponseMessage(
@@ -82,6 +83,4 @@ package object streamingeval {
   }
 
   private final val applicationPropertiesFile: String = "application.properties"
-
-  final val saslJaasConfigLabel = "sasl.jaas.config"
 }

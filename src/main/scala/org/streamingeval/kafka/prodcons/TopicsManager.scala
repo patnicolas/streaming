@@ -170,7 +170,6 @@ private[streamingeval] final class TopicsManager private(properties: Properties)
   private def listTopics(adminClient: AdminClient): Set[String] = try {
     if (isAlive(adminClient)) {
       val topicNames = adminClient.listTopics().names().get()
-      //val listings = listingsFuture.get
       val topics = topicNames.asScala
       adminClient.close()
       topics

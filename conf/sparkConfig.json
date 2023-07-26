@@ -25,6 +25,12 @@
       "paramType":"String"
     },
     {
+      "key": "spark.io.compression.snappy.blockSize",
+      "value":"32k",
+      "isDynamic": true,
+      "paramType":"String"
+    },
+    {
       "key": "spark.local.dir",
       "value":"temp",
       "isDynamic": false,
@@ -40,6 +46,24 @@
       "key": "spark.serializer",
       "value":"org.apache.spark.serializer.KryoSerializer",
       "isDynamic": false,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.KryoSerializer.unsafe",
+      "value":true,
+      "isDynamic": true,
+      "paramType":"Boolean"
+    },
+    {
+      "key": "spark.KryoSerializer.buffer.max",
+      "value":"64m",
+      "isDynamic": true,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.KryoSerializer.buffer",
+      "value":"64m",
+      "isDynamic": true,
       "paramType":"String"
     },
     {
@@ -145,16 +169,52 @@
       "paramType":"String"
     },
     {
+      "key": "spark.shuffle.file.buffer",
+      "value":"32k",
+      "isDynamic": true,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.shuffle.compress",
+      "value":true,
+      "isDynamic": true,
+      "paramType":"Boolean"
+    },
+    {
+      "key": "spark.shuffle.unsafe.file.output.buffer",
+      "value":"32k",
+      "isDynamic": true,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.shuffle.spill.compress",
+      "value":true,
+      "isDynamic": true,
+      "paramType":"Boolean"
+    },
+    {
       "key": "spark.driver.memory",
       "value":"6g",
       "isDynamic": true,
       "paramType":"String"
     },
     {
+      "key": "spark.executor.driverOverheadFactor",
+      "value":0.1,
+      "isDynamic": true,
+      "paramType":"Float"
+    },
+    {
       "key": "spark.executor.memory",
       "value":"4g",
       "isDynamic": true,
       "paramType":"String"
+    },
+    {
+      "key": "spark.executor.memoryOverheadFactor",
+      "value":0.1,
+      "isDynamic": true,
+      "paramType":"Float"
     },
     {
       "key": "spark.default.parallelism",
@@ -203,6 +263,60 @@
       "value":true,
       "isDynamic": true,
       "paramType":"Boolean"
+    },
+    {
+      "key": "spark.reducer.maxSizeInFlight",
+      "value":"48m",
+      "isDynamic": true,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.memory.fraction",
+      "value":0.6,
+      "isDynamic": true,
+      "paramType":"Float"
+    },
+    {
+      "key": "spark.memory.storageFraction",
+      "value":0.5,
+      "isDynamic": true,
+      "paramType":"Float"
+    },
+    {
+      "key": "spark.broadcast.blockSize",
+      "value":"4m",
+      "isDynamic": true,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.speculation",
+      "value":false,
+      "isDynamic": true,
+      "paramType":"Boolean"
+    },
+    {
+      "key": "spark.speculation.interval",
+      "value":"100ms",
+      "isDynamic": true,
+      "paramType":"String"
+    },
+    {
+      "key": "spark.speculation.multiplier",
+      "value":1.5,
+      "isDynamic": true,
+      "paramType":"Float"
+    },
+    {
+      "key": "spark.speculation.quantile",
+      "value":0.75,
+      "isDynamic": true,
+      "paramType":"Float"
+    },
+    {
+      "key": "spark.speculation.minTaskRuntime",
+      "value":"100ms",
+      "isDynamic": true,
+      "paramType":"String"
     }
   ]
 }
