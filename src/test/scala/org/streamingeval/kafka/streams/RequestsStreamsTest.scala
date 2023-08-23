@@ -5,6 +5,7 @@ import org.streamingeval.{RequestPayload, ResponsePayload}
 
 final class RequestsStreamsTest extends AnyFlatSpec{
   import RequestsStreamsTest._
+  
 
   it should "Succeed processing a simple streaming request" in {
     val requestTopic = "test-requests"
@@ -28,6 +29,18 @@ final class RequestsStreamsTest extends AnyFlatSpec{
 
 
 object RequestsStreamsTest {
+  sealed trait Status
+
+  case class Failure(error: String) extends Status
+  case object Success extends Status
+  case object Unknown extends Status
+
+  def processStatus(status: Status): String = status match {
+    case Failure(errorMsg) => errorMsg
+    case Success => "Succeeded"
+    case Unknown => "Undefined status"
+  }
+
   final val simpleProc: RequestPayload => ResponsePayload =
     (reqPayload: RequestPayload) => {
       val response = s"** ${reqPayload.consumedPayload}_produced"
