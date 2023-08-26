@@ -66,7 +66,6 @@ private[streamingeval] object SparkConfiguration {
 
   /**
    * Update the existing Spark configuration
-   * @param sparkConf Current Spark configuration
    * @return Updated Spark configuration
    */
   final def buildConf: SparkConf =

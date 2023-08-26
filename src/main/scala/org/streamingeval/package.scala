@@ -16,6 +16,26 @@ package org
 package object streamingeval {
 
   /**
+   *  Simplified schema for Patient record
+   * @param id Identifier for document
+   * @param age Patient age
+   * @param gender  Patient gender "M", "F", "X"
+   * @param taxonomy Taxonomy or speciality
+   * @param emr EMR string
+   * @param note Clinical note
+   */
+  case class PatientRecord(
+    id: String,
+    age: Long,
+    gender: String,
+    taxonomy: String,
+    emr: String,
+    note: String
+  )
+
+
+
+  /**
    * Default entry for architecture (Kafka, Spark) parameters
    *
    * @param key       Native name of the parameter

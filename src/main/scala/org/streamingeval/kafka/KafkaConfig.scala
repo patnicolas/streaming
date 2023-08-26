@@ -71,7 +71,7 @@ private[streamingeval] object KafkaConfig {
       throw new IllegalStateException(s"Failed to find configuration file ${e.getMessage}")
   }
 
-  val (
+  private val (
     kafkaProdCcnfigMap,
     kafkaConsConfigMap,
     kafkaStreamConfigMap): (Map[String, String], Map[String, String], Map[String, String]) =

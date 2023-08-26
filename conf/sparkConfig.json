@@ -92,7 +92,7 @@
     },
     {
       "key": "spark.driver.maxResultSize",
-      "value":65536,
+      "value":524288,
       "isDynamic": false,
       "paramType":"Int"
     },

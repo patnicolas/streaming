@@ -3,7 +3,6 @@ package org.streamingeval.kafka
 import org.scalatest.flatspec.AnyFlatSpec
 import org.streamingeval.kafka.KafkaConfig.kafkaProdCcnfig
 
-import scala.collection.mutable.ListBuffer
 
 private[kafka] final class KafkaTest extends AnyFlatSpec {
 

@@ -63,5 +63,4 @@ private[spark] object SparkDStreamsTest {
       // Built-in functionality
       wordPairs.countByWindow(Seconds(30), Seconds(15)).print()
     }
-
 }
