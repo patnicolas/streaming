@@ -1,6 +1,7 @@
 package org.streamingeval.spark
 
-import org.apache.spark.sql.SaveMode
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.streaming.OutputMode
 import org.apache.spark.sql.types.StructType
 import org.scalatest.flatspec.AnyFlatSpec
 import org.streamingeval.PatientRecord
@@ -62,7 +63,9 @@ private[spark] final class SparkStructStreamsFromFileTest extends AnyFlatSpec {
   ignore should "Succeed extracting schema from JSON records" in {
     import implicits._
     val path = "/Users/patricknicolas/dev/streaming/input-json"
-    val sparkStructStreamsFromFile = new SparkStructStreamsFromFile(path)
+    val sparkStructStreamsFromFile = SparkStructStreamsFromFile(path,
+      OutputMode.Append,
+      outputFormat = "console")
     println(sparkStructStreamsFromFile.getSchema.toString)
   }
 
@@ -70,8 +73,15 @@ private[spark] final class SparkStructStreamsFromFileTest extends AnyFlatSpec {
     import implicits._
 
     val path = "/Users/patricknicolas/dev/streaming/input-json"
-    val sparkStructStreamsFromFile = new SparkStructStreamsFromFile(path)
-    sparkStructStreamsFromFile.read("fff")
+
+
+    val sparkStructStreamsFromFile =  SparkStructStreamsFromFile(
+      path,
+      OutputMode.Append,
+      outputFormat = "json",
+      myTransform
+    )
+    sparkStructStreamsFromFile.read(s"SELECT age,gender FROM temptable WHERE age > 24")
   }
 
   /*
@@ -141,5 +151,13 @@ object SparkStructStreamsFromFileTest {
       }
     )
     mapToPatientRecord(Random.nextLong(), attributesMap.toMap)
+  }
+
+  def myTransform(
+    readDS: DataFrame,
+    sqlStatement: String
+  ) (implicit sparkSession: SparkSession): DataFrame = {
+    readDS.createOrReplaceTempView("temptable")
+    sparkSession.sql(sqlStatement)
   }
 }

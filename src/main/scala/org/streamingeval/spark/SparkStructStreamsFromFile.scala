@@ -12,9 +12,8 @@
 package org.streamingeval.spark
 
 import org.apache.spark.sql.streaming.{OutputMode, Trigger}
-import org.apache.spark.sql.{DataFrame, Dataset, Encoder, ForeachWriter, Row, SparkSession}
+import org.apache.spark.sql.{DataFrame, ForeachWriter, Row, SparkSession}
 import org.apache.spark.sql.types.StructType
-import org.streamingeval.PatientRecord
 
 
 
@@ -22,12 +21,19 @@ import org.streamingeval.PatientRecord
 /**
  * Spark streaming from a local file
  * @param folderPath Absolute path for the source file
+ * @param outputMode  Mode for writer stream (i.e. Append, Update, ...)
+ * @param outputFormat  Format used by the stream writer (json, console, csv, ...)
+ * @param transform  Optional transformation (input dataframe, SQL statement) => Output data frame
  * @param sparkSession Implicit reference to the current Spark context
  *
  * @author Patrick Nicolas
  * @version 0.1
  */
-final class SparkStructStreamsFromFile(folderPath: String)(implicit sparkSession: SparkSession){
+final class SparkStructStreamsFromFile private (
+  folderPath: String,
+  outputMode: OutputMode,
+  outputFormat: String,
+  transform: Option[(DataFrame, String) =>DataFrame] )(implicit  sparkSession: SparkSession) {
 
   private[this] lazy val schema: StructType = {
     val df = sparkSession.read.json(s"file://${folderPath}").head()
@@ -39,7 +45,6 @@ final class SparkStructStreamsFromFile(folderPath: String)(implicit sparkSession
 
 
   def read(): Unit = {
-    import sparkSession.implicits._
     val readDS = sparkSession.readStream
       .schema(schema)
       .json(s"file://${folderPath}")
@@ -48,24 +53,28 @@ final class SparkStructStreamsFromFile(folderPath: String)(implicit sparkSession
 
 
     val query = readDS.writeStream
-      .outputMode(OutputMode.Append())
-      .format("console")
+      .outputMode(outputMode)
+      .format(outputFormat)
       .option("checkpointLocation", "~/temp")
       .start()
-
-    println(query.lastProgress.sources(0))
 
     query.awaitTermination()
   }
 
+
+  def read(selectFields: Seq[String], whereCondition: String = "", groupedByCondition: String = ""): Unit = {
+    val sqlQuery = s"SELECT ${selectFields.mkString(",")} FROM temptable WHERE ${whereCondition} " +
+      s" GROUPBY ${groupedByCondition}"
+    read(sqlQuery)
+  }
+
+
   def read(sqlStatement: String): Unit = {
     println("Started reading file")
-    val readDS = sparkSession.readStream.schema(schema).json(s"file://${folderPath}")
-    assert(readDS.isStreaming)
+    val readDF:  DataFrame = sparkSession.readStream.schema(schema).json(s"file://$folderPath")
+    assert(readDF.isStreaming)
 
-    val sqlQuery = s"SELECT age,gender FROM temptable WHERE age > 24"
-    readDS.createOrReplaceTempView("temptable")
-    val transformedDF = sparkSession.sql(sqlQuery)
+    val transformedDF = transform.map(_(readDF, sqlStatement)).getOrElse(readDF)
 
     val writer = new ForeachWriter[Row] {
       override def open(partitionId: Long, version: Long): Boolean = true
@@ -76,14 +85,11 @@ final class SparkStructStreamsFromFile(folderPath: String)(implicit sparkSession
       }
     }
 
-
-
     val query = transformedDF.writeStream
       .foreach(writer)
-      .outputMode(OutputMode.Append())
-      .format("json")
+      .outputMode(outputMode)
+      .format(outputFormat)
       .trigger(Trigger.ProcessingTime("2 second"))
-    //  .option("table", "outputtable")
       .option("checkpointLocation", "temp/checkpoint")
     //  .foreachBatch { case (df: Dataset[Row], batchId: Long) => df.show(2) }
       .start("temp/json")
@@ -147,4 +153,35 @@ final class SparkStructStreamsFromFile(folderPath: String)(implicit sparkSession
   }
 
    */
+}
+
+object  SparkStructStreamsFromFile{
+
+  def apply(
+    folderPath: String,
+    outputMode: OutputMode,
+    outputFormat: String,
+    transform: (DataFrame, String) => DataFrame
+  )(implicit sparkSession: SparkSession): SparkStructStreamsFromFile = {
+    new SparkStructStreamsFromFile(
+      folderPath,
+      outputMode,
+      outputFormat,
+      Some(transform)
+    )
+  }
+
+  def apply(
+    folderPath: String,
+    outputMode: OutputMode,
+    outputFormat: String
+  )
+    (implicit sparkSession: SparkSession): SparkStructStreamsFromFile = {
+    new SparkStructStreamsFromFile(
+      folderPath,
+      outputMode,
+      outputFormat,
+      None
+    )
+  }
 }
