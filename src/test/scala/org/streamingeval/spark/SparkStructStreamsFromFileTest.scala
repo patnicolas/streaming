@@ -1,12 +1,11 @@
 package org.streamingeval.spark
 
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 import org.apache.spark.sql.streaming.OutputMode
-import org.apache.spark.sql.types.StructType
 import org.scalatest.flatspec.AnyFlatSpec
 import org.streamingeval.PatientRecord
+import org.streamingeval.spark.SparkStructStreamsFromFile.{SAggregator, STransform}
 import org.streamingeval.util.LocalFileUtil
-import org.streamingeval.util.LocalFileUtil.Json
 
 import scala.collection.mutable
 import scala.util.Random
@@ -65,99 +64,155 @@ private[spark] final class SparkStructStreamsFromFileTest extends AnyFlatSpec {
     val path = "/Users/patricknicolas/dev/streaming/input-json"
     val sparkStructStreamsFromFile = SparkStructStreamsFromFile(path,
       OutputMode.Append,
-      outputFormat = "console")
+      outputFormat = "console",
+      "temp/parquet")
     println(sparkStructStreamsFromFile.getSchema.toString)
   }
 
-  it should "Succeed read from stream" in {
+  ignore should "Succeed read from stream with a transform" in {
     import implicits._
 
     val path = "/Users/patricknicolas/dev/streaming/input-json"
-
 
     val sparkStructStreamsFromFile =  SparkStructStreamsFromFile(
       path,
-      OutputMode.Append,
+      OutputMode.Append(),
       outputFormat = "json",
+      "temp/json",
       myTransform
     )
-    sparkStructStreamsFromFile.read(s"SELECT age,gender FROM temptable WHERE age > 24")
+    sparkStructStreamsFromFile.read()
   }
 
-  /*
-  ignore should "Succeed query from stream" in {
+
+  it should "Succeed read from stream with a transform and aggregator" in {
     import implicits._
-    import sparkSession.implicits._
-
     val path = "/Users/patricknicolas/dev/streaming/input-json"
-    val sparkStructStreamsFromFile = new SparkStructStreamsFromFile(path)
-    val resultQuery = sparkStructStreamsFromFile.read[(Int, String, String)](
-      Seq[String]("age", "gender", "taxonomy")
-    )
-    println(resultQuery.collect.mkString("\n"))
-  }
+    val debug = true
+    val outputTable = "avg_age"
 
-   */
+    val sparkStructStreamsFromFile = SparkStructStreamsFromFile(
+      path,
+      OutputMode.Update(),
+      outputFormat = "csv",
+      outputTable,
+      debug,
+      myTransform,
+      myAggregator
+    )
+    sparkStructStreamsFromFile.read()
+  }
 }
 
 
 
 
-object SparkStructStreamsFromFileTest {
+object SparkStructStreamsFromFileTest{
   val noteMarker = ",List("
   val ageMarker = "Age"
   val genderMarker = "Gender"
   val taxonomyMarker = "Taxonomy"
   val emrMarker = "EMR Cpts"
-  val validMarkers = Set[String](ageMarker, genderMarker, taxonomyMarker, emrMarker)
+  val validMarkers = Set[String](
+    ageMarker,
+    genderMarker,
+    taxonomyMarker,
+    emrMarker
+  )
 
-  @throws(clazz = classOf[IllegalStateException])
-  implicit def mapToPatientRecord(
+  @throws(clazz = classOf[IllegalStateException]) implicit def mapToPatientRecord(
     index: Long,
     attributes: Map[String, String]
   ): PatientRecord = {
     PatientRecord(
       index.toString,
-      attributes.getOrElse(ageMarker, throw new IllegalStateException("Age not found")).toInt,
-      attributes.getOrElse(genderMarker, throw new IllegalStateException("Gender not found")),
-      attributes.getOrElse(taxonomyMarker, throw new IllegalStateException("Taxonomy not found")),
-      attributes.getOrElse(emrMarker, throw new IllegalStateException("EMR not found")),
-      attributes.getOrElse(noteMarker, throw new IllegalStateException("Note not found"))
+      attributes.getOrElse(
+        ageMarker,
+        throw new IllegalStateException("Age not found")
+      ).toInt,
+      attributes.getOrElse(
+        genderMarker,
+        throw new IllegalStateException("Gender not found")
+      ),
+      attributes.getOrElse(
+        taxonomyMarker,
+        throw new IllegalStateException("Taxonomy not found")
+      ),
+      attributes.getOrElse(
+        emrMarker,
+        throw new IllegalStateException("EMR not found")
+      ),
+      attributes.getOrElse(
+        noteMarker,
+        throw new IllegalStateException("Note not found")
+      )
     )
   }
+
   def extractJson(doc: String): PatientRecord = {
     val collector = mutable.HashMap[String, String]()
     val markerIndex = doc.indexOf(noteMarker)
-    if(markerIndex != -1) {
-      val note = doc.substring(markerIndex + noteMarker.length, doc.length-2)
-      collector.put(noteMarker, note)
+    if (markerIndex != -1) {
+      val note = doc.substring(
+        markerIndex + noteMarker.length,
+        doc.length - 2
+      )
+      collector.put(
+        noteMarker,
+        note
+      )
     }
 
     val lines = doc.split("\n").filter(_.length > 2)
     val attributesMap = lines.foldLeft(collector)(
       (hMap, line) => {
         val fields = line.split(":")
-        if(fields.size > 1) {
+        if (fields.size > 1) {
           val key = fields.head.trim
-          if(validMarkers.contains(key)) {
+          if (validMarkers.contains(key)) {
             val value = fields.tail.mkString(" ").trim
             hMap += ((key, value))
-          }
-          else
-            hMap
-        }
-        else
-          hMap
+          } else hMap
+        } else hMap
       }
     )
-    mapToPatientRecord(Random.nextLong(), attributesMap.toMap)
+    mapToPatientRecord(
+      Random.nextLong(),
+      attributesMap.toMap
+    )
   }
 
-  def myTransform(
-    readDS: DataFrame,
+
+  private def myTransformFunc(
+    readDF: DataFrame,
     sqlStatement: String
-  ) (implicit sparkSession: SparkSession): DataFrame = {
-    readDS.createOrReplaceTempView("temptable")
+  )
+    (implicit sparkSession: SparkSession): DataFrame = {
+    readDF.createOrReplaceTempView("temptable")
     sparkSession.sql(sqlStatement)
   }
+
+  import implicits._
+
+  val myTransform = new STransform(
+    Seq[String](
+      "age",
+      "gender"
+    ),
+    Seq[String]("age > 18"),
+    myTransformFunc,
+    "Filter by age"
+  )
+
+  def aggrFunc(inputColumn: Column): Column = {
+    import org.apache.spark.sql.functions._
+    avg(inputColumn)
+  }
+
+  val myAggregator = new SAggregator(
+    new Column("gender"),
+    new Column("age"),
+    aggrFunc,
+    "avg_age"
+  )
 }

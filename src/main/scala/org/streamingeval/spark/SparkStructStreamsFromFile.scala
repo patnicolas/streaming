@@ -12,18 +12,31 @@
 package org.streamingeval.spark
 
 import org.apache.spark.sql.streaming.{OutputMode, Trigger}
-import org.apache.spark.sql.{DataFrame, ForeachWriter, Row, SparkSession}
+import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 import org.apache.spark.sql.types.StructType
-
-
+import org.streamingeval.spark.SparkStructStreamsFromFile.{SAggregator, STransform}
 
 
 /**
- * Spark streaming from a local file
+ * Spark streaming from JSON representation of  a dataframe.
+ * {{{
+ *   The schema for the input dataset is inferred in the constructor by  reading the first JSON
+ *   record
+ *   The streaming pipeline is defined as
+ *        1- Stream reader ( <- JSON records)
+ *        2- DataFrame transformation
+ *        3- DataFrame aggregation
+ *        4- Stream console writer for debugging
+ *        5- Stream writer of results into CSV file
+ *   The parameters for the streaming pipeline are defined as arguments of the constructor
+ * }}}
+ *
  * @param folderPath Absolute path for the source file
  * @param outputMode  Mode for writer stream (i.e. Append, Update, ...)
  * @param outputFormat  Format used by the stream writer (json, console, csv, ...)
  * @param transform  Optional transformation (input dataframe, SQL statement) => Output data frame
+ * @param aggregator Optional aggregator with groupBy (single column) and sql.functions._
+ *                   aggregation function
  * @param sparkSession Implicit reference to the current Spark context
  *
  * @author Patrick Nicolas
@@ -33,7 +46,10 @@ final class SparkStructStreamsFromFile private (
   folderPath: String,
   outputMode: OutputMode,
   outputFormat: String,
-  transform: Option[(DataFrame, String) =>DataFrame] )(implicit  sparkSession: SparkSession) {
+  outputColumn: String,
+  debug: Boolean,
+  transform: Option[STransform],
+  aggregator: Option[SAggregator])(implicit  sparkSession: SparkSession) {
 
   private[this] lazy val schema: StructType = {
     val df = sparkSession.read.json(s"file://${folderPath}").head()
@@ -44,143 +60,196 @@ final class SparkStructStreamsFromFile private (
   def getSchema: StructType = schema
 
 
+  /**
+   * Simple query of all the field from a folder
+   */
+  def default_read(): Unit = {
+    val readDF = sparkSession.readStream.schema(schema).json(s"file://$folderPath")
+    assert(readDF.isStreaming)
+
+    val query = readDF.writeStream
+          .outputMode(outputMode)
+          .format(outputFormat)
+          .option("checkpointLocation", "~/temp")
+          .start()
+
+    query.awaitTermination()
+  }
+
+
+  /**
+   *  Query the content of the file using a SQL statement. This implementation relies on a
+   *  temporary table.
+   *  {{{
+   *    There are 5 steps
+   *    1- Read stream from a set of JSON file defined in  'folderPath''. The schema was inferred
+   *        from the JSON files in the constructor
+   *    2- Apply the optional transformation on DataFrame produced in 1)
+   *    3- Apply the aggregator as a combination of a groupBy and aggregator
+   *    4- Use Console stream writer for debugging purpose
+   *    5- Save resulting DataFrame in CSV file using a stream writer in Update mode
+   *  }}}
+   */
   def read(): Unit = {
-    val readDS = sparkSession.readStream
+    println("Started reading file")
+    // Step 1: Stream reader from a file 'folderPath'
+    val readDF:  DataFrame = sparkSession
+      .readStream
       .schema(schema)
-      .json(s"file://${folderPath}")
+      .json(s"file://$folderPath")
+    assert(readDF.isStreaming)
 
-    assert(readDS.isStreaming)
+    // Step 2: Transform
+    val transformedDF: DataFrame = transform
+      .map(_(readDF))
+      .getOrElse(readDF)
 
+    // Step 3: Aggregator
+    val aggregatorDF = aggregator.map(_(transformedDF)).getOrElse(transformedDF)
 
-    val query = readDS.writeStream
-      .outputMode(outputMode)
-      .format(outputFormat)
-      .option("checkpointLocation", "~/temp")
+    // Step 4: Debugging to console
+    debugSink(aggregatorDF)
+
+    // Step 5: Stream writer into a table
+    val query = aggregatorDF
+      .writeStream
+      .outputMode(OutputMode.Update())
+      .foreachBatch{
+        (batchDF: DataFrame, batchId: Long) =>
+          batchDF.select(outputColumn)
+            .write
+            .mode(SaveMode.Overwrite)
+            .format(outputFormat)
+            .save(path = s"temp/$outputFormat")
+      }
+      .trigger(Trigger.ProcessingTime("4 seconds"))
       .start()
 
     query.awaitTermination()
   }
 
-
-  def read(selectFields: Seq[String], whereCondition: String = "", groupedByCondition: String = ""): Unit = {
-    val sqlQuery = s"SELECT ${selectFields.mkString(",")} FROM temptable WHERE ${whereCondition} " +
-      s" GROUPBY ${groupedByCondition}"
-    read(sqlQuery)
-  }
-
-
-  def read(sqlStatement: String): Unit = {
-    println("Started reading file")
-    val readDF:  DataFrame = sparkSession.readStream.schema(schema).json(s"file://$folderPath")
-    assert(readDF.isStreaming)
-
-    val transformedDF = transform.map(_(readDF, sqlStatement)).getOrElse(readDF)
-
-    val writer = new ForeachWriter[Row] {
-      override def open(partitionId: Long, version: Long): Boolean = true
-      override def close(errorOrNull: Throwable): Unit = { println("closed")}
-      override def process(row: Row): Unit = {
-        println("***********")
-        (0 until row.size).foreach(index => println(row(index)))
-      }
-    }
-
-    val query = transformedDF.writeStream
-      .foreach(writer)
-      .outputMode(outputMode)
-      .format(outputFormat)
-      .trigger(Trigger.ProcessingTime("2 second"))
-      .option("checkpointLocation", "temp/checkpoint")
-    //  .foreachBatch { case (df: Dataset[Row], batchId: Long) => df.show(2) }
-      .start("temp/json")
-    query.awaitTermination()
-    println("Completed")
-  }
-
-
-  /*
-  def read(queryStr: String): Dataset[Row] = {
-    val streamedDS = read
-    streamedDS.sqlContext.sql(queryStr)
-  }
-
-
-
-  def read[T](
-    selectFields: Seq[String],
-    whereCondition: String = "",
-    groupByCondition: String = ""
-  )(implicit encoder: Encoder[T]): Dataset[T] = {
-    val streamedDS = read
-    var sqlQuery = s"SELECT ${selectFields.mkString(",")} FROM temptable"
-    if(whereCondition.nonEmpty)
-      sqlQuery = s"${sqlQuery} WHERE $whereCondition"
-    if(groupByCondition.nonEmpty)
-      sqlQuery = s"${sqlQuery} GROUP BY $groupByCondition"
-    streamedDS.createOrReplaceTempView("temptable")
-    val df = sparkSession.sql(sqlQuery)
-    df.as[T]
-  }
-
-   */
-
-
-
-  /*
-  def read(
-    selectFields: Seq[String],
-    whereCondition: String,
-    groupByCondition: String = "",
-    aggExpr: (String, String) = ("", "")): Dataset[Row] = {
-    val streamedDS = read
-
-    // If the WHERE condition is defined
-    if(whereCondition.nonEmpty)
-      if(groupByCondition.nonEmpty)
-        streamedDS.select(selectFields.mkString(","))
-          .where(whereCondition)
-          .groupBy(groupByCondition)
-          .agg(aggExpr)
-      else
-        streamedDS.select(selectFields.mkString(",")).where(whereCondition)
-
-    // No where condition
-    else
-      if(groupByCondition.nonEmpty)
-        streamedDS.select(selectFields.mkString(",")).groupBy(groupByCondition).agg(aggExpr)
-      else
-        streamedDS.select(selectFields.mkString(","))
-  }
-
-   */
+  private def debugSink(df: DataFrame): Unit =
+    if (debug)
+      df.writeStream.outputMode(OutputMode.Complete()).format("console").start()
 }
 
+
+
 object  SparkStructStreamsFromFile{
+
+  /**
+   * Transform (DataFrame, temporary table name) => DataFrame
+   */
+ private  type TransformFunc = (DataFrame, String) => DataFrame
+
+  /**
+   * Transformer for DataFrame (map function) using SQL.
+   * {{{
+   *    The selects fields and whereConditions are concatenate for the SQL statement
+   *    There is no validation of the generated SQL query prior execution
+   * }}}
+   * @param selectFields List of fields to display
+   * @param whereConditions WHERE conditions  if not empty
+   * @param transformFunc DataFrame transformation function DataFrame => DataFrame
+   * @param descriptor Optional descriptor
+   */
+  final class STransform(
+    selectFields: Seq[String],
+    whereConditions: Seq[String],
+    transformFunc: TransformFunc,
+    descriptor: String = ""){
+
+    def apply(df: DataFrame): DataFrame = transformFunc(df, queryStmt)
+
+    override def toString: String = s"$descriptor: $queryStmt"
+
+    private def queryStmt: String = {
+      val whereConditionStr =
+        if (whereConditions.nonEmpty) s"WHERE ${whereConditions.mkString("AND ")}"
+        else ""
+      s"SELECT ${selectFields.mkString(",")} FROM temptable $whereConditionStr"
+    }
+  }
+
+  /**
+   * Action or aggregator (Column, Column)
+   */
+  private type AggrFunc = Column => Column
+
+  /**
+   * Aggregator class
+   * @param groupByCol Column used for grouping
+   * @param aggrCol Column for aggregation
+   * @param aggrFunc Aggregation function of type ColumnType => ColumnType
+   * @param aggrAliasName Alias name for the aggregated values
+   */
+  class SAggregator(
+    groupByCol: Column,
+    aggrCol: Column,
+    aggrFunc: AggrFunc,
+    aggrAliasName: String) {
+    def apply(inputDF: DataFrame): DataFrame =
+       inputDF.groupBy(groupByCol).agg(aggrFunc(aggrCol).alias(aggrAliasName))
+
+    override def toString: String = s"$aggrAliasName: ${groupByCol.toString} => ${aggrCol.toString}"
+  }
+
+
+    // ------------------  Constructors ---------------------
 
   def apply(
     folderPath: String,
     outputMode: OutputMode,
     outputFormat: String,
-    transform: (DataFrame, String) => DataFrame
-  )(implicit sparkSession: SparkSession): SparkStructStreamsFromFile = {
-    new SparkStructStreamsFromFile(
-      folderPath,
-      outputMode,
-      outputFormat,
-      Some(transform)
-    )
-  }
-
-  def apply(
-    folderPath: String,
-    outputMode: OutputMode,
-    outputFormat: String
+    outputTable: String,
+    debug: Boolean,
+    transform: STransform,
+    aggregator: SAggregator,
   )
     (implicit sparkSession: SparkSession): SparkStructStreamsFromFile = {
     new SparkStructStreamsFromFile(
       folderPath,
       outputMode,
       outputFormat,
+      outputTable,
+      debug,
+      Some(transform),
+      Some(aggregator)
+    )
+  }
+
+  def apply(
+    folderPath: String,
+    outputMode: OutputMode,
+    outputFormat: String,
+    outputFolder: String,
+    transform: STransform
+  )(implicit sparkSession: SparkSession): SparkStructStreamsFromFile = {
+    new SparkStructStreamsFromFile(
+      folderPath,
+      outputMode,
+      outputFormat,
+      outputFolder,
+      debug = true,
+      Some(transform),
+      None
+    )
+  }
+
+  def apply(
+    folderPath: String,
+    outputMode: OutputMode,
+    outputFormat: String,
+    outputFolder: String,
+  )
+    (implicit sparkSession: SparkSession): SparkStructStreamsFromFile = {
+    new SparkStructStreamsFromFile(
+      folderPath,
+      outputMode,
+      outputFormat,
+      outputFolder,
+      debug = true,
+      None,
       None
     )
   }
