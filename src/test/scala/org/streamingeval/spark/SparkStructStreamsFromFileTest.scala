@@ -81,7 +81,7 @@ private[spark] final class SparkStructStreamsFromFileTest extends AnyFlatSpec {
       "temp/json",
       myTransform
     )
-    sparkStructStreamsFromFile.read()
+    sparkStructStreamsFromFile.execute()
   }
 
 
@@ -100,7 +100,7 @@ private[spark] final class SparkStructStreamsFromFileTest extends AnyFlatSpec {
       myTransform,
       myAggregator
     )
-    sparkStructStreamsFromFile.read()
+    sparkStructStreamsFromFile.execute()
   }
 }
 

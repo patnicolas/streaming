@@ -14,7 +14,9 @@ package org.streamingeval.spark
 import org.apache.spark.sql.streaming.{OutputMode, Trigger}
 import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 import org.apache.spark.sql.types.StructType
-import org.streamingeval.spark.SparkStructStreamsFromFile.{SAggregator, STransform}
+import org.slf4j.{Logger, LoggerFactory}
+import org.streamingeval.spark.SparkStructStreams.{SAggregator, STransform}
+import org.streamingeval.spark.SparkStructStreamsFromFile.{SAggregator, STransform, logger}
 
 
 /**
@@ -34,6 +36,8 @@ import org.streamingeval.spark.SparkStructStreamsFromFile.{SAggregator, STransfo
  * @param folderPath Absolute path for the source file
  * @param outputMode  Mode for writer stream (i.e. Append, Update, ...)
  * @param outputFormat  Format used by the stream writer (json, console, csv, ...)
+ * @param outputColumn Name of the aggregated column
+ * @param isConsoleSink Flag to enabled Console sink
  * @param transform  Optional transformation (input dataframe, SQL statement) => Output data frame
  * @param aggregator Optional aggregator with groupBy (single column) and sql.functions._
  *                   aggregation function
@@ -44,12 +48,13 @@ import org.streamingeval.spark.SparkStructStreamsFromFile.{SAggregator, STransfo
  */
 final class SparkStructStreamsFromFile private (
   folderPath: String,
-  outputMode: OutputMode,
-  outputFormat: String,
-  outputColumn: String,
-  debug: Boolean,
-  transform: Option[STransform],
-  aggregator: Option[SAggregator])(implicit  sparkSession: SparkSession) {
+  override val outputMode: OutputMode,
+  override val outputFormat: String,
+  override val outputColumn: String,
+  override val isConsoleSink: Boolean,
+  override val transform: Option[STransform],
+  override val aggregator: Option[SAggregator]
+)(implicit  sparkSession: SparkSession)  extends SparkStructStreams {
 
   private[this] lazy val schema: StructType = {
     val df = sparkSession.read.json(s"file://${folderPath}").head()
@@ -58,7 +63,6 @@ final class SparkStructStreamsFromFile private (
   sparkSession.sparkContext.setLogLevel("ERROR")
 
   def getSchema: StructType = schema
-
 
   /**
    * Simple query of all the field from a folder
@@ -90,8 +94,9 @@ final class SparkStructStreamsFromFile private (
    *    5- Save resulting DataFrame in CSV file using a stream writer in Update mode
    *  }}}
    */
-  def read(): Unit = {
-    println("Started reading file")
+  def execute(): Unit = {
+    logger.info("Starts reading file")
+
     // Step 1: Stream reader from a file 'folderPath'
     val readDF:  DataFrame = sparkSession
       .readStream
@@ -124,78 +129,21 @@ final class SparkStructStreamsFromFile private (
       }
       .trigger(Trigger.ProcessingTime("4 seconds"))
       .start()
-
+    logger.info("Sink started")
     query.awaitTermination()
   }
 
   private def debugSink(df: DataFrame): Unit =
-    if (debug)
+    if (isConsoleSink)
       df.writeStream.outputMode(OutputMode.Complete()).format("console").start()
 }
 
 
-
+/**
+ *  Singleton for various constructor
+ */
 object  SparkStructStreamsFromFile{
-
-  /**
-   * Transform (DataFrame, temporary table name) => DataFrame
-   */
- private  type TransformFunc = (DataFrame, String) => DataFrame
-
-  /**
-   * Transformer for DataFrame (map function) using SQL.
-   * {{{
-   *    The selects fields and whereConditions are concatenate for the SQL statement
-   *    There is no validation of the generated SQL query prior execution
-   * }}}
-   * @param selectFields List of fields to display
-   * @param whereConditions WHERE conditions  if not empty
-   * @param transformFunc DataFrame transformation function DataFrame => DataFrame
-   * @param descriptor Optional descriptor
-   */
-  final class STransform(
-    selectFields: Seq[String],
-    whereConditions: Seq[String],
-    transformFunc: TransformFunc,
-    descriptor: String = ""){
-
-    def apply(df: DataFrame): DataFrame = transformFunc(df, queryStmt)
-
-    override def toString: String = s"$descriptor: $queryStmt"
-
-    private def queryStmt: String = {
-      val whereConditionStr =
-        if (whereConditions.nonEmpty) s"WHERE ${whereConditions.mkString("AND ")}"
-        else ""
-      s"SELECT ${selectFields.mkString(",")} FROM temptable $whereConditionStr"
-    }
-  }
-
-  /**
-   * Action or aggregator (Column, Column)
-   */
-  private type AggrFunc = Column => Column
-
-  /**
-   * Aggregator class
-   * @param groupByCol Column used for grouping
-   * @param aggrCol Column for aggregation
-   * @param aggrFunc Aggregation function of type ColumnType => ColumnType
-   * @param aggrAliasName Alias name for the aggregated values
-   */
-  class SAggregator(
-    groupByCol: Column,
-    aggrCol: Column,
-    aggrFunc: AggrFunc,
-    aggrAliasName: String) {
-    def apply(inputDF: DataFrame): DataFrame =
-       inputDF.groupBy(groupByCol).agg(aggrFunc(aggrCol).alias(aggrAliasName))
-
-    override def toString: String = s"$aggrAliasName: ${groupByCol.toString} => ${aggrCol.toString}"
-  }
-
-
-    // ------------------  Constructors ---------------------
+  final private val logger = LoggerFactory.getLogger(classOf[SparkStructStreamsFromFile])
 
   def apply(
     folderPath: String,
@@ -230,7 +178,7 @@ object  SparkStructStreamsFromFile{
       outputMode,
       outputFormat,
       outputFolder,
-      debug = true,
+      isConsoleSink = true,
       Some(transform),
       None
     )
@@ -248,7 +196,7 @@ object  SparkStructStreamsFromFile{
       outputMode,
       outputFormat,
       outputFolder,
-      debug = true,
+      isConsoleSink = true,
       None,
       None
     )
