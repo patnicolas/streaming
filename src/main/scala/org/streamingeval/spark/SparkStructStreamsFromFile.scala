@@ -20,7 +20,7 @@ import org.streamingeval.spark.SparkStructStreamsFromFile.{SAggregator, STransfo
 
 
 /**
- * Spark streaming from JSON representation of  a dataframe.
+ * Spark streaming from JSON representation of a dataframe inm CSV format
  * {{{
  *   The schema for the input dataset is inferred in the constructor by  reading the first JSON
  *   record
@@ -47,15 +47,17 @@ import org.streamingeval.spark.SparkStructStreamsFromFile.{SAggregator, STransfo
  * @version 0.1
  */
 final class SparkStructStreamsFromFile private (
-  folderPath: String,
-  override val outputMode: OutputMode,
-  override val outputFormat: String,
-  override val outputColumn: String,
+  folderPath: String,  // Absolute path for the source file
+  override val outputMode: OutputMode, // Mode for writer stream (i.e. Append, Update, ...)
+  override val outputFormat: String, //  Format used by the stream writer (json, console, csv, ...)
+  override val outputColumn: String, // ame of the aggregated column
   override val isConsoleSink: Boolean,
-  override val transform: Option[STransform],
-  override val aggregator: Option[SAggregator]
+  override val transform: Option[STransform], // Transformation (DataFrame, SQL) =>  DataFrame
+  override val aggregator: Option[SAggregator] // groupBy (single column) +  sql.functions._
+  // aggregator
 )(implicit  sparkSession: SparkSession)  extends SparkStructStreams {
 
+  // Extract schema from files
   private[this] lazy val schema: StructType = {
     val df = sparkSession.read.json(s"file://${folderPath}").head()
     df.schema

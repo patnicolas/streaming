@@ -8,6 +8,7 @@ SPARK_VERSION=3.3.1
 HADOOP_VERSION=3
 JAVA_VERSION=11
 KAFKA_VERSION=3.4.0
+MONGODB_VERSION=4.10.0
 
 # Download and install appropriate JDK
 ENV JAVA_HOME="${home_dir}/java/jdk-${JAVA_VERSION}"
@@ -36,7 +37,7 @@ ENV PATH=$PATH:/$SPARK_HOME/bin:/$SPARK_HOME/sbin
 RUN echo $PATH
 
 # Download Kafka and Zookeeper
-ENV KAFKA_HOME="${home_dir}/kafka/KAFKA_VERSION"
+ENV KAFKA_HOME="${home_dir}/kafka/$KAFKA_VERSION"
 RUN mkdir $KAFKA_HOME \
     && DOWNLOAD_URL_KAFKA="https://downloads.apache.org/kafka/$KAFKA_VERSION/kafka_2.13-$KAFKA_VERSION.tgz" \
     && curl -s $DOWNLOAD_URL_KAFKA | tar -xvf -C $KAFKA_HOME --strip-components=1

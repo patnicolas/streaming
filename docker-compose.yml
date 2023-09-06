@@ -1,0 +1,99 @@
+version: '0.1'
+networks:
+    datapipeline:
+        driver: bridge
+
+services:
+    zookeeper:
+        image: bitnami/zookeeper:latest
+        container_name: "zookeeper"
+        environment:
+            ZOOKEEPER_CLIENT_PORT: 2181
+            ZOOKEEPER_TICK_TIME: 2000
+        ports:
+            - 22181:2181
+        networks:
+            - datapipeline
+
+    kafka:
+        image: bitnami/kafka:latest
+        container_name: "Kafka"
+        depends_on:
+            - zookeeper
+        ports:
+            - 29092:29092
+        environment:
+            KAFKA_BROKER_ID: 1
+            KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092, PLAINTEXT_HOST://localhost:29092
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXST_HOST:PLAINTEXT
+            KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+            KAFKA_CONSUMER_CONFIGURATION_POOL_TIME_INTERVAL: 14800
+            KAFKA_CONSUMER_CONFIGURATION_MAX_POLL_RECORDS: 120
+            KAFKA_CONSUMER_CONFIGURATION_FETCH_MAX_BYTES: 5428800
+            KAFKA_CONSUMER_CONFIGURATION_MAX_PARTITION_FETCH_BYTES: 1048576
+        volumes:
+            - ./producer:/producer
+            - ./consumer:/consumer
+        networks:
+            - datapipeline
+
+    spark-master:
+        image: bitnami/spark:latest
+        container_name: "spark_master"
+        ports:
+            - 8080:8080
+        environment:
+            SPARK_MODE: master
+            SPARK_EVENTLOG_ENABLED: yes
+            SPARK_IO_COMPRESSION_CODE: "snappy"
+            SPARK_HADOOP_FS_S3A_BUCKET_ALL_COMMITTER_MAGIC_ENABLED: yes
+            SPARK_SERIALIZER: "org.apache.spark.serializer.KryoSerializer"
+            SPARK_NETWORK_TIMEOUT: 2200
+            SPARK_DRIVER_MAXRESULTSIZE: 2147483648
+            SPARK_DRIVER_MEMORY: 20g
+            SPARK_DRIVER_CORES: 4
+            SPARK_DEFAULT_PARALLELISM: 16
+            SPARK_BROADCAST_COMPRESS: yes
+            SPARK_SQL_TUNGSTEN_ENABLED: yes
+            SPARK_SQL_SHUFFLE_PARTITIONS: 24
+            SPARK_RPC_AUTHENTICATION_ENAABLED: no
+            SPARK_RPC_ENCRYPTION_ENABLED: no
+            SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED: no
+            SPARK_SSL_ENABLED: no
+        networks:
+            - datapipeline
+
+    spark-worker:
+        image: bitnami/spark:latest
+        container_name: "spark_worker"
+        ports:
+            - 8081:8081
+        environment:
+            SPARK_MODE: worker
+            SPARK_MASTER_URL: spark://spark-master:7077
+            SPARK_WORKER_MEMORY: 6g
+            SPARK_WORKER_CORES: 3
+            SPARK_WORKER_CLEANUP_ENABLED: no
+            SPARK_RPC_AUTHENTICATION_ENABLED: no
+            SPARK_RPC_ENCRYPTION_ENABLED: no
+            SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED: no
+            SPARK_SSL_ENABLED: no
+        networks:
+            - datapipeline
+
+    mongodb:
+        image: bitnami/mongodb:latest
+        container_name: "mongodb"
+        ports:
+            - 27017:27017
+        environment:
+            MONGODB_INITDB_ROOT_PASSWORD_FILE: "dev/mongodb.txt"
+        volumes:
+            - mongodb_data_container:/data/db
+        networks:
+            - datapipeline
+
+volumes:
+    mongodb_data_container:

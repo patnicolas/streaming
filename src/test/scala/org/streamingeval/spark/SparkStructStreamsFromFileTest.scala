@@ -4,6 +4,7 @@ import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 import org.apache.spark.sql.streaming.OutputMode
 import org.scalatest.flatspec.AnyFlatSpec
 import org.streamingeval.PatientRecord
+import org.streamingeval.spark.SparkStructStreams.{SAggregator, STransform}
 import org.streamingeval.spark.SparkStructStreamsFromFile.{SAggregator, STransform}
 import org.streamingeval.util.LocalFileUtil
 
