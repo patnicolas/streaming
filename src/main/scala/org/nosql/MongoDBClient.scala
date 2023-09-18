@@ -19,6 +19,7 @@ import org.mongodb.scala._
 import org.mongodb.scala.Document
 import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
 import org.mongodb.scala.bson.codecs.Macros._
+import org.slf4j.{Logger, LoggerFactory}
 
 import java.io.File
 import scala.collection.mutable.ListBuffer
@@ -38,7 +39,9 @@ import scala.reflect.io.File
  * @author Patrick Nicolas
  * @version 0.0.1
  */
-final class MongoDBClient private (host: String, port: Int, dbName: String, isFromFile: Boolean) {
+final class MongoDBClient[T <: MongoDesc] private (host: String, port: Int, dbName: String,
+  isFromFile: Boolean) {
+  import MongoDBClient._
 
   private lazy val mongoDBClient = try {
     val connectionString = s"mongodb://${host}:${port.toString}"
@@ -54,7 +57,7 @@ final class MongoDBClient private (host: String, port: Int, dbName: String, isFr
     // Step 2: Instantiation of mongo database using custom CODE
     val _mongoDatabase =
       if(isFromFile) {
-        val customCodecs: CodecRegistry = fromProviders(classOf[MongoFile])
+        val customCodecs: CodecRegistry = fromProviders(classOf[T])
         val codecRegistry = fromRegistries(
           customCodecs,
           DEFAULT_CODEC_REGISTRY
@@ -71,12 +74,13 @@ final class MongoDBClient private (host: String, port: Int, dbName: String, isFr
       None
   }
 
-  def getCollectionFile(collectionName: String): Option[MongoCollection[MongoFile]] =
+  def getCollectionFile(collectionName: String): Option[MongoCollection[T]] =
     mongoDatabase.map(_.getCollection[MongoFile](collectionName))
 
-  def getFiles(collectionName: String): Option[Seq[MongoFile]] = try {
+  def getCollectionFiles(collectionName: String): Option[Seq[T]] = try {
     getCollectionFile(collectionName).map(
       mongoCollectionFile => {
+        // Asynchronously wait for the
         Await.result(
           mongoCollectionFile.find.toFuture(),
           Duration.Inf
@@ -86,7 +90,7 @@ final class MongoDBClient private (host: String, port: Int, dbName: String, isFr
   }
   catch {
     case e: Exception =>
-      println(s"ERROR: ${e.getMessage}")
+      logger.error(s"ERROR: ${e.getMessage}")
       None
   }
 
@@ -98,23 +102,24 @@ final class MongoDBClient private (host: String, port: Int, dbName: String, isFr
   def close(): Unit = mongoClient.foreach(_.close())
 
   def getDocument(collectionName: String): Seq[Document] =
-      mongoDBClient.map(
-        client => {
-          val collection = client._2.getCollection(collectionName)
-          Await.result(collection.find.toFuture(), Duration.Inf)
-        }
-      ).getOrElse({
-        println(s"WARN: Mongo collection ${collectionName} not found")
+      mongoDBClient.map {
+        case  (_, db) =>
+          val collection = db.getCollection(collectionName)
+          Await.result(collection.find.toFuture(),  Duration.Inf)
+      }.getOrElse({
+        logger.warn(s"WARN: Mongo collection ${collectionName} not found")
         Seq.empty[Document]
       })
 
   def getDocumentString(collectionName: String): Seq[String] = {
     val documents = getDocument(collectionName)
     if(documents.nonEmpty) {
+      // Accumulate the the
       documents.foldLeft(ListBuffer[String]())(
-        (lst, doc) => {
-          val docIterator = doc.iterator
+        (accumulator, document) => {
+          val docIterator = document.iterator
           val strBuf = new StringBuilder()
+
           while (docIterator.hasNext) {
             val record: (String, bson.BsonValue) = docIterator.next()
             val output = record._2.getBsonType match {
@@ -133,12 +138,14 @@ final class MongoDBClient private (host: String, port: Int, dbName: String, isFr
             }
             strBuf.append(output).append(", ")
           }
-          lst += strBuf.toString()
+          accumulator += strBuf.toString()
         }
       )
     }
-    else
+    else {
+      logger.warn(s"Mongo collection $collectionName is empty")
       Seq.empty[String]
+    }
   }
 
   def insert(source: String, filePath: String, fileType: String, contentLength: Long): Unit =
@@ -166,16 +173,19 @@ final class MongoDBClient private (host: String, port: Int, dbName: String, isFr
           Duration.Inf
         )
       }
-    ).getOrElse(println(s"WARN: Mongo collection ${collectionName} not found"))
+    ).getOrElse(logger.warn(s"Mongo collection ${collectionName} not found"))
 }
 
 object MongoDBClient {
-  def apply(host: String, port: Int, dbName: String, isFromFile: Boolean): MongoDBClient =
-    new MongoDBClient(host, port, dbName, isFromFile)
+  final private val logger: Logger = LoggerFactory.getLogger("MongoDBClient")
 
-  def apply(host: String, dbName: String, isFromFile: Boolean): MongoDBClient =
-    new MongoDBClient(host, 27017, dbName, isFromFile)
+  def apply[T <: MongoDesc] (host: String, port: Int, dbName: String, isFromFile: Boolean)
+  : MongoDBClient[T] =
+    new MongoDBClient[T](host, port, dbName, isFromFile)
 
-  def apply(dbName: String, isFromFile: Boolean): MongoDBClient =
-    new MongoDBClient("localhost", 27017, dbName, isFromFile)
+  def apply[T <: MongoDesc] (host: String, dbName: String, isFromFile: Boolean): MongoDBClient[T] =
+    new MongoDBClient[T](host, 27017, dbName, isFromFile)
+
+  def apply[T <: MongoDesc](dbName: String, isFromFile: Boolean): MongoDBClient [T]=
+    new MongoDBClient[T]("localhost", 27017, dbName, isFromFile)
 }

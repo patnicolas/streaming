@@ -207,7 +207,7 @@ object SparkStructStreamsFromFileTest{
 
   def aggrFunc(inputColumn: Column): Column = {
     import org.apache.spark.sql.functions._
-    avg(inputColumn)
+    avg(inputColumn)vi
   }
 
   val myAggregator = new SAggregator(

@@ -37,7 +37,7 @@ final class MongoDBClientTest extends AnyFlatSpec {
 
   it should "Extract mongo collection file" in {
     val mongoClient = MongoDBClient("test-db", true)
-    val files = mongoClient.getFiles("test_table")
+    val files = mongoClient.getCollectionFiles("test_table")
     assert(files.isDefined, "Mongo DB files not found")
     val filenames = files.map(_.map(_.toString)).getOrElse({
       assert( false, "Failed to load MongoDB collection files")

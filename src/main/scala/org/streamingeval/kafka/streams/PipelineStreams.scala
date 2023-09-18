@@ -21,7 +21,7 @@ import java.time.Duration
 import java.util.Properties
 
 /**
- * Basic pipeline streams that consumes requests of type T
+ * #KafkaPipelineStream Basic pipeline streams that consumes requests of type T
  * @param valueDeserializerClass Class or type used in the deserialization for Kafka consumer
  * @tparam T Type of Kafka message consumed
  * @see org.streamingeval.kafka.streams.PipelineStreams
