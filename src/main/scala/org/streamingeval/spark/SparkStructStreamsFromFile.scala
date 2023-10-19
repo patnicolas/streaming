@@ -16,7 +16,7 @@ import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 import org.apache.spark.sql.types.StructType
 import org.slf4j.{Logger, LoggerFactory}
 import org.streamingeval.spark.SparkStructStreams.{SAggregator, STransform}
-import org.streamingeval.spark.SparkStructStreamsFromFile.{SAggregator, STransform, logger}
+import org.streamingeval.spark.SparkStructStreamsFromFile.logger
 
 
 /**

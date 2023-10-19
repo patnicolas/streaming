@@ -16,6 +16,13 @@ services:
         networks:
             - datapipeline
 
+	# ^#KafkaPipelineStream Kafka docker image loaded from bantam following zookeeper deployment
+        # Port 29092
+        # Consumer properties
+        # KAFKA_CONSUMER_CONFIGURATION_POOL_TIME_INTERVAL: 14800
+        # KAFKA_CONSUMER_CONFIGURATION_MAX_POLL_RECORDS: 120
+        # KAFKA_CONSUMER_CONFIGURATION_FETCH_MAX_BYTES: 5428800
+        # KAFKA_CONSUMER_CONFIGURATION_MAX_PARTITION_FETCH_BYTES: 1048576^
     kafka:
         image: bitnami/kafka:latest
         container_name: "Kafka"

@@ -5,7 +5,6 @@ import org.apache.spark.sql.streaming.OutputMode
 import org.scalatest.flatspec.AnyFlatSpec
 import org.streamingeval.PatientRecord
 import org.streamingeval.spark.SparkStructStreams.{SAggregator, STransform}
-import org.streamingeval.spark.SparkStructStreamsFromFile.{SAggregator, STransform}
 import org.streamingeval.util.LocalFileUtil
 
 import scala.collection.mutable
@@ -207,7 +206,7 @@ object SparkStructStreamsFromFileTest{
 
   def aggrFunc(inputColumn: Column): Column = {
     import org.apache.spark.sql.functions._
-    avg(inputColumn)vi
+    avg(inputColumn)
   }
 
   val myAggregator = new SAggregator(

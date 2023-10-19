@@ -57,7 +57,7 @@ final class MongoDBClient[T <: MongoDesc] private (host: String, port: Int, dbNa
     // Step 2: Instantiation of mongo database using custom CODE
     val _mongoDatabase =
       if(isFromFile) {
-        val customCodecs: CodecRegistry = fromProviders(classOf[T])
+        val customCodecs: CodecRegistry = fromProviders(classOf[MongoDesc])
         val codecRegistry = fromRegistries(
           customCodecs,
           DEFAULT_CODEC_REGISTRY
@@ -74,10 +74,10 @@ final class MongoDBClient[T <: MongoDesc] private (host: String, port: Int, dbNa
       None
   }
 
-  def getCollectionFile(collectionName: String): Option[MongoCollection[T]] =
+  def getCollectionFile(collectionName: String): Option[MongoCollection[MongoFile]] =
     mongoDatabase.map(_.getCollection[MongoFile](collectionName))
 
-  def getCollectionFiles(collectionName: String): Option[Seq[T]] = try {
+  def getCollectionFiles(collectionName: String): Option[Seq[MongoFile]] = try {
     getCollectionFile(collectionName).map(
       mongoCollectionFile => {
         // Asynchronously wait for the
