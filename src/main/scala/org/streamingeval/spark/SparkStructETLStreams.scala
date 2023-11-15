@@ -16,7 +16,7 @@ import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 import org.apache.spark.sql.types.StructType
 import org.slf4j.{Logger, LoggerFactory}
 import org.streamingeval.spark.SparkStructStreams.{SAggregator, STransform}
-import org.streamingeval.spark.SparkStructStreamsFromFile.logger
+import org.streamingeval.spark.SparkStructETLStreams.logger
 
 
 /**
@@ -46,7 +46,7 @@ import org.streamingeval.spark.SparkStructStreamsFromFile.logger
  * @author Patrick Nicolas
  * @version 0.1
  */
-final class SparkStructStreamsFromFile private (
+final class SparkStructETLStreams private (
   folderPath: String,  // Absolute path for the source file
   override val outputMode: OutputMode, // Mode for writer stream (i.e. Append, Update, ...)
   override val outputFormat: String, //  Format used by the stream writer (json, console, csv, ...)
@@ -123,11 +123,13 @@ final class SparkStructStreamsFromFile private (
       .outputMode(OutputMode.Update())
       .foreachBatch{
         (batchDF: DataFrame, batchId: Long) =>
+          batchDF.persist()
           batchDF.select(outputColumn)
             .write
             .mode(SaveMode.Overwrite)
             .format(outputFormat)
             .save(path = s"temp/$outputFormat")
+          batchDF.unpersist()
       }
       .trigger(Trigger.ProcessingTime("4 seconds"))
       .start()
@@ -144,8 +146,8 @@ final class SparkStructStreamsFromFile private (
 /**
  *  Singleton for various constructor
  */
-object  SparkStructStreamsFromFile{
-  final private val logger = LoggerFactory.getLogger(classOf[SparkStructStreamsFromFile])
+object  SparkStructETLStreams{
+  final private val logger = LoggerFactory.getLogger(classOf[SparkStructETLStreams])
 
   def apply(
     folderPath: String,
@@ -156,8 +158,8 @@ object  SparkStructStreamsFromFile{
     transform: STransform,
     aggregator: SAggregator,
   )
-    (implicit sparkSession: SparkSession): SparkStructStreamsFromFile = {
-    new SparkStructStreamsFromFile(
+    (implicit sparkSession: SparkSession): SparkStructETLStreams = {
+    new SparkStructETLStreams(
       folderPath,
       outputMode,
       outputFormat,
@@ -174,8 +176,8 @@ object  SparkStructStreamsFromFile{
     outputFormat: String,
     outputFolder: String,
     transform: STransform
-  )(implicit sparkSession: SparkSession): SparkStructStreamsFromFile = {
-    new SparkStructStreamsFromFile(
+  )(implicit sparkSession: SparkSession): SparkStructETLStreams = {
+    new SparkStructETLStreams(
       folderPath,
       outputMode,
       outputFormat,
@@ -192,8 +194,8 @@ object  SparkStructStreamsFromFile{
     outputFormat: String,
     outputFolder: String,
   )
-    (implicit sparkSession: SparkSession): SparkStructStreamsFromFile = {
-    new SparkStructStreamsFromFile(
+    (implicit sparkSession: SparkSession): SparkStructETLStreams = {
+    new SparkStructETLStreams(
       folderPath,
       outputMode,
       outputFormat,

@@ -10,8 +10,8 @@ import org.streamingeval.util.LocalFileUtil
 import scala.collection.mutable
 import scala.util.Random
 
-private[spark] final class SparkStructStreamsFromFileTest extends AnyFlatSpec {
-  import SparkStructStreamsFromFileTest._
+private[spark] final class SparkStructETLStreamsTest extends AnyFlatSpec {
+  import SparkStructETLStreamsTest._
 
   ignore should "Succeeds extracting Patient record from text" in {
     val input =
@@ -62,7 +62,7 @@ private[spark] final class SparkStructStreamsFromFileTest extends AnyFlatSpec {
   ignore should "Succeed extracting schema from JSON records" in {
     import implicits._
     val path = "/Users/patricknicolas/dev/streaming/input-json"
-    val sparkStructStreamsFromFile = SparkStructStreamsFromFile(path,
+    val sparkStructStreamsFromFile = SparkStructETLStreams(path,
       OutputMode.Append,
       outputFormat = "console",
       "temp/parquet")
@@ -74,7 +74,7 @@ private[spark] final class SparkStructStreamsFromFileTest extends AnyFlatSpec {
 
     val path = "/Users/patricknicolas/dev/streaming/input-json"
 
-    val sparkStructStreamsFromFile =  SparkStructStreamsFromFile(
+    val sparkStructStreamsFromFile =  SparkStructETLStreams(
       path,
       OutputMode.Append(),
       outputFormat = "json",
@@ -91,23 +91,23 @@ private[spark] final class SparkStructStreamsFromFileTest extends AnyFlatSpec {
     val debug = true
     val outputTable = "avg_age"
 
-    val sparkStructStreamsFromFile = SparkStructStreamsFromFile(
+    val sparkStructETLStreams = SparkStructETLStreams(
       path,
       OutputMode.Update(),
       outputFormat = "csv",
-      outputTable,
-      debug,
+      outputTable = "avg_age",
+      debug = true,
       myTransform,
       myAggregator
     )
-    sparkStructStreamsFromFile.execute()
+    sparkStructETLStreams.execute()
   }
 }
 
 
 
 
-object SparkStructStreamsFromFileTest{
+object SparkStructETLStreamsTest{
   val noteMarker = ",List("
   val ageMarker = "Age"
   val genderMarker = "Gender"
@@ -186,8 +186,7 @@ object SparkStructStreamsFromFileTest{
   private def myTransformFunc(
     readDF: DataFrame,
     sqlStatement: String
-  )
-    (implicit sparkSession: SparkSession): DataFrame = {
+  )(implicit sparkSession: SparkSession): DataFrame = {
     readDF.createOrReplaceTempView("temptable")
     sparkSession.sql(sqlStatement)
   }
@@ -204,7 +203,7 @@ object SparkStructStreamsFromFileTest{
     "Filter by age"
   )
 
-  def aggrFunc(inputColumn: Column): Column = {
+  def aggregatedFunc(inputColumn: Column): Column = {
     import org.apache.spark.sql.functions._
     avg(inputColumn)
   }
@@ -212,7 +211,7 @@ object SparkStructStreamsFromFileTest{
   val myAggregator = new SAggregator(
     new Column("gender"),
     new Column("age"),
-    aggrFunc,
+    aggregatedFunc,
     "avg_age"
   )
 }
