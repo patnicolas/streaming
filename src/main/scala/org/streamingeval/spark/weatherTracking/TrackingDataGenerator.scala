@@ -17,7 +17,8 @@ import org.streamingeval.kafka.prodcons.TypedKafkaProducer
 
 
 /**
- *
+ * Define the weather tracking data generator as a specialization of the generic
+ * Typed Kafka Producer
  * @param topic Topic to which produce Kafka data
  * @author Patrick Nicolas
  */
@@ -39,24 +40,30 @@ private[weatherTracking] object TrackingDataGenerator {
    * Generate the list of weather and doppler data using random generator and produced
    * to the current Kafka Connect server.
    *
-   * @param weatherDataStations Weather data collection stations
-   * @param dopplerDataStations Doppler radar data collection stations
-   * @param numSamplesPerStations Number of random samples per stations
+   * @param weatherStations Weather data collection stations
+   * @param dopplerRadars Doppler radar data collection stations
+   * @param numSamplesPerStation Number of random samples per stations
    * @param scaleFactor Scale factor for random update of new sample
    * @return Tuple (weather data records, doppler radar data records)
    */
   def apply(
-    weatherDataStations: Seq[(String, Float, Float)],
-    dopplerDataStations: Seq[(String, Float, Float)],
-    numSamplesPerStations: Int,
+    weatherStations: Seq[(String, Float, Float)],
+    dopplerRadars: Seq[(String, Float, Float)],
+    numSamplesPerStation: Int,
     scaleFactor: Float
   ): Unit = try {
-    // Generate the weather and Doppler radar records
-    val weatherRecords = WeatherData(weatherDataStations, numSamplesPerStations, scaleFactor)
-    val dopplerRecords = DopplerData(dopplerDataStations, numSamplesPerStations, scaleFactor)
-    // Send the weather and Doppler radar records to Kafka
-    weatherDataGenerator.send(weatherRecords.map(wr => (wr.id, wr.toString)))
-    dopplerDataGenerator.send(dopplerRecords.map(dr => (dr.id, dr.toString)))
+    // Generate the weather records if weather stations exists
+    if(weatherStations.nonEmpty) {
+      val weatherRecords = WeatherData(weatherStations, numSamplesPerStation, scaleFactor)
+      weatherDataGenerator.send(weatherRecords.map(wr => (wr.id, wr.toString)))
+    }
+
+    // Generate the Doppler radar records if Doppler radar exists
+    if(dopplerRadars.nonEmpty) {
+      val dopplerRecords = DopplerData(dopplerRadars, numSamplesPerStation, scaleFactor)
+      // Send the Doppler radar records to Kafka
+      dopplerDataGenerator.send(dopplerRecords.map(dr => (dr.id, dr.toString)))
+    }
   } catch {
     case e: KafkaException => println(e.getMessage)
     case e: Exception => println(e.getMessage)

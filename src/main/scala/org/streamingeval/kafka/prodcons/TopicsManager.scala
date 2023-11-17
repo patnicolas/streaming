@@ -140,16 +140,6 @@ private[streamingeval] final class TopicsManager private(properties: Properties)
     case e: Exception => throw new KafkaTopicException(s"Delete topic - undefined exception ${e.getMessage}")
   }
 
-  def isTopicDefined(topic: String): Boolean =
-    if(KafkaAdminClient.isAlive) {
-      val topics = listTopics(get)
-      val isDefined = topics.contains(topic)
-      close()
-      isDefined
-    }
-    else
-      false
-
   def isTopicDefined(newTopics: Seq[String]): Boolean =
     if (KafkaAdminClient.isAlive) {
       val topics = listTopics(get)
@@ -161,6 +151,13 @@ private[streamingeval] final class TopicsManager private(properties: Properties)
 
 
       // -------------------  Supporting methods ------------------
+
+  private def isTopicDefined(topic: String): Boolean = if (KafkaAdminClient.isAlive) {
+    val topics = listTopics(get)
+    val isDefined = topics.contains(topic)
+    close()
+    isDefined
+  } else false
 
   /**
    * List the current topics associated with this consumer

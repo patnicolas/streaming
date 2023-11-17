@@ -21,21 +21,30 @@ import scala.util.Random
  * @param latitude Latitude of the source of Doppler radar data
  * @param timeStamp Time stamp for the new Doppler radar data
  * @param windShear Boolean flag to specify if this is a wind shear
- * @param speed Average speed for the wind
- * @param gustSpeed Maximum speed for the wind
- * @param direction Direction of the wind
+ * @param windSpeed Average speed for the wind (miles/hour)
+ * @param gustSpeed Maximum speed for the wind (miles/hour)
+ * @param windDirection Direction of the wind [0, 360] degrees
  *
  * @author Patrick Nicolas
  */
+@throws(clazz = classOf[IllegalArgumentException])
 private[weatherTracking] case class DopplerData(
   override val id: String, // Identifier for the weather station
   override val longitude: Float, // Longitude for the weather station
   override val latitude: Float, // Latitude for the weather station
   override val timeStamp: Long = System.currentTimeMillis(), // Time stamp data is collected
   windShear: Boolean = false,
-  speed: Float = 0.0F,
+  windSpeed: Float = 0.0F,
   gustSpeed: Float = 0.0F,
-  direction: Int = 0) extends TrackingData {
+  windDirection: Int = 0) extends TrackingData {
+
+  require(windSpeed >= 0.0F && windSpeed <= 450.0F,
+    s"Wind speed $windSpeed should be [0, 450] miles/hour")
+  require(gustSpeed >= 0.0F && gustSpeed <= 450.0F,
+    s"Gusts speed $gustSpeed should be [0, 450] miles/hour")
+  require(windSpeed <= gustSpeed,
+    s"Wind speed $windSpeed should be < gust speed $gustSpeed")
+  require(windDirection >= 0 && windDirection < 360, s"Wind direction should be [0, 360[")
 
   def apply(
     rand: Random,
@@ -43,17 +52,21 @@ private[weatherTracking] case class DopplerData(
   ): DopplerData = this.copy(
     timeStamp = timeStamp + 10000L + rand.nextInt(2000),
     windShear = rand.nextBoolean(),
-    speed = speed * (1 + scaleFactor * rand.nextFloat()),
+    windSpeed = windSpeed * (1 + scaleFactor * rand.nextFloat()),
     gustSpeed = gustSpeed * (1 + scaleFactor * rand.nextFloat()),
-    direction = {
-      val newDirection = direction * (1 + scaleFactor * rand.nextFloat())
+    windDirection = {
+      val newDirection = windDirection * (1 + scaleFactor * rand.nextFloat())
       if(newDirection > 360.0) newDirection.toInt%360 else newDirection.toInt
     }
   )
 }
 
 
-
+/**
+ * Singleton for Doppler radar data
+ * - Encoder/Decoder for Kafka channels
+ * - Various constructors
+ */
 private[weatherTracking] object DopplerData {
 
   object DopplerDataEncoder extends DataEncoder[DopplerData] {

@@ -23,22 +23,25 @@ import scala.util.Random
  * @param temperature Temperature in Fahrenheit
  * @param pressure Barometric pressure
  * @param humidity Humidity percentage
+ * @throws IllegalArgumentException if temperature, pressure or humidity are out-of-bounds
  *
  * @author Patrick Nicolas
  */
+@throws(clazz = classOf[IllegalArgumentException])
 private[weatherTracking] case class WeatherData (
   override val id: String,                // Identifier for the weather station
   override val longitude: Float,          // Longitude for the weather station
   override val latitude: Float,           // Latitude for the weather station
   override val timeStamp: Long = System.currentTimeMillis(),      // Time stamp data is collected
-  temperature: Float = 0.0F, // Temperature collected at timeStamp
-  pressure: Float = 0.0F,    // Pressure collected at timeStamp
-  humidity: Float = 0.0F) extends TrackingData  {  // Humidity collected at timeStamp
+  temperature: Float = 56.0F,             // Temperature (Fahrenheit) collected at timeStamp
+  pressure: Float = 1022.0F,              // Pressure (millibars) collected at timeStamp
+  humidity: Float = 25.0F) extends TrackingData  {  // Humidity (%) collected at timeStamp
 
   require(temperature > -20.0F && temperature < 120.0F,
-    s"Temperature $temperature should be [20, 120]")
-  require(humidity > 0.0F && humidity < 100.0F,
-    s"Humidity $humidity should be ]0, 100[ %")
+    s"Temperature $temperature should be [20, 120] F")
+  require(pressure > 900.0F && pressure < 1250.0F,
+    s"pressure $pressure should be [900, 1250] millibars")
+  require(humidity >= 0.0F && humidity <= 100.0F, s"Humidity $humidity should be [0, 100] %")
 
   def apply(rand: Random, scaleFactor: Float): WeatherData =
     this.copy(
@@ -56,6 +59,9 @@ private[weatherTracking] case class WeatherData (
 
 private[weatherTracking] object WeatherData {
 
+  /**
+   * Encoder (apply) - Decoder (Unapply) for WeatherData for Kafka channel
+   */
   object WeatherDataEncoder extends DataEncoder[WeatherData] {
     def unapply(encodedWeatherData: String): WeatherData =
       super.unapply(
