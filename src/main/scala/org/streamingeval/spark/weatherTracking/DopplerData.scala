@@ -27,7 +27,7 @@ import scala.util.Random
  *
  * @author Patrick Nicolas
  */
-case class DopplerData(
+private[weatherTracking] case class DopplerData(
   override val id: String, // Identifier for the weather station
   override val longitude: Float, // Longitude for the weather station
   override val latitude: Float, // Latitude for the weather station
@@ -45,16 +45,16 @@ case class DopplerData(
     windShear = rand.nextBoolean(),
     speed = speed * (1 + scaleFactor * rand.nextFloat()),
     gustSpeed = gustSpeed * (1 + scaleFactor * rand.nextFloat()),
-    {
+    direction = {
       val newDirection = direction * (1 + scaleFactor * rand.nextFloat())
-      direction = if(newDirection > 360.0) newDirection.toInt%360 else ewDirection.toInt
+      if(newDirection > 360.0) newDirection.toInt%360 else newDirection.toInt
     }
   )
 }
 
 
 
-object DopplerData {
+private[weatherTracking] object DopplerData {
 
   object DopplerDataEncoder extends DataEncoder[DopplerData] {
     def unapply(encodedDopplerData: String): DopplerData =

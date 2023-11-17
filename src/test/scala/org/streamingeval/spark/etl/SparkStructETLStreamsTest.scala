@@ -1,10 +1,11 @@
-package org.streamingeval.spark
+package org.streamingeval.spark.etl
 
-import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 import org.apache.spark.sql.streaming.OutputMode
+import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.streamingeval.PatientRecord
 import org.streamingeval.spark.SparkStructStreams.{SAggregator, STransform}
+import org.streamingeval.spark.implicits
 import org.streamingeval.util.LocalFileUtil
 
 import scala.collection.mutable

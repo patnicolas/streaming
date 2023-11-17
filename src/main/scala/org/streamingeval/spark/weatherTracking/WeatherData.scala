@@ -26,7 +26,7 @@ import scala.util.Random
  *
  * @author Patrick Nicolas
  */
-case class WeatherData (
+private[weatherTracking] case class WeatherData (
   override val id: String,                // Identifier for the weather station
   override val longitude: Float,          // Longitude for the weather station
   override val latitude: Float,           // Latitude for the weather station
@@ -54,7 +54,7 @@ case class WeatherData (
 
 
 
-object WeatherData {
+private[weatherTracking] object WeatherData {
 
   object WeatherDataEncoder extends DataEncoder[WeatherData] {
     def unapply(encodedWeatherData: String): WeatherData =
@@ -87,5 +87,4 @@ object WeatherData {
       seedStation => (0 until numSamplesPerStation).map(_ => seedStation(rand, scaleFactor))
     )
   }
-
 }

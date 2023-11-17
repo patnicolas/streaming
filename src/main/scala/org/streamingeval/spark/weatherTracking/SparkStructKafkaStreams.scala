@@ -21,7 +21,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
  *
  * @author Patrick Nicolas
  */
-final class SparkStructKafkaStreams(
+private[weatherTracking] final class SparkStructKafkaStreams(
   inputTopics: Seq[String],
   outputTopics: Seq[String])(implicit sparkSession: SparkSession) {
 

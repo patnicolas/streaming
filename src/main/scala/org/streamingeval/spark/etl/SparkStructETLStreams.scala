@@ -9,14 +9,15 @@
  * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
  * OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
  */
-package org.streamingeval.spark
+package org.streamingeval.spark.etl
 
 import org.apache.spark.sql.streaming.{OutputMode, Trigger}
-import org.apache.spark.sql.{Column, DataFrame, SaveMode, SparkSession}
 import org.apache.spark.sql.types.StructType
-import org.slf4j.{Logger, LoggerFactory}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.slf4j.LoggerFactory
+import org.streamingeval.spark.SparkStructStreams
 import org.streamingeval.spark.SparkStructStreams.{SAggregator, STransform}
-import org.streamingeval.spark.SparkStructETLStreams.logger
+import org.streamingeval.spark.etl.SparkStructETLStreams.logger
 
 
 /**
@@ -130,6 +131,7 @@ final class SparkStructETLStreams private (
             .format(outputFormat)
             .save(path = s"temp/$outputFormat")
           batchDF.unpersist()
+          ()
       }
       .trigger(Trigger.ProcessingTime("4 seconds"))
       .start()

@@ -28,7 +28,7 @@ object implicits {
   // implicit val system = ActorSystem("MLOps-Service")
   implicit val sparkSession: SparkSession = confToSessionFromFile
 
-  def close: Unit = {
+  def close(): Unit = {
     logger.info("Closing Spark session!")
     sparkSession.close()
   }
