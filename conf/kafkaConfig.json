@@ -1,4 +1,4 @@
-cle{
+{
   "kafkaParameters": [
     {
       "key": "bootstrap.servers",

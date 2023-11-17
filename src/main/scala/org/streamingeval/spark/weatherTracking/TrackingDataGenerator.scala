@@ -12,7 +12,7 @@
 package org.streamingeval.spark.weatherTracking
 
 import org.apache.kafka.common.KafkaException
-import org.streamingeval.kafka.KafkaAdminClient.consumerProperties
+import org.streamingeval.kafka.KafkaAdminClient.stringProducerProperties
 import org.streamingeval.kafka.prodcons.TypedKafkaProducer
 
 
@@ -23,7 +23,7 @@ import org.streamingeval.kafka.prodcons.TypedKafkaProducer
  * @author Patrick Nicolas
  */
 private[weatherTracking] final class TrackingDataGenerator(topic: String) extends
-  TypedKafkaProducer[String](consumerProperties, topic)
+  TypedKafkaProducer[String](stringProducerProperties, topic)
 
 
 /**

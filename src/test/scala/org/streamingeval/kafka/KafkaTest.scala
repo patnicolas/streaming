@@ -1,10 +1,16 @@
 package org.streamingeval.kafka
 
 import org.scalatest.flatspec.AnyFlatSpec
-import org.streamingeval.kafka.KafkaConfig.kafkaProdCcnfig
+import org.streamingeval.kafka.KafkaConfig.{kafkaProdCcnfig, kafkaProdCcnfigMap}
 
 
 private[kafka] final class KafkaTest extends AnyFlatSpec {
+
+  it should "Succeed loading Kafka configuration for consumer properties" in {
+    val n = kafkaProdCcnfigMap
+    val properties = KafkaAdminClient.consumerProperties
+    println(properties.toString)
+  }
 
   it should "Succeed loading Kafka configuration for consumer" in {
     val propertiesIterator = KafkaAdminClient.consumerProperties.entrySet().iterator()

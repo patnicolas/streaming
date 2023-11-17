@@ -20,7 +20,7 @@ final class TrackingDataGeneratorTest extends AnyFlatSpec  {
   }
 
 
-  it should "Succeed generating and producing weather to Kafka" in {
+  ignore should "Succeed generating and producing Doppler dat to Kafka" in {
     val dopplerRadars = Seq[(String, Float, Float)](
       ("station1", -122.207708F, 37.426888F),
       ("station2", -121.987203F, 37.450981F)

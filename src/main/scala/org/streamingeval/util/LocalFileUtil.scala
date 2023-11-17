@@ -111,7 +111,7 @@ private[streamingeval] object LocalFileUtil {
           if (count % 2500 == 0)
             logger.info(s"$count records have been loaded")
         }
-        Some(collector.toSeq.mkString("\n"))
+        Some(collector.mkString("\n"))
       }
       catch {
         case e: IOException =>
@@ -124,13 +124,8 @@ private[streamingeval] object LocalFileUtil {
       finally {
         try {
           if (source != null) {
-            try {
-              source.close()
-            }
-            catch {
-              case e: IOException =>
-                logger.error(s"Failed to close $fsFilename")
-            }
+            try { source.close() }
+            catch { case e: IOException => logger.error(s"Failed to close $fsFilename") }
           }
         }
         catch {

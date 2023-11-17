@@ -35,7 +35,8 @@ package object kafka {
   object KafkaAdminClient {
         // Default Kafka properties
     lazy val consumerProperties: java.util.Properties = {
-      val props = load(KafkaConfig.kafkaStreamConfig)
+      val c = KafkaConfig.kafkaConsConfig
+      val props = load(KafkaConfig.kafkaConsConfig)
       props.put("key.deserializer", classOf[StringDeserializer])
       props.put("value.deserializer", classOf[RequestDeserializer])
       props.put("key.serializer", classOf[StringSerializer])
@@ -53,26 +54,43 @@ package object kafka {
     }
 
 
-    lazy val streamingProperties: java.util.Properties = {
-      val props = load(KafkaConfig.kafkaStreamConfig)
-      props.put(StreamsConfig.APPLICATION_ID_CONFIG, "map-function-scala-example")
-      /*
-      val bootstrapServers = "localhost:9092"
-      props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers)
+    lazy val stringConsumerProperties: java.util.Properties = {
+      val m = KafkaConfig.kafkaConsConfig
+      val props = load(KafkaConfig.kafkaConsConfig)
+      props.put("key.deserializer", classOf[StringDeserializer])
+      props.put("value.deserializer", classOf[StringDeserializer])
+      props.put("key.serializer", classOf[StringSerializer])
+      props.put("value.serializer", classOf[StringSerializer])
+      props
+    }
 
-       */
+    lazy val stringProducerProperties: java.util.Properties = {
+      val conf = kafkaProdCcnfig
+      val props = load(kafkaProdCcnfig)
+      props.put("key.deserializer", classOf[StringDeserializer])
+      props.put("value.deserializer", classOf[StringDeserializer])
+      props.put("key.serializer", classOf[StringSerializer])
+      props.put("value.serializer", classOf[StringSerializer])
       props
     }
 
 
-    private def load(config: KafkaConfig): java.util.Properties =
+    lazy val streamingProperties: java.util.Properties = {
+      val props = load(KafkaConfig.kafkaStreamConfig)
+      props.put(StreamsConfig.APPLICATION_ID_CONFIG, "map-function-scala-example")
+      props
+    }
+
+
+    private def load(config: KafkaConfig): java.util.Properties = {
+      val conf = config
       config.kafkaParameters.foldLeft(new Properties()) (
         (props, param) => {
           props.put(param.key, param.value)
           props
         }
       )
-
+    }
 
 
     /**

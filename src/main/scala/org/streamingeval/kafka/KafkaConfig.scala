@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import org.streamingeval.util.LocalFileUtil.{Json, Load}
 import org.streamingeval.{ParameterDefinition, TuningParameters}
 import org.slf4j.{Logger, LoggerFactory}
-import org.streamingeval.kafka.KafkaConfig.kafkaProdCcnfig
 
 import java.io.IOException
 
@@ -69,9 +68,11 @@ private[streamingeval] object KafkaConfig {
       throw new IllegalStateException(s"Failed to map configuration parameters ${e.getMessage}")
     case e: IOException =>
       throw new IllegalStateException(s"Failed to find configuration file ${e.getMessage}")
+    case e: Exception =>
+      throw new IllegalStateException(s"Undefined exception ${e.getMessage}")
   }
 
-  private val (
+  val (
     kafkaProdCcnfigMap,
     kafkaConsConfigMap,
     kafkaStreamConfigMap): (Map[String, String], Map[String, String], Map[String, String]) =
@@ -102,11 +103,14 @@ private[streamingeval] object KafkaConfig {
   private def getKafkaConfig(
     content: Option[String],
     configType: String
-  ): KafkaConfig = content.map(stripParamCategory(_, configType))
-    .map(Json.mapper.readValue(_, classOf[KafkaConfig]))
-    .getOrElse(
-      throw new IllegalStateException("Kafka dynamic configuration improperly loaded")
-    )
+  ): KafkaConfig = content
+      .map(stripParamCategory(_, configType))
+      .map(n =>
+        Json.mapper.readValue(n, classOf[KafkaConfig])
+      )
+      .getOrElse(
+        throw new IllegalStateException("Kafka dynamic configuration improperly loaded")
+      )
 }
 
 
