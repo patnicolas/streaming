@@ -68,7 +68,7 @@ private[streaming] object SparkConfiguration {
    * Update the existing Spark configuration
    * @return Updated Spark configuration
    */
-  final def buildConf: SparkConf =
+  private final def buildConf: SparkConf =
     mlSparkConfig.sparkParameters.foldLeft(new SparkConf)(
       (conf, param) => {
         conf.set(param.key, param.value)

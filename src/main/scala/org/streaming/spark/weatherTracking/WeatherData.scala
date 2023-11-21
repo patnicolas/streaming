@@ -21,8 +21,8 @@ import scala.util.Random
  * @param latitude Latitude of the source of Weather data
  * @param timeStamp Time stamp for the new weather data
  * @param temperature Temperature in Fahrenheit
- * @param pressure Barometric pressure
- * @param humidity Humidity percentage
+ * @param pressure Barometric pressure in millibars
+ * @param humidity Humidity in percentage
  * @throws IllegalArgumentException if temperature, pressure or humidity are out-of-bounds
  *
  * @author Patrick Nicolas

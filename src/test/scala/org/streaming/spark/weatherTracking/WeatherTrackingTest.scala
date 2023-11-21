@@ -1,6 +1,7 @@
 package org.streaming.spark.weatherTracking
 
 import org.scalatest.flatspec.AnyFlatSpec
+import org.streaming.spark.weatherTracking.WeatherTracking.modelPredictionSimulation
 
 class WeatherTrackingTest extends AnyFlatSpec{
 
@@ -9,7 +10,8 @@ class WeatherTrackingTest extends AnyFlatSpec{
 
     val weatherTracking = new WeatherTracking(
       Seq[String]("weather", "doppler"),
-      Seq[String]("monitor", "alert")
+      Seq[String]("monitor", "alert"),
+      modelPredictionSimulation
     )
     weatherTracking.execute()
   }
