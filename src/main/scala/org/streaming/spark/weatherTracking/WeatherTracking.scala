@@ -14,7 +14,7 @@ package org.streaming.spark.weatherTracking
 import org.apache.spark.sql.{Dataset, SparkSession}
 import org.streaming.spark.weatherTracking.DopplerData.DopplerDataEncoder
 import org.streaming.spark.weatherTracking.WeatherData.WeatherDataEncoder
-import org.streaming.spark.weatherTracking.ModelData.{CellArea, ModelInputData, WeatherAlert}
+import org.streaming.spark.weatherTracking.ModelData.{CellArea, ModelInputData, StormPrediction}
 import WeatherTracking._
 import org.slf4j.{Logger, LoggerFactory}
 import org.streaming.spark.implicits.sparkSession
@@ -32,22 +32,24 @@ import org.streaming.spark.implicits.sparkSession
 private[weatherTracking] final class WeatherTracking(
   inputTopics: Seq[String],
   outputTopics: Seq[String],
-  model: Dataset[ModelInputData] => Seq[WeatherAlert])(implicit sparkSession: SparkSession) {
+  model: Dataset[ModelInputData] => Seq[StormPrediction])(implicit sparkSession: SparkSession) {
   require(inputTopics.nonEmpty && outputTopics.nonEmpty, "Input or output topics are undefined")
 
   /**
-   * Step 1: Load data from sources (Weather station and Doppler radar)
+   * Step 1: Load data from sources (Weather station and Doppler radar) <- Source
    * Step 2: Consolidate the data from sources (time stamp)
+   * Step 3: Predict the storm or tornado by generating a weather alert
+   * Step 4: Produce alerts and monitoring data to Kafka channels >- Sink
    */
   def execute(): Unit = {
     // Load data from sources (Weather station and Doppler radar)'
     for {
-      (weatherDS, dopplerDS) <- source
-      consolidatedDataset <- synchronizeSources(weatherDS, dopplerDS)
-      predictions <- predict(consolidatedDataset)
-      consolidatedDataset <- sink(predictions)
+      (weatherDS, dopplerDS) <- source                                 // Step 1
+      consolidatedDataset <- synchronizeSources(weatherDS, dopplerDS)  // Step 2
+      predictions <- predict(consolidatedDataset)                      // Step 3
+      consolidatedDataset <- sink(predictions)                         // Step 3
     } yield {
-      predictions
+      consolidatedDataset
     }
   }
 
@@ -70,11 +72,9 @@ private[weatherTracking] final class WeatherTracking(
       .map{ case (_, value) => WeatherDataEncoder.unapply(value) }
 
     // Convert Doppler radar data stream into objects
-    val dopplerDataDS = ds.filter(_._1.head == 'D')
-      .map {
-        case (_, value) =>
-          DopplerDataEncoder.unapply(value)
-      }
+    val dopplerDataDS = ds
+      .filter(_._1.head == 'D')
+      .map { case (_, value) => DopplerDataEncoder.unapply(value) }
     // For debugging only
     WeatherTracking.show(weatherDataDS, dopplerDataDS)
     Some((weatherDataDS, dopplerDataDS))
@@ -91,17 +91,12 @@ private[weatherTracking] final class WeatherTracking(
     import sparkSession.implicits._
     import org.streaming.spark._
 
-    val timedBucketedWeatherDS: Dataset[WeatherData] = weatherDS.map(
-      wData => {
-        val key = bucketKey(wData.timeStamp)
-        wData.copy(timeStamp = key)
-      })
-
+    val timedBucketedWeatherDS = weatherDS.map(
+      wData =>wData.copy(timeStamp = bucketKey(wData.timeStamp))
+    )
     val timedBucketedDopplerDS = dopplerDS.map(
-      wData => {
-        val key = bucketKey(wData.timeStamp)
-        wData.copy(timeStamp = key)
-      })
+      wData => wData.copy(timeStamp = bucketKey(wData.timeStamp))
+    )
 
     // Performed a fast, presorted join
     val output = sortingJoin[WeatherData, DopplerData](
@@ -130,7 +125,7 @@ private[weatherTracking] final class WeatherTracking(
       None
   }
 
-  private def predict(modelInput: Dataset[ModelInputData]): Option[Dataset[WeatherAlert]] = try {
+  private def predict(modelInput: Dataset[ModelInputData]): Option[Dataset[StormPrediction]] = try {
     import sparkSession.implicits._
     Some(model(modelInput).toDS())
   } catch {
@@ -139,20 +134,20 @@ private[weatherTracking] final class WeatherTracking(
       None
   }
 
-  private def sink(weatherAlerts: Dataset[WeatherAlert]): Option[Dataset[String]] =
+  private def sink(stormAlerts: Dataset[StormPrediction]): Option[Dataset[String]] =
     try {
       import sparkSession.implicits._
 
-      // Stringize dataset of weather alerts to be produced to Kafka topic
-      val weatherAlertsStr = weatherAlerts.map( weatherAlert => weatherAlert.toString)
-      weatherAlertsStr
+      // Encoded dataset of weather alerts to be produced to Kafka topic
+      val encStormAlerts = stormAlerts.map(_.toString)
+      encStormAlerts
         .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
         .writeStream
         .format("kafka")
         .option("kafka.bootstrap.servers", "localhost:9092")
         .option("subscribe", outputTopics.mkString(",")
       ).start()
-      Some(weatherAlertsStr)
+      Some(encStormAlerts)
   } catch {
     case e: Exception =>
       logger.error(e.getMessage)
@@ -181,7 +176,7 @@ object WeatherTracking {
       val modelInputData = outliersDS.head()
       val cellArea = CellArea()
       outliersDS.map(
-        outlier => WeatherAlert(
+        outlier => StormPrediction(
           "alert",
           intensity,
           probability,
@@ -190,7 +185,7 @@ object WeatherTracking {
           cellArea
         )
       ).collect().toSeq
-    } else Seq.empty[WeatherAlert]
+    } else Seq.empty[StormPrediction]
   }
 
   private def bucketKey(timeStamp: String): String = (timeStamp.toLong * 0.001).toLong.toString

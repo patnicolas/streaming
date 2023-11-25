@@ -36,7 +36,7 @@ private[weatherTracking] case class WeatherData (
   // collected
   temperature: Float = 56.0F,             // Temperature (Fahrenheit) collected at timeStamp
   pressure: Float = 1022.0F,              // Pressure (millibars) collected at timeStamp
-  humidity: Float = 25.0F) extends TrackingData  {  // Humidity (%) collected at timeStamp
+  humidity: Float = 25.0F) extends TrackingData[WeatherData]  {  // Humidity (%) collected at timeStamp
 
   require(temperature > -20.0F && temperature < 120.0F,
     s"Temperature $temperature should be [20, 120] F")
@@ -44,12 +44,19 @@ private[weatherTracking] case class WeatherData (
     s"pressure $pressure should be [900, 1250] millibars")
   require(humidity >= 0.0F && humidity <= 100.0F, s"Humidity $humidity should be [0, 100] %")
 
-  def apply(rand: Random, scaleFactor: Float): WeatherData =
+  /**
+   * Add noise to this instance of Weather station data
+   *
+   * @param rand  Random generator instance
+   * @param alpha Scale factor applied to uniform randomly distributed noise
+   * @return Noisy duplicate of Weather station data
+   */
+  def rand(rand: Random, alpha: Float): WeatherData =
     this.copy(
       timeStamp = (timeStamp.toLong + 10000L + rand.nextInt(2000)).toString,
-      temperature = temperature*(1 + scaleFactor*rand.nextFloat()),
-      pressure = pressure*(1 + scaleFactor*rand.nextFloat()),
-      humidity = humidity*(1 + scaleFactor*rand.nextFloat())
+      temperature = temperature*(1 + alpha*rand.nextFloat()),
+      pressure = pressure*(1 + alpha*rand.nextFloat()),
+      humidity = humidity*(1 + alpha*rand.nextFloat())
     )
 
   override def toString: String =
@@ -92,7 +99,7 @@ private[weatherTracking] object WeatherData {
     val seedStations = initialStations.map{ case (id, long, lat) => WeatherData(id, long, lat) }
     val rand = new Random(42L)
     seedStations.flatMap(
-      seedStation => (0 until numSamplesPerStation).map(_ => seedStation(rand, scaleFactor))
+      seedStation => (0 until numSamplesPerStation).map(_ => seedStation.rand(rand, scaleFactor))
     )
   }
 }

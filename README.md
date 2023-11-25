@@ -4,22 +4,22 @@
 ![Evaluation and tips for Kafka and Spark streaming](images/streaming.jpg)
 
 
-Evaluation of Apache Kafka and Spark streaming functionality in Scala with example for weather 
-forecast
+Evaluation of Apache Kafka and Spark streaming functionality in Scala with application to weather 
+tracking and storm forecast.
 
-## Reference
+## References
 - [Open Source Lambda Architecture for Deep Learning](http://patricknicolas.blogspot.com/2021/06/open-source-lambda-architecture-for.html)
 - [Boost real-time processing with Spark Structured Streaming](https://patricknicolas.blogspot.com/2023/11/boost-real-time-processing-with-spark.html)
+- [Tracking storms with Kafka/Spark streaming](https://patricknicolas.blogspot.com/2023/11/tracking-storms-with-kafkaspark.html)
 
 ## Environment
-| Package      | Version |
+| Library      | Version |
 |:-------------|:--------|
 | Scala        | 2.12.15 |
 | Apache Spark | 3.4.0   |
 | Apache Kafka | 3.4.0   |
 | Jackson ser  | 2.13.1  |
 | Kubernetes   | 16.0.0  |
-
 
 
 ## Updates
@@ -31,16 +31,16 @@ forecast
 | 10.30.2023 | 0.0.4   |
 
 
-## Packages
-| Package               | Description                                                 |
-|:----------------------|:------------------------------------------------------------|
-| util                  | Utilities classes                                           |
-| kafka                 | Classes related to Kafka service management                 |
-| kafka/prodcons        | Classes related to Kafka producer/consumer                  |
-| kafka/streams         | Classes related to Kafka streaming                          |
-| spark                 | Classes related to spark datasets and structured streaming  |
-| spark/etl             | Spark structured streaming for generic ETL                  |
-| spark/weatherTracking | Spark structured streaming application for tracking weather |
+## Scala packages
+| Package               | Description                                                              |
+|:----------------------|:-------------------------------------------------------------------------|
+| util                  | Utilities classes                                                        |
+| kafka                 | Classes related to Kafka service management                              |
+| kafka/prodcons        | Classes related to Kafka producer/consumer                               |
+| kafka/streams         | Classes related to Kafka streaming                                       |
+| spark                 | Classes related to spark datasets and structured streaming               |
+| spark/etl             | Spark structured streaming for generic ETL                               |
+| spark/weatherTracking | KafkaConnect/Spark structured streaming application for tracking weather |
 
 
 ## Deployment
@@ -52,6 +52,7 @@ From dockerfile for local deployment for a root directory 'myhome':
 ## Kafka 
 
 ### Launch script
+
 <pre>
 zookeeper-server-stop
 kafka-server-stop
@@ -88,6 +89,8 @@ ps -ef | grep kafka
 </pre>
 
 ### Command lines application
+For testing purpose, we deploy Apache Kafka on a local host listening to the default port 9092. 
+Here are some useful commands:
 
 To list topics for local deployment of Kafka service
 <pre>
@@ -112,9 +115,30 @@ kafka-console-consumer
 --bootstrap-server localhost:9092
 </pre>
 
-### Use case: Weather forecast
-Architecture
+### Use case: Storm forecast
+#### Overview
+This use case involves gathering data from weather stations and Doppler radars, then merging 
+these data sources based on location and time stamps. After consolidation, the unified data is sent to a model that forecasts potentially hazardous storms or tornadoes. The resulting predictions are then relayed back to the relevant authorities (such as emergency personnel, newsrooms, law enforcement, etc.) through Kafka.
+Implemented in *spark/weatherTracking* Package.
+
+![Collecting data](images/Weather-stations_Doppler-radars.png)
+
+
+#### Architecture
+he monitoring streaming pipeline is structured into three phases:
+Kafka queue.
+Spark's distributed structured streams.
+A variety of storm and tornado prediction models, developed using the PyTorch library and accessible via REST API.
+
+Data gathered from weather stations and Doppler radars is fed into the Spark engine, where both streams are combined and harmonized based on location and timestamp. This unified dataset is then employed for training the model. During the inference phase, predictions are streamed back to Kafka.
+
 ![Architecture](images/Kafka-Spark-Streaming.png)
+
+Illustration of encoding/decoding weather tracking data:
+![Encoder-decoder](images/Kafka-Spark-Encoder-Decoder.png)
+
+
+
 
 
 

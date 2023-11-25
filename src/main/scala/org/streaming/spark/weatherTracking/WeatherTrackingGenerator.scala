@@ -96,9 +96,9 @@ private[weatherTracking] object WeatherTrackingGenerator {
     val rand = new Random(42L)
     (0 until numSamplesPerStation).foreach(
       _ => {
-        val wR = weatherRecord(rand, scaleFactor)
+        val wR = weatherRecord.rand(rand, scaleFactor)
         weatherDataGenerator.send((s"W_${wR.id}", wR.toString))
-        val dR = dopplerRecord(rand, scaleFactor)
+        val dR = dopplerRecord.rand(rand, scaleFactor)
         dopplerDataGenerator.send((s"D_${dR.id}", dR.toString))
       }
     )

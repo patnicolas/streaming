@@ -13,7 +13,7 @@ package org.streaming.spark
 
 package object weatherTracking{
 
-  trait TrackingData {
+  trait TrackingData[T <: TrackingData[T]] {
     self =>
     val id: String           // Identifier for the weather station
     val longitude: Float     // Longitude for the weather station
@@ -22,12 +22,11 @@ package object weatherTracking{
   }
 
 
-  class DataEncoder[T <: TrackingData] {
+  class DataEncoder[T <: TrackingData[T]] {
     def apply(t: T): String = t.toString
     def unapply(encodedData: String, ctr: Seq[String] => T): T = {
       val fields = encodedData.split(";")
       ctr(fields)
     }
   }
-
 }

@@ -30,14 +30,14 @@ private[weatherTracking] object ModelData{
    * @param windDirection Direction of the wind [0, 360] degrees
    */
   case class ModelInputData(
-    timeStamp: String,
-    temperature: Float,
-    pressure: Float,
-    humidity: Float,
-    windShear: Boolean,
-    windSpeed: Float,
-    gustSpeed: Float,
-    windDirection: Float
+    timeStamp: String,   // Time stamp for the new consolidated data, input to model
+    temperature: Float,  // Temperature in Fahrenheit
+    pressure: Float,     // Barometric pressure in millibars
+    humidity: Float,     // Humidity in percentage
+    windShear: Boolean,  // Boolean flag to specify if this is a wind shear
+    windSpeed: Float,    // Average speed for the wind (miles/hour)
+    gustSpeed: Float,    // Maximum speed for the wind (miles/hour)
+    windDirection: Float // Direction of the wind [0, 360] degrees
   )
 
 
@@ -57,31 +57,32 @@ private[weatherTracking] object ModelData{
 
 
   /**
-   * Data class for alert of weather
+   * Data class for Storm prediction or alert
    *
    * @param id             Identifier of the alert/message
    * @param intensity      Intensity of storm or Tornado [1, to 5
-   * @param probability    Probability of a tornado of a given intensity develops
+   * @param probability    Probability of a tornado of a given intensity develop
    * @param timeStamp      Time stamp of the alert
    * @param modelInputData Weather and Doppler radar data used to generate/predict the alert
-   * @param cellArea       Area covered by the alert */
-  case class WeatherAlert(
-    id: String,
-    intensity: Int,
-    probability: Float,
-    timeStamp: String,
-    modelInputData: ModelInputData,
-    cellArea: CellArea
+   * @param cellArea       Area covered by the alert
+   */
+  case class StormPrediction(
+    id: String,                    // Identifier of the alert/message
+    intensity: Int,                // Intensity of storm or Tornado [1, to 5]
+    probability: Float,            // Probability of a storm of a given intensity develop
+    timeStamp: String,             // Time stamp of the alert or prediction
+    modelInputData: ModelInputData,// Weather and Doppler radar data used to generate/predict the alert
+    cellArea: CellArea             // Area covered by the alert/prediction
   ){
     override def toString: String =
       s"$id;$intensity;$probability;$timeStamp;${modelInputData.toString};${cellArea.toString}"
   }
 
-  object WeatherAlert{
+  object StormPrediction{
     def apply(
       id: String,
       modelInputData: ModelInputData
-    ): WeatherAlert = WeatherAlert(
+    ): StormPrediction = StormPrediction(
       id,
       0,
       0.0F,

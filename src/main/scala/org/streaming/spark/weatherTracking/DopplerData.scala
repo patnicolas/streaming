@@ -37,7 +37,7 @@ private[weatherTracking] case class DopplerData(
   windShear: Boolean = false,
   windSpeed: Float = 2.5F,
   gustSpeed: Float = 6.0F,
-  windDirection: Int = 22) extends TrackingData {
+  windDirection: Int = 22) extends TrackingData[DopplerData] {
 
   require(windSpeed >= 0.0F && windSpeed <= 450.0F,
     s"Wind speed $windSpeed should be [0, 450] miles/hour")
@@ -47,16 +47,19 @@ private[weatherTracking] case class DopplerData(
     s"Wind speed $windSpeed should be < gust speed $gustSpeed")
   require(windDirection >= 0 && windDirection < 360, s"Wind direction should be [0, 360[")
 
-  def apply(
-    rand: Random,
-    scaleFactor: Float
-  ): DopplerData = this.copy(
+  /**
+   * Add noise to this instance of Doppler radar data
+   * @param rand Random generator instance
+   * @param alpha Scale factor applied to uniform randomly distributed noise
+   * @return Noisy duplicate of Doppler data
+   */
+  def rand(rand: Random, alpha: Float): DopplerData = this.copy(
     timeStamp = (timeStamp.toLong + 10000L + rand.nextInt(2000)).toString,
     windShear = rand.nextBoolean(),
-    windSpeed = windSpeed * (1 + scaleFactor * rand.nextFloat()),
-    gustSpeed = gustSpeed * (1 + scaleFactor * rand.nextFloat()),
+    windSpeed = windSpeed * (1 + alpha * rand.nextFloat()),
+    gustSpeed = gustSpeed * (1 + alpha * rand.nextFloat()),
     windDirection = {
-      val newDirection = windDirection * (1 + scaleFactor * rand.nextFloat())
+      val newDirection = windDirection * (1 + alpha * rand.nextFloat())
       if(newDirection > 360.0) newDirection.toInt%360 else newDirection.toInt
     }
   )
@@ -105,10 +108,7 @@ private[weatherTracking] object DopplerData {
     val rand = new Random(42L)
     seedStations.flatMap(
       seedStation => (0 until numSamplesPerStation).map(
-        _ => seedStation(
-          rand,
-          scaleFactor
-        )
+        _ => seedStation.rand(rand, scaleFactor)
       )
     )
   }
