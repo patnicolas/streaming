@@ -9,6 +9,7 @@
  * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
  * OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
  */
+/*
 package org.pipeline.ga
 
 import Gene.Encoding
@@ -198,3 +199,5 @@ private[ga] object Gene{
       bitsRangeIndices.foldLeft(0)((v, i) => v + (if (bits.get(i)) 1 << i else 0))
   }
 }
+
+ */

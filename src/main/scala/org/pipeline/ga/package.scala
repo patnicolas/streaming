@@ -27,30 +27,16 @@ package object ga{
    *
    * @author Patrick Nicolas
    */
-  private[ga] trait Operator{
+  private[ga] trait GAOp{
+    import scala.util.Random
     /**
      * Identifier for the operator of type Integer
      *
      * @return operator unique identifier
      */
-    def id: Int = -1
-
-    /**
-     * Constructor for an operator. This method returns the operator associated
-     * to an identifier
-     *
-     * @param id Operator identifier
-     * @return Operator associated to this identifier
-     */
-    def apply(id: Int): Operator
+    protected[this] val rand = new Random(42L)
   }
 
-  /**
-   * Define the Null operator in the symbolic representation of a gene
-   */
-  case object NoOperator extends Operator{
-    def apply(idx: Int): Operator = NoOperator
-  }
 
 
   /**

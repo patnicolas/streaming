@@ -12,9 +12,8 @@
 package org.pipeline.ga
 
 
-import org.pipeline.ga.Chromosome.BitsIntEncoder
-import scala.annotation.{implicitNotFound, tailrec}
-
+import scala.annotation.tailrec
+import java.util
 
 
 /**
@@ -34,9 +33,9 @@ import scala.annotation.{implicitNotFound, tailrec}
  */
 @throws(classOf[IllegalArgumentException])
 private[ga] class Chromosome[T : Quantizer](code: Seq[T], encodingLength: Int){
+  import Chromosome._
 
-
-  private[this] lazy val encoded: java.util.BitSet = {
+  private[this] lazy val encoded: util.BitSet = {
     require(code.nonEmpty, "Chromosome Cannot create a chromosome from undefined genes")
 
     val bitsIntEncoder = new BitsIntEncoder(encodingLength)
@@ -85,8 +84,8 @@ private[ga] class Chromosome[T : Quantizer](code: Seq[T], encodingLength: Int){
    * Extract the bits representation for this Chromosome
    * @return Sequence of 1 or 0 as bit representation of this chromosome
    */
-  def repr: Seq[Int] =
-    (0 until encoded.length).map(index => if(encoded.get(index)) 1 else 0)
+  def repr: Seq[Int] = Chromosome.repr(encoded)
+
   override def toString: String =
     s"${code.map(_.toString).mkString(" ")} with encoding length: $encodingLength"
 }
@@ -97,6 +96,7 @@ private[ga] class Chromosome[T : Quantizer](code: Seq[T], encodingLength: Int){
  * @author Patrick Nicolas
  */
 private[ga] object Chromosome {
+  import java.util
 
   def apply[T : Quantizer](code: Seq[T], encodingLength: Int): Chromosome[T] =
     new Chromosome[T](code, encodingLength)
@@ -132,4 +132,7 @@ private[ga] object Chromosome {
       decodeInt(bits.reverse, 0, 0)
     }
   }
+
+  def repr(bitSet: util.BitSet): Seq[Int] =
+    (0 until bitSet.length()).map(index => if(bitSet.get(index)) 1 else 0)
 }
