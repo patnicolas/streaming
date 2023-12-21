@@ -13,6 +13,12 @@ package org.pipeline
 
 package object ga{
 
+  trait Quantizer[T] {
+    def apply(t: T): Int
+
+    def unapply(n: Int): T
+  }
+
   /**
    * Generic operator for symbolic representation of a gene defined
    * as a tuple {variable, operator, target_value}. An operator can be logical (OR, AND, NOT)

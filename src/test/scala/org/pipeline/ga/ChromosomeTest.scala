@@ -1,6 +1,7 @@
 package org.pipeline.ga
 
 import org.pipeline.ga.Chromosome.BitsIntEncoder
+import org.pipeline.ga.ChromosomeTest.DoubleQuantizer
 import org.scalatest.flatspec.AnyFlatSpec
 
 private[ga] final class ChromosomeTest extends AnyFlatSpec{
@@ -30,9 +31,33 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
   }
 
   it should "Succeed encoding a type into a chromosome" in {
+    import ChromosomeTest._
+
     val prices = List[Double](2,9, 4,0, 22,4, 1,0, 0,5, 13,7, 15,2)
-    val quantization = (x: Double) => x.toInt
-    val chromosomeDouble = new Chromosome[Double](prices, quantization, 4)
-    print(chromosomeDouble.toString)
+    val encodingLength = 4
+    val chromosomeDouble = new Chromosome[Double](prices, encodingLength)
+    print(chromosomeDouble.repr.mkString(""))
   }
+
+  it should "Succeed decoding a set of bits into a Chromosome" in {
+    import ChromosomeTest._
+
+    val bitStr = "0010100101000000011001000001000000000101110101111111001"
+    val bits = bitStr.toCharArray.map(_.toInt).toList
+    val encodingLength = 4
+    val chromosomeDouble = Chromosome[Double](encodingLength)
+    val newChromosome = chromosomeDouble.decode(bits)
+    print(s"\n${newChromosome.toString}")
+  }
+}
+
+
+private[ga] object ChromosomeTest {
+  class DoubleQuantizer extends Quantizer[Double] {
+    override def apply(x: Double): Int = x.floor.toInt
+
+    override def unapply(n: Int): Double = n.toDouble
+  }
+
+  implicit val doubleQuantizer: DoubleQuantizer = new DoubleQuantizer
 }
