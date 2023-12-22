@@ -11,13 +11,24 @@
  */
 package org.pipeline
 
+
 package object ga{
+
+  def repr(bitSet: java.util.BitSet, numBits: Int): List[Int] =
+    (0 until numBits).map(index => if (bitSet.get(index)) 1 else 0).toList
 
   trait Quantizer[T] {
     def apply(t: T): Int
 
     def unapply(n: Int): T
   }
+
+  implicit val defaultQuantizer: Quantizer[Int] = new  Quantizer[Int] {
+    def apply(t: Int): Int = t
+
+    def unapply(n: Int): Int = n
+  }
+
 
   /**
    * Generic operator for symbolic representation of a gene defined

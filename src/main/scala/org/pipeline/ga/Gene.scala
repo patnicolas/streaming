@@ -9,9 +9,100 @@
  * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
  * OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
  */
-/*
 package org.pipeline.ga
 
+import org.pipeline.ga.Gene.BitsIntEncoder
+
+import java.util
+import scala.annotation.tailrec
+
+
+/**
+ *
+ * @param t
+ * @param encodingLength
+ * @param quantizer$T$0
+ * @param bitsIntEncoder
+ * @tparam T
+ */
+private[ga] class Gene[T : Quantizer] private (
+  t: T,
+  encodingLength: Int
+)(implicit bitsIntEncoder: BitsIntEncoder) {
+
+  private[this] val bitsSequence: List[Int] = {
+    val quantizer = implicitly[Quantizer[T]]
+    val value = quantizer(t)
+    bitsIntEncoder(value)
+  }
+
+  private[this] val encoded: util.BitSet = {
+    val bs =  new java.util.BitSet(encodingLength)
+    bitsSequence.indices.foreach(index => bs.set(index, bitsSequence(index) == 1))
+    bs
+  }
+
+  final def size(): Int = encodingLength
+
+
+  final def getEncoded: util.BitSet = encoded
+
+  final def getBitsSequence: List[Int] = bitsSequence
+
+  def decode(bits: List[Int]): Gene[T] = {
+    val quantizer = implicitly[Quantizer[T]]
+    val encodedValue = bitsIntEncoder.unapply(bits)
+    val gene = quantizer.unapply(encodedValue)
+    new Gene[T](gene, encodingLength)
+  }
+
+  def ==(otherGene: Gene[T]): Boolean = otherGene.getBitsSequence == bitsSequence
+
+  @inline
+  final def repr: String = bitsSequence.mkString(" ")
+  override def toString: String =
+    s"${t.toString}: encoding length: ${encodingLength}"
+}
+
+private[ga] object Gene {
+
+  def apply[T: Quantizer](
+    t: T,
+    encodingLength: Int
+  )(implicit bitsIntEncoder: BitsIntEncoder): Gene[T] = new Gene[T](t, encodingLength)
+
+  def apply[T: Quantizer](encodingLength: Int)(implicit bitsIntEncoder: BitsIntEncoder): Gene[T]
+  = new Gene[T](null.asInstanceOf[T], encodingLength)
+
+  class BitsIntEncoder(encodingLength: Int){
+    def apply(n: Int): List[Int] = {
+      @tailrec def encodeInt(n: Int, bits: List[Int], index: Int): List[Int] = {
+        if (index >= encodingLength) bits else {
+          val bit = n & 0x01
+          encodeInt(n >> 1, bit :: bits, index + 1)
+        }
+      }
+
+      encodeInt(n, List[Int](), 0)
+    }
+
+    def unapply(bits: List[Int]): Int = {
+      @tailrec def decodeInt(bits: List[Int], index: Int, value: Int): Int = {
+        if (index >= bits.length) value else {
+          val newValue = if ((bits(index) & 0x01) == 0x01) value + (1 << index) else value
+          decodeInt(bits, index + 1, newValue)
+        }
+      }
+
+      decodeInt(bits.reverse, 0, 0)
+    }
+  }
+}
+
+
+
+
+/*
 import Gene.Encoding
 import scala.annotation.implicitNotFound
 

@@ -18,18 +18,16 @@ private[ga] trait XOverOp extends GAOp {
 self =>
   val xOverProbThreshold: Double
 
-  def apply(bitSet1: util.BitSet, bitSet2: util.BitSet): (util.BitSet, util.BitSet) =
-    if(rand.nextDouble > xOverProbThreshold) {
-      import XOverOp._
-      val len = bitSet1.size()
-
-      val xOverIndex = (len*Random.nextDouble).toInt
+  def apply(bitSet1: util.BitSet, bitSet2: util.BitSet, encodingSize: Int): (util.BitSet, util
+  .BitSet) =
+    if(rand.nextDouble < xOverProbThreshold) {
+      val xOverIndex = (encodingSize*Random.nextDouble).toInt
       val bitSet1Top = bitSet1.get(0, xOverIndex)
       val bitSet2Top = bitSet2.get(0, xOverIndex)
-      val bitSet1Bottom = bitSet1.get(xOverIndex, len)
-      val bitSet2Bottom = bitSet2.get(xOverIndex, len)
-      val offSpring1 = xOver(bitSet1Top, bitSet2Bottom)
-      val offSpring2 = xOver(bitSet2Top, bitSet1Bottom)
+      val bitSet1Bottom = bitSet1.get(xOverIndex, encodingSize)
+      val bitSet2Bottom = bitSet2.get(xOverIndex, encodingSize)
+      val offSpring1 = XOverOp.xOver(bitSet1Top, xOverIndex, bitSet2Bottom, encodingSize)
+      val offSpring2 = XOverOp.xOver(bitSet2Top, xOverIndex, bitSet1Bottom, encodingSize)
 
       (offSpring1, offSpring2)
     }
@@ -39,10 +37,15 @@ self =>
 
 
 private[ga] object XOverOp {
-  private def xOver(bitSet1: util.BitSet, bitSet2: util.BitSet): util.BitSet = {
-    (bitSet1.length until bitSet1.length + bitSet2.length).foldLeft(bitSet1)(
+  private def xOver(
+    bitSet1: util.BitSet,
+    encoding1Size: Int,
+    bitSet2: util.BitSet,
+    encodingSize: Int): util.BitSet = {
+
+    (encoding1Size until encodingSize).foldLeft(bitSet1)(
       (offSpring, index) => {
-        offSpring.set(index, bitSet2.get(index + bitSet1.length))
+        offSpring.set(index, bitSet2.get(index))
         offSpring
       }
     )
