@@ -1,6 +1,7 @@
 package org.pipeline.ga
 
 import org.pipeline.ga
+import org.pipeline.ga.Gene.BitsIntEncoder
 import org.pipeline.ga.MutationOpTest.{MyMutationOp, createBitSet}
 import org.scalatest.flatspec.AnyFlatSpec
 
@@ -8,15 +9,32 @@ import java.util
 
 private[ga] final class MutationOpTest extends AnyFlatSpec{
 
-  ignore should "Succeed mutating a chromosome" in {
-    val myMutationOp = new MyMutationOp(0.3)
-    val encodingSize = 16
-    val bitSet = createBitSet(encodingSize, flag = true)
-
-    println(ga.repr(bitSet, encodingSize))
-    val mutatedBitSet = myMutationOp(bitSet)
+  ignore should "Succeed mutating a chromosome as a bit set" in {
+    val encodingLength = 5
+    val numGenes = 6
+    val myMutationOp = new MyMutationOp(0.95)
+    val bitSet = createBitSet(encodingLength*numGenes, flag = true)
+    println(ga.repr(bitSet, encodingLength*numGenes))
+    val mutatedBitSet = myMutationOp(bitSet, encodingLength, numGenes)
     assert(bitSet.length() == mutatedBitSet.length())
-    println(ga.repr(mutatedBitSet, encodingSize))
+    println(ga.repr(mutatedBitSet, encodingLength*numGenes))
+  }
+
+  it should "Succeed mutation chromosome as a list of integers" in {
+    import org.pipeline.ga._
+
+    val encodingLength = 5
+    val input = List[Int](1, 6, 3, 4, 2, 5)
+    implicit val bitsIntEncoder: BitsIntEncoder = new BitsIntEncoder(encodingLength)
+    val chromosome: Chromosome[Int] = Chromosome[Int](input, encodingLength)
+    val encoded = chromosome.getEncoded
+    println(encoded.toString)
+    println(chromosome.repr)
+
+    val myMutationOp = new MyMutationOp(0.95)
+    val mutatedBitSet: util.BitSet = myMutationOp(encoded, encodingLength, input.length)
+    val mutatedChromosome = chromosome.decode(mutatedBitSet, encodingLength)
+    println(s"Mutated Chromosome: ${mutatedChromosome.toString}")
   }
 /*
   ignore should "Succeed encoding/decoding Chromosome" in {
@@ -44,7 +62,7 @@ private[ga] final class MutationOpTest extends AnyFlatSpec{
     val mutatedChromosome = chromosomeInt.decode(mutatedBitSet)
     println(s"Mutated chromosome: ${mutatedChromosome.toString}")
   }
-  
+
  */
 }
 

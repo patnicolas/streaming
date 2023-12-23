@@ -13,9 +13,6 @@ package org.pipeline.ga
 
 import org.pipeline.ga
 import org.pipeline.ga.Gene.BitsIntEncoder
-import org.pipeline.ga.repr
-
-import scala.annotation.tailrec
 import java.util
 
 
@@ -37,16 +34,16 @@ import java.util
 private[ga] class Chromosome[T : Quantizer] private (
   code: Seq[Gene[T]]
 )(implicit bitsIntEncoder: BitsIntEncoder){
-  import Chromosome._
 
   private[this] lazy val encoded: util.BitSet = {
     require(code.nonEmpty, "Chromosome Cannot create a chromosome from undefined genes")
 
     val bitsSequence = code.flatMap(_.getBitsSequence)
-    val numBits = code.length*code.head.size()
+    val numBits = bitsSequence.length
     val bitSet = new java.util.BitSet(numBits)
     (0 until  numBits).foreach(
-      index => bitSet.set(index, bitsSequence(index))
+      index =>
+        bitSet.set(index, bitsSequence(index) == 1)
     )
     bitSet
   }
@@ -71,15 +68,27 @@ private[ga] class Chromosome[T : Quantizer] private (
     new Chromosome[T](code)
   }
 
+  /**
+   *
+   * @param bitSet
+   * @param encodingLength
+   * @return
+   */
+  def decode(bitSet: util.BitSet, encodingLength: Int): Chromosome[T] = {
+    val bitsSequence = ga.repr(bitSet, encodingLength*code.length)
+    decode(bitsSequence, encodingLength)
+  }
+
   final def getEncoded: util.BitSet = encoded
 
   /**
    * Extract the bits representation for this Chromosome
    * @return Sequence of 1 or 0 as bit representation of this chromosome
    */
-  def repr: Seq[Int] = ga.repr(encoded, code.head.size())
+  def repr: Seq[Int] = ga.repr(encoded, code.head.size()*code.length)
 
-  override def toString: String = code.map(_.toString).mkString(" ")
+  override def toString: String =
+    code.map(_.getValue.toString).mkString(" ")
 }
 
 
@@ -88,12 +97,18 @@ private[ga] class Chromosome[T : Quantizer] private (
  * @author Patrick Nicolas
  */
 private[ga] object Chromosome {
-  import java.util
 
   def apply[T : Quantizer](
     code: Seq[Gene[T]]
   )(implicit bitsIntEncoder: BitsIntEncoder): Chromosome[T] = new Chromosome[T](code)
 
+  def apply[T : Quantizer](
+    elements: Seq[T],
+    encodingLength: Int
+  )(implicit bitsIntEncoder: BitsIntEncoder): Chromosome[T] = {
+    val genes = elements.map(Gene[T](_, encodingLength))
+    new Chromosome[T](genes)
+  }
 
   def apply[T: Quantizer]()(implicit bitsIntEncoder: BitsIntEncoder): Chromosome[T] =
     new Chromosome[T](Seq.empty[Gene[T]])

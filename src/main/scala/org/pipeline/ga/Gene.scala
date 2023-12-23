@@ -49,6 +49,8 @@ private[ga] class Gene[T : Quantizer] private (
 
   final def getBitsSequence: List[Int] = bitsSequence
 
+  final def getValue: T = t
+
   def decode(bits: List[Int]): Gene[T] = {
     val quantizer = implicitly[Quantizer[T]]
     val encodedValue = bitsIntEncoder.unapply(bits)
@@ -71,12 +73,13 @@ private[ga] object Gene {
     encodingLength: Int
   )(implicit bitsIntEncoder: BitsIntEncoder): Gene[T] = new Gene[T](t, encodingLength)
 
-  def apply[T: Quantizer](encodingLength: Int)(implicit bitsIntEncoder: BitsIntEncoder): Gene[T]
-  = new Gene[T](null.asInstanceOf[T], encodingLength)
+  def apply[T: Quantizer](encodingLength: Int)(implicit bitsIntEncoder: BitsIntEncoder): Gene[T] =
+    new Gene[T](null.asInstanceOf[T], encodingLength)
 
   class BitsIntEncoder(encodingLength: Int){
     def apply(n: Int): List[Int] = {
-      @tailrec def encodeInt(n: Int, bits: List[Int], index: Int): List[Int] = {
+      @tailrec
+      def encodeInt(n: Int, bits: List[Int], index: Int): List[Int] = {
         if (index >= encodingLength) bits else {
           val bit = n & 0x01
           encodeInt(n >> 1, bit :: bits, index + 1)
@@ -87,7 +90,8 @@ private[ga] object Gene {
     }
 
     def unapply(bits: List[Int]): Int = {
-      @tailrec def decodeInt(bits: List[Int], index: Int, value: Int): Int = {
+      @tailrec
+      def decodeInt(bits: List[Int], index: Int, value: Int): Int = {
         if (index >= bits.length) value else {
           val newValue = if ((bits(index) & 0x01) == 0x01) value + (1 << index) else value
           decodeInt(bits, index + 1, newValue)
