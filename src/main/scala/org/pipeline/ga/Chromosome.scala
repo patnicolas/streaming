@@ -1,5 +1,5 @@
 /**
- * Copyright 2022,2023 Patrick R. Nicolas. All Rights Reserved.
+ * Copyright 2022,2024 Patrick R. Nicolas. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
  * with the License. A copy of the License is located at
@@ -12,7 +12,6 @@
 package org.pipeline.ga
 
 import org.pipeline.ga
-import org.pipeline.ga.Gene.BitsIntEncoder
 import java.util
 
 
@@ -31,9 +30,7 @@ import java.util
  * @author Patrick Nicolas
  */
 @throws(classOf[IllegalArgumentException])
-private[ga] class Chromosome[T : Quantizer] private (
-  code: Seq[Gene[T]]
-)(implicit bitsIntEncoder: BitsIntEncoder){
+private[ga] class Chromosome[T] private (code: Seq[Gene[T]]){
 
   private[this] lazy val encoded: util.BitSet = {
     require(code.nonEmpty, "Chromosome Cannot create a chromosome from undefined genes")
@@ -53,7 +50,8 @@ private[ga] class Chromosome[T : Quantizer] private (
    * @param bitsSequence List of integers {0, 1} representing the bits
    * @return Instance of chromosome
    */
-  def decode(bitsSequence: List[Int], encodingLength: Int): Chromosome[T] = {
+    /*
+  def decode(bitsSequence: BitsRepr, encodingLength: Int): Chromosome[T] = {
     require(
       bitsSequence.size >= encodingLength,
       s"Failed to decode ${bitsSequence.size} bits should be >= $encodingLength"
@@ -61,12 +59,14 @@ private[ga] class Chromosome[T : Quantizer] private (
     val gene = Gene[T](encodingLength)
     val code = (bitsSequence.indices by encodingLength).map(
       index => {
-        val bitsSlice: List[Int] = bitsSequence.slice(index, index + encodingLength)
+        val bitsSlice: BitsRepr = bitsSequence.slice(index, index + encodingLength)
         gene.decode(bitsSlice)
       }
     )
     new Chromosome[T](code)
   }
+
+     */
 
   /**
    *
@@ -74,10 +74,13 @@ private[ga] class Chromosome[T : Quantizer] private (
    * @param encodingLength
    * @return
    */
+    /*
   def decode(bitSet: util.BitSet, encodingLength: Int): Chromosome[T] = {
     val bitsSequence = ga.repr(bitSet, encodingLength*code.length)
     decode(bitsSequence, encodingLength)
   }
+
+     */
 
   final def getEncoded: util.BitSet = encoded
 
@@ -98,19 +101,16 @@ private[ga] class Chromosome[T : Quantizer] private (
  */
 private[ga] object Chromosome {
 
-  def apply[T : Quantizer](
-    code: Seq[Gene[T]]
-  )(implicit bitsIntEncoder: BitsIntEncoder): Chromosome[T] = new Chromosome[T](code)
+  def apply[T](code: Seq[Gene[T]]): Chromosome[T] = new Chromosome[T](code)
 
-  def apply[T : Quantizer](
-    elements: Seq[T],
-    encodingLength: Int
-  )(implicit bitsIntEncoder: BitsIntEncoder): Chromosome[T] = {
+  /*
+  def apply[T](elements: Seq[T], encodingLength: Int): Chromosome[T] = {
     val genes = elements.map(Gene[T](_, encodingLength))
     new Chromosome[T](genes)
   }
 
-  def apply[T: Quantizer]()(implicit bitsIntEncoder: BitsIntEncoder): Chromosome[T] =
-    new Chromosome[T](Seq.empty[Gene[T]])
+   */
+
+  def apply[T](): Chromosome[T] = new Chromosome[T](Seq.empty[Gene[T]])
 
 }

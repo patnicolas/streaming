@@ -1,5 +1,5 @@
 /**
- * Copyright 2022,2023 Patrick R. Nicolas. All Rights Reserved.
+ * Copyright 2022,2024 Patrick R. Nicolas. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
  * with the License. A copy of the License is located at
@@ -26,7 +26,7 @@ self =>
       val mirrorBitSetIndex =
         if(bitSetIndex + encodingLength >= numGenes*encodingLength) bitSetIndex - encodingLength
         else bitSetIndex + encodingLength
-        
+
        */
 
       bitSet.flip(bitSetIndex)

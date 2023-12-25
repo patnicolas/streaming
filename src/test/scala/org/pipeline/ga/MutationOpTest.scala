@@ -1,7 +1,6 @@
 package org.pipeline.ga
 
 import org.pipeline.ga
-import org.pipeline.ga.Gene.BitsIntEncoder
 import org.pipeline.ga.MutationOpTest.{MyMutationOp, createBitSet}
 import org.scalatest.flatspec.AnyFlatSpec
 
@@ -20,6 +19,7 @@ private[ga] final class MutationOpTest extends AnyFlatSpec{
     println(ga.repr(mutatedBitSet, encodingLength*numGenes))
   }
 
+  /*
   it should "Succeed mutation chromosome as a list of integers" in {
     import org.pipeline.ga._
 
@@ -36,7 +36,7 @@ private[ga] final class MutationOpTest extends AnyFlatSpec{
     val mutatedChromosome = chromosome.decode(mutatedBitSet, encodingLength)
     println(s"Mutated Chromosome: ${mutatedChromosome.toString}")
   }
-/*
+
   ignore should "Succeed encoding/decoding Chromosome" in {
     val input = Seq[Int](4, 1, 3, 2)
     val encodingLength = 4

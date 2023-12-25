@@ -1,7 +1,6 @@
 package org.pipeline.ga
 
-import org.pipeline.ga
-import org.pipeline.ga.Gene.BitsIntEncoder
+
 import org.scalatest.flatspec.AnyFlatSpec
 
 private[ga] final class ChromosomeTest extends AnyFlatSpec{
@@ -71,11 +70,4 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
 
 
 private[ga] object ChromosomeTest {
-  class DoubleQuantizer extends Quantizer[Double] {
-    override def apply(x: Double): Int = x.floor.toInt
-
-    override def unapply(n: Int): Double = n.toDouble
-  }
-
-  implicit val doubleQuantizer: DoubleQuantizer = new DoubleQuantizer
 }

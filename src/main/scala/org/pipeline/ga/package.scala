@@ -1,5 +1,5 @@
 /**
- * Copyright 2022,2023 Patrick R. Nicolas. All Rights Reserved.
+ * Copyright 2022,2024 Patrick R. Nicolas. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance
  * with the License. A copy of the License is located at
@@ -11,23 +11,44 @@
  */
 package org.pipeline
 
+import scala.annotation.tailrec
 
 package object ga{
 
-  def repr(bitSet: java.util.BitSet, numBits: Int): List[Int] =
+  type BitsRepr = List[Int]
+
+  final class GAException(msg: String) extends Exception(msg)
+
+  final class BitsIntEncoder(encodingLength: Int){
+    def apply(n: Int): BitsRepr = {
+      @tailrec
+      def encodeInt(n: Int, bits: BitsRepr, index: Int): BitsRepr = {
+        if (index >= encodingLength) bits else {
+          val bit = n & 0x01
+          encodeInt(n >> 1, bit :: bits, index + 1)
+        }
+      }
+      encodeInt(n, List[Int](), 0)
+    }
+
+    def unapply(bits: BitsRepr): Int = {
+      @tailrec
+      def decodeInt(bits: BitsRepr, index: Int, value: Int): Int = {
+        if (index >= bits.length) value else {
+          val newValue = if ((bits(index) & 0x01) == 0x01) value + (1 << index) else value
+          decodeInt(bits, index + 1, newValue)
+        }
+      }
+      decodeInt(bits.reverse, 0, 0)
+    }
+  }
+
+  def toBits(n: Int, encodingLength: Int): BitsRepr =
+    (0 until encodingLength).map(index => if((n & (1 << index)) == 0x01) 1 else 0).toList
+
+  def repr(bitSet: java.util.BitSet, numBits: Int): BitsRepr =
     (0 until numBits).map(index => if (bitSet.get(index)) 1 else 0).toList
 
-  trait Quantizer[T] {
-    def apply(t: T): Int
-
-    def unapply(n: Int): T
-  }
-
-  implicit val defaultQuantizer: Quantizer[Int] = new  Quantizer[Int] {
-    def apply(t: Int): Int = t
-
-    def unapply(n: Int): Int = n
-  }
 
 
   /**
