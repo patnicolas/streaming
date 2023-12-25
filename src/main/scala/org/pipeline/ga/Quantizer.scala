@@ -11,9 +11,20 @@
  */
 package org.pipeline.ga
 
+/**
+ * Generic quantizer that convert an object of type T to and from a sequence of bits {0, 1}
+ * implemented as a list
+ * @tparam T Type of object
+ * @author Patrick Nicolas
+ */
 trait Quantizer[T]{
   val encodingLength: Int
 
+  /**
+   * Convert an object of type T into a bits sequence
+   * @param t Object to be converted
+   * @return Bits sequence
+   */
   def apply(t: T): BitsRepr
 
   def unapply(bitsRepr: BitsRepr): T
@@ -21,11 +32,22 @@ trait Quantizer[T]{
   def isValid(t: T): Boolean
 }
 
-class QuantizerBool(
+/**
+ * Quantizer for Boolean value (0, 1}
+ * @param encodingLength Number of bits representing the value
+ */
+
+final class QuantizerBool(
   override val encodingLength: Int
 ) extends Quantizer[Boolean]{
 
   private[this] val encoder = new BitsIntEncoder(encodingLength)
+
+  /**
+   * Convert a boolean into a bits sequence
+   * @param t Object to be converted
+   * @return Bits sequence
+   */
   override def apply(t: Boolean): BitsRepr = {
     val n: Int = if (t) 1 else 0
     encoder(n)
@@ -36,12 +58,26 @@ class QuantizerBool(
   override def isValid(b: Boolean): Boolean = true
 }
 
-class QuantizerInt(
+
+/**
+ * Quantizer for integers
+ * @param encodingLength Number of bits representing the integer
+ * @param constraint Constraint on the integer prior conversion
+ */
+
+final class QuantizerInt(
   override val encodingLength: Int,
   constraint: Int => Boolean) extends Quantizer[Int]{
 
   private[this] val encoder = new BitsIntEncoder(encodingLength)
 
+  /**
+   * Convert an integer into a bits sequence
+   *
+   * @param t Integer to be converted
+   * @throws GAException if the integer input is out of range
+   * @return Bits sequence
+   */
   @throws(classOf[GAException])
   override def apply(t: Int): BitsRepr = {
     if(!constraint(t))
@@ -56,10 +92,10 @@ class QuantizerInt(
 
 
 /**
- *
- * @param encodingLength
- * @param constraint
- * @param scaleFactor
+ * Quantizer for floating point value
+ * @param encodingLength Number of bits representing the floating point value
+ * @param constraint Constraint on the floating point value prior to conversion to bits sequence
+ * @param scaleFactor Scaling factor applied to value prior to conversion
  */
 class QuantizerDouble(
   override val encodingLength: Int,
@@ -68,6 +104,13 @@ class QuantizerDouble(
 
   private[this] val encoder = new BitsIntEncoder(encodingLength)
 
+  /**
+   * Convert a floating point value into a bits sequence
+   *
+   * @param tx floating point value to be converted
+   * @throws GAException if the floating point input is out of range
+   * @return Bits sequence
+   */
   @throws(classOf[GAException])
   override def apply(x: Double): BitsRepr = {
     if(!constraint(x))

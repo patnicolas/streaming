@@ -19,18 +19,10 @@ import scala.util.Random
 trait MutationOp extends GAOp {
 self =>
   protected[this] val mutationProbThreshold: Double
-  def apply(bitSet: java.util.BitSet, encodingLength: Int, numGenes: Int): java.util.BitSet =
+  def apply(bitSet: java.util.BitSet, encodingLength: Int): java.util.BitSet =
     if(rand.nextDouble < mutationProbThreshold) {
       val bitSetIndex = (encodingLength * Random.nextDouble).toInt + 1
-      /*
-      val mirrorBitSetIndex =
-        if(bitSetIndex + encodingLength >= numGenes*encodingLength) bitSetIndex - encodingLength
-        else bitSetIndex + encodingLength
-
-       */
-
       bitSet.flip(bitSetIndex)
-      // bitSet.flip(mirrorBitSetIndex)
       bitSet
     }
     else

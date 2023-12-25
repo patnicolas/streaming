@@ -8,7 +8,7 @@ private[ga] final class GeneTest extends AnyFlatSpec{
   it should "Succeed instantiating a gene" in {
     val maxValue = 6
     val quantizer = new QuantizerInt(4, (n: Int) => n <= 6)
-    val gene = Gene[Int](5, quantizer)
+    val gene = Gene[Int](5, quantizer, 0.8)
     println(gene.toString)
     println(gene.getEncoded)
     println(gene.getBitsSequence)

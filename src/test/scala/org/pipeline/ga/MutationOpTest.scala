@@ -14,7 +14,7 @@ private[ga] final class MutationOpTest extends AnyFlatSpec{
     val myMutationOp = new MyMutationOp(0.95)
     val bitSet = createBitSet(encodingLength*numGenes, flag = true)
     println(ga.repr(bitSet, encodingLength*numGenes))
-    val mutatedBitSet = myMutationOp(bitSet, encodingLength, numGenes)
+    val mutatedBitSet = myMutationOp(bitSet, encodingLength)
     assert(bitSet.length() == mutatedBitSet.length())
     println(ga.repr(mutatedBitSet, encodingLength*numGenes))
   }
