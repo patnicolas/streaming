@@ -12,7 +12,6 @@
 package org.pipeline.ga
 
 import org.pipeline.ga
-
 import java.util
 
 
@@ -40,6 +39,11 @@ private[ga] class Gene[T] private (
     bs
   }
 
+  /**
+   *
+   * @return
+   */
+
   def mutate(): Gene[T] = {
     var newValue: T = null.asInstanceOf[T]
     do {
@@ -51,6 +55,17 @@ private[ga] class Gene[T] private (
     Gene[T](newValue, quantizer, mutationProbThreshold)
   }
 
+
+  def getValidValue(bitsSet: util.BitSet): T = {
+    var newValue: T = null.asInstanceOf[T]
+    do {
+      val bitsSequence = ga.repr(bitsSet, quantizer.encodingLength)
+      newValue = quantizer.unapply(bitsSequence)
+    } while(!quantizer.isValid(newValue))
+  }
+
+
+  final def getQuantizer: Quantizer[T] = quantizer
 
 
   final def size(): Int = quantizer.encodingLength

@@ -30,10 +30,17 @@ import java.util
  * @author Patrick Nicolas
  */
 @throws(classOf[IllegalArgumentException])
-private[ga] class Chromosome[T] private (code: Seq[Gene[T]]){
+private[ga] class Chromosome[T, U] private (features1: Seq[Gene[T]], features2: Seq[Gene[U]]){
+
+  final def getFeatures1: Seq[Gene[T]] = features1
+
+  final def getFeatures2: Seq[Gene[T]] = features2
 
   private[this] lazy val encoded: util.BitSet = {
-    require(code.nonEmpty, "Chromosome Cannot create a chromosome from undefined genes")
+    require(
+      features1.nonEmpty || features2.nonEmpty,
+      "Chromosome Cannot create a chromosome from undefined genes"
+    )
 
     val bitsSequence = code.flatMap(_.getBitsSequence)
     val numBits = bitsSequence.length
