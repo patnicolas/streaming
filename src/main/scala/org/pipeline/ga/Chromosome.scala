@@ -36,6 +36,21 @@ private[ga] class Chromosome[T, U] private (features1: Seq[Gene[T]], features2: 
 
   final def getFeatures2: Seq[Gene[U]] = features2
 
+  def xOver(
+    otherChromosome: Chromosome[T, U],
+    xOverOp: XOverOp): (Chromosome[T, U], Chromosome[T, U]) = xOverOp(this, otherChromosome)
+
+  def xOver(
+    otherChromosome: Chromosome[T, U],
+    xOverProb: Double): (Chromosome[T, U], Chromosome[T, U]) = {
+    require(
+      xOverProb >= 1e-5 && xOverProb <= 0.9,
+      s"Cross-over probability $xOverProb is out of range [1e-5, 0.9]")
+
+    (new XOverOp{
+      override val xOverProbThreshold: Double = xOverProb
+    })(this, otherChromosome)
+  }
 
   def mutate(mutationOp: MutationOp): Chromosome[T, U] = mutationOp(this)
 
