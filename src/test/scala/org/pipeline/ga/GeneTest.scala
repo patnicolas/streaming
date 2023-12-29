@@ -9,7 +9,7 @@ private[ga] final class GeneTest extends AnyFlatSpec{
     val maxValue = 6
     val quantizer = new QuantizerInt(4, (n: Int) => n <= maxValue)
     val input = 5
-    val gene = Gene[Int](input, quantizer, 0.8)
+    val gene = Gene[Int](input, quantizer)
     println(gene.toString)
     println(gene.getEncoded)
     println(gene.getBitsSequence)
@@ -20,7 +20,7 @@ private[ga] final class GeneTest extends AnyFlatSpec{
     try {
       val quantizer = new QuantizerDouble(6, (x: Double) => x <= maxValue, 2.0)
       val input = 2.0
-      val gene = Gene[Double](input, quantizer, 0.9)
+      val gene = Gene[Double](input, quantizer)
       println(gene.toString)
       println(gene.getEncoded)
       println(gene.getBitsSequence)
@@ -35,7 +35,7 @@ private[ga] final class GeneTest extends AnyFlatSpec{
     try {
       val quantizer = new QuantizerDouble(encodingLength = 6, (x: Double) => x <= maxValue, scaleFactor = 10.0)
       val input = 18.0
-      val gene = Gene[Double](input, quantizer, mutationProbThreshold = 0.9)
+      val gene = Gene[Double](input, quantizer)
       println(gene.toString)
       println(gene.getEncoded)
       println(gene.getBitsSequence)
@@ -50,7 +50,7 @@ private[ga] final class GeneTest extends AnyFlatSpec{
     val maxValue = 6
     val quantizer = new QuantizerInt(4, (n: Int) => n <= maxValue)
     val input = 5
-    val gene = Gene[Int](input, quantizer, 0.8)
+    val gene = Gene[Int](input, quantizer)
     val bitsSequence = gene.getBitsSequence
     val decodedGene = gene.decode(bitsSequence)
     assert(gene == decodedGene)
@@ -61,8 +61,11 @@ private[ga] final class GeneTest extends AnyFlatSpec{
     try {
       val quantizer = new QuantizerDouble(6, (x: Double) => x <= maxValue, 2.0)
       val input = 9.0
-      val gene = Gene[Double](input, quantizer, 0.9)
-      val mutatedGene = gene.mutate()
+      val gene = Gene[Double](input, quantizer)
+      val mutationOp = new MutationOp {
+        val mutationProbThreshold: Double = 0.8
+      }
+      val mutatedGene = gene.mutate(mutationOp)
       println(s"Gene ${gene.toString}\nMutated ${mutatedGene.toString}")
     } catch {
       case e: GAException =>

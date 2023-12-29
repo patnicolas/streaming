@@ -11,12 +11,15 @@
  */
 package org.pipeline.ga
 
-import org.pipeline.ga
-
 import scala.util.Random
 import java.util
+
 /**
+ * Mutation operator to be applied to Genes and Chromosomes (as defined has a sequence
+ * of heterogeneous genes
+ * mutationProbThreshold: Threshold for triggering a mutation
  *
+ * @author Patrick Nicolas
  */
 trait MutationOp extends GAOp {
 self =>
@@ -26,7 +29,7 @@ self =>
     if(rand.nextDouble < mutationProbThreshold) {
       val flippedBitSet = flip(gene.getEncoded,  gene.size())
       val newValue = gene.getValidValue(flippedBitSet)
-      Gene[T](newValue, gene.getQuantizer, mutationProbThreshold)
+      Gene[T](newValue, gene.getQuantizer)
     }
     else
       gene
@@ -41,13 +44,19 @@ self =>
 
       val geneIndex = (chromosomeLength* Random.nextDouble).toInt + 1
 
-      if(geneIndex < features1.length) {
+      // If the index of the gene to mutate is within the first category or
+      // if there is only one set of features of same type..
+      if(geneIndex < features1.length || features2.isEmpty) {
         val geneToMutate = features1(geneIndex)
+
+        apply[T](geneToMutate)
         features1.updated(geneIndex, apply(geneToMutate))
       }
       else {
         val relativeIndex = geneIndex - features1.length
         val geneToMutate = features2(relativeIndex)
+
+        apply[U](geneToMutate)
         features2.updated(relativeIndex, apply(geneToMutate))
       }
 

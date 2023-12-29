@@ -34,7 +34,20 @@ private[ga] class Chromosome[T, U] private (features1: Seq[Gene[T]], features2: 
 
   final def getFeatures1: Seq[Gene[T]] = features1
 
-  final def getFeatures2: Seq[Gene[T]] = features2
+  final def getFeatures2: Seq[Gene[U]] = features2
+
+
+  def mutate(mutationOp: MutationOp): Chromosome[T, U] = mutationOp(this)
+
+  def mutate(mutationProb: Double): Chromosome[T, U] = {
+    require(
+      mutationProb >= 1e-5 && mutationProb <= 0.9,
+      s"Mutation probability $mutationProb is out of range [1e-5, 0.9]"
+    )
+    (new MutationOp{
+      override val mutationProbThreshold: Double = mutationProb
+    })(this)
+  }
 
   private[this] lazy val encoded: util.BitSet = {
     require(
@@ -42,7 +55,7 @@ private[ga] class Chromosome[T, U] private (features1: Seq[Gene[T]], features2: 
       "Chromosome Cannot create a chromosome from undefined genes"
     )
 
-    val bitsSequence = code.flatMap(_.getBitsSequence)
+    val bitsSequence = features1.flatMap(_.getBitsSequence) ++ features2.flatMap(_.getBitsSequence)
     val numBits = bitsSequence.length
     val bitSet = new java.util.BitSet(numBits)
     (0 until  numBits).foreach(
@@ -91,14 +104,8 @@ private[ga] class Chromosome[T, U] private (features1: Seq[Gene[T]], features2: 
 
   final def getEncoded: util.BitSet = encoded
 
-  /**
-   * Extract the bits representation for this Chromosome
-   * @return Sequence of 1 or 0 as bit representation of this chromosome
-   */
-  def repr: Seq[Int] = ga.repr(encoded, code.head.size()*code.length)
-
   override def toString: String =
-    code.map(_.getValue.toString).mkString(" ")
+    (features1.map(_.getValue.toString) ++ features2.map(_.getValue.toString)).mkString(" ")
 }
 
 
@@ -108,16 +115,13 @@ private[ga] class Chromosome[T, U] private (features1: Seq[Gene[T]], features2: 
  */
 private[ga] object Chromosome {
 
-  def apply[T](code: Seq[Gene[T]]): Chromosome[T] = new Chromosome[T](code)
+  def apply[T](features: Seq[Gene[T]]): Chromosome[T, T] =
+    new Chromosome[T, T](features, Seq.empty[Gene[T]])
 
-  /*
-  def apply[T](elements: Seq[T], encodingLength: Int): Chromosome[T] = {
-    val genes = elements.map(Gene[T](_, encodingLength))
-    new Chromosome[T](genes)
-  }
+  def apply[T, U](features1: Seq[Gene[T]], features2: Seq[Gene[U]]): Chromosome[T, U] =
+    new Chromosome[T, U](features1, features2)
 
-   */
-
-  def apply[T](): Chromosome[T] = new Chromosome[T](Seq.empty[Gene[T]])
+  def apply[T, U](): Chromosome[T, U] =
+    new Chromosome[T, U](Seq.empty[Gene[T]], Seq.empty[Gene[U]])
 
 }

@@ -1,22 +1,19 @@
 package org.pipeline.ga
 
-import org.pipeline.ga
-import org.pipeline.ga.MutationOpTest.{MyMutationOp, createBitSet}
 import org.scalatest.flatspec.AnyFlatSpec
-
 import java.util
 
 private[ga] final class MutationOpTest extends AnyFlatSpec{
 
-  ignore should "Succeed mutating a chromosome as a bit set" in {
+  it should "Succeed mutating a chromosome as a bit set" in {
     val encodingLength = 5
-    val numGenes = 6
-    val myMutationOp = new MyMutationOp(0.95)
-    val bitSet = createBitSet(encodingLength*numGenes, flag = true)
-    println(ga.repr(bitSet, encodingLength*numGenes))
-    val mutatedBitSet = myMutationOp(bitSet, encodingLength)
-    assert(bitSet.length() == mutatedBitSet.length())
-    println(ga.repr(mutatedBitSet, encodingLength*numGenes))
+    val gene: Gene[Int] = Gene[Int](8, new QuantizerInt(encodingLength, (n: Int) => n <= 10))
+    val myMutationOp = new MutationOp {
+      override val mutationProbThreshold: Double = 0.8
+    }
+
+    val mutatedGene = myMutationOp(gene)
+    println(mutatedGene.toString)
   }
 
   /*

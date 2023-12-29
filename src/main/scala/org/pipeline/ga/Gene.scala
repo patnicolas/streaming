@@ -16,7 +16,7 @@ import java.util
 
 
 /**
- * Define a parameterized gene
+ * Define a parameterized gene defined as a pair {value, quantizer}
  * @param t Object of type T represented by a Gene
  * @param quantizer Quantizer associated with this Gene T <-> Bits sequence
  * @tparam T Type of underlying object for this gene
@@ -24,10 +24,8 @@ import java.util
  * @author Patrick Nicolas
  */
 @throws(classOf[GAException])
-private[ga] class Gene[T] private (
-  t: T,
-  quantizer: Quantizer[T],
-  override val mutationProbThreshold: Double) extends MutationOp {
+private[ga] class Gene[T] private (t: T, quantizer: Quantizer[T]) {
+
 
   // Encoding as a sequence if bits
   private[this] val bitsSequence: BitsRepr = quantizer(t)
@@ -40,19 +38,24 @@ private[ga] class Gene[T] private (
   }
 
   /**
-   *
-   * @return
+   * Mutates this gene using the MutationOp operator
+   * @return Mutated gene of same type
    */
+  def mutate(mutationOp: MutationOp): Gene[T] = mutationOp(this)
 
-  def mutate(): Gene[T] = {
-    var newValue: T = null.asInstanceOf[T]
-    do {
-      val bitsSet = apply(encoded, quantizer.encodingLength)
-      val bitsSequence = ga.repr(bitsSet, quantizer.encodingLength)
-      newValue = quantizer.unapply(bitsSequence)
-    } while(!quantizer.isValid(newValue))
+  /**
+   * Mutates this gene given a mutation probability
+   * @return Mutated gene of same type
+   */
+  def mutate(mutationProb: Double): Gene[T] = {
+    require(
+      mutationProb >= 1e-5 && mutationProb < 0.5,
+      s"Mutation probability $mutationProb is out of range [1e-5, 0,5]"
+    )
 
-    Gene[T](newValue, quantizer, mutationProbThreshold)
+    (new MutationOp{
+      override val mutationProbThreshold: Double = mutationProb
+    })(this)
   }
 
 
@@ -62,6 +65,7 @@ private[ga] class Gene[T] private (
       val bitsSequence = ga.repr(bitsSet, quantizer.encodingLength)
       newValue = quantizer.unapply(bitsSequence)
     } while(!quantizer.isValid(newValue))
+    newValue
   }
 
 
@@ -78,7 +82,7 @@ private[ga] class Gene[T] private (
 
   def decode(bits: BitsRepr): Gene[T] = {
     val gene = quantizer.unapply(bits)
-    new Gene[T](gene, quantizer, mutationProbThreshold)
+    new Gene[T](gene, quantizer)
   }
 
   def ==(otherGene: Gene[T]): Boolean = otherGene.getBitsSequence == bitsSequence
@@ -93,9 +97,7 @@ private[ga] class Gene[T] private (
 
 private[ga] object Gene {
 
-  def apply[T](t: T, quantizer: Quantizer[T], mutationProbThreshold: Double): Gene[T] = new
-      Gene[T](t, quantizer, mutationProbThreshold)
+  def apply[T](t: T, quantizer: Quantizer[T]): Gene[T] = new Gene[T](t, quantizer)
 
-  def apply[T](quantizer: Quantizer[T], mutationProbThreshold: Double): Gene[T] =
-    new Gene[T](null.asInstanceOf[T], quantizer, mutationProbThreshold)
+  def apply[T](quantizer: Quantizer[T]): Gene[T] = new Gene[T](null.asInstanceOf[T], quantizer)
 }

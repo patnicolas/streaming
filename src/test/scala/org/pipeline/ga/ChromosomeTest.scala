@@ -5,6 +5,72 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 private[ga] final class ChromosomeTest extends AnyFlatSpec{
 
+  it should "Succeed instantiating a chromosome as two sequences of features" in {
+    var condition = true
+    try {
+      val maxValue = 10.0
+      val quantizer1 = new QuantizerDouble(6, (x: Double) => x <= maxValue, 2.0)
+      val inputs1 = Seq[Double](1.0, 3.5, 2.5)
+      val genes1 = inputs1.map(Gene[Double](_, quantizer1))
+
+      val quantizer2 = new QuantizerInt(4, (x: Int) => x <= 8)
+      val inputs2 = Seq[Int](3, 0, 4)
+      val genes2 = inputs2.map(Gene[Int](_, quantizer2))
+
+      val chromosome: Chromosome[Double, Int] = Chromosome[Double, Int](genes1, genes2)
+      println(s"Original Chromosome ${chromosome.toString}")
+    } catch {
+      case e: GAException =>
+        println(e.getMessage)
+        condition = false
+    }
+    finally {
+      assert(condition)
+    }
+  }
+
+  it should "Succeed instantiating a chromosome as a single sequences of features" in {
+    var condition = true
+    try {
+      val maxValue = 10.0
+      val quantizer1 = new QuantizerDouble(6, (x: Double) => x <= maxValue, 2.0)
+      val inputs1 = Seq[Double](1.0, 3.5, 2.5)
+      val genes1 = inputs1.map(Gene[Double](_, quantizer1))
+
+      val chromosome = Chromosome[Double](genes1)
+      println(s"Original Chromosome ${chromosome.toString}")
+    } catch {
+      case e: GAException => println(e.getMessage)
+        condition = false
+    } finally {
+      assert(condition)
+    }
+  }
+
+  it should "Succeed mutating a heterogeneous chromosome" in {
+    var condition = true
+    try {
+      val maxValue = 10.0
+      val quantizer1 = new QuantizerDouble(6, (x: Double) => x <= maxValue, 2.0)
+      val inputs1 = Seq[Double](1.0, 3.5, 2.5)
+      val genes1 = inputs1.map(Gene[Double](_, quantizer1))
+
+      val quantizer2 = new QuantizerInt(4, (x: Int) => x <= 8)
+      val inputs2 = Seq[Int](3, 0, 4)
+      val genes2 = inputs2.map(Gene[Int](_, quantizer2))
+
+      val chromosome: Chromosome[Double, Int] = Chromosome[Double, Int](genes1, genes2)
+      val mutationProb: Double = 0.9
+      val mutatedChromosome = chromosome.mutate(mutationProb)
+      println(s"Original: ${chromosome.toString}\nMutated:  ${mutatedChromosome.toString}")
+    } catch {
+      case e: GAException => println(e.getMessage)
+        condition = false
+    } finally {
+      assert(condition)
+    }
+  }
+
   ignore should "Succeed managing BitSets" in {
     import java.util
 
