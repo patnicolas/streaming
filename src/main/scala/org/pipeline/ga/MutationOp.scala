@@ -25,7 +25,7 @@ trait MutationOp extends GAOp {
 self =>
   protected[this] val mutationProbThreshold: Double
 
-  def apply[T](gene: Gene[T]): Gene[T] = {
+  def apply[T: Ordering](gene: Gene[T]): Gene[T] = {
     if(rand.nextDouble < mutationProbThreshold) {
       val flippedBitSet = flip(gene.getEncoded,  gene.size())
       val newValue = gene.getValidValue(flippedBitSet)
@@ -36,7 +36,7 @@ self =>
   }
 
 
-  def apply[T, U](chromosome: Chromosome[T, U]): Chromosome[T, U] =
+  def apply[T : Ordering, U: Ordering](chromosome: Chromosome[T, U]): Chromosome[T, U] =
     if(rand.nextDouble < mutationProbThreshold) {
       val features1 = chromosome.getFeatures1
       val features2 = chromosome.getFeatures2

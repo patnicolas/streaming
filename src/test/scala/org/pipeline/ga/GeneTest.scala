@@ -7,7 +7,7 @@ private[ga] final class GeneTest extends AnyFlatSpec{
 
   it should "Succeed instantiating a gene with integer type" in {
     val maxValue = 6
-    val quantizer = new QuantizerInt(4, (n: Int) => n <= maxValue)
+    val quantizer = new QuantizerInt(4, maxValue)
     val input = 5
     val gene = Gene[Int](input, quantizer)
     println(gene.toString)
@@ -18,7 +18,7 @@ private[ga] final class GeneTest extends AnyFlatSpec{
   it should "Succeed instantiating a gene with floating point type" in {
     val maxValue = 10.0
     try {
-      val quantizer = new QuantizerDouble(6, (x: Double) => x <= maxValue, 2.0)
+      val quantizer = new QuantizerDouble(6, scaleFactor = 1.0, maxValue)
       val input = 2.0
       val gene = Gene[Double](input, quantizer)
       println(gene.toString)
@@ -33,7 +33,7 @@ private[ga] final class GeneTest extends AnyFlatSpec{
   it should "Succeed instantiating a gene with outbound floating point type" in {
     val maxValue = 10.0
     try {
-      val quantizer = new QuantizerDouble(encodingLength = 6, (x: Double) => x <= maxValue, scaleFactor = 10.0)
+      val quantizer = new QuantizerDouble(encodingLength = 6, scaleFactor = 1.0, maxValue = 10.0)
       val input = 18.0
       val gene = Gene[Double](input, quantizer)
       println(gene.toString)
@@ -48,7 +48,7 @@ private[ga] final class GeneTest extends AnyFlatSpec{
 
   it should "Succeed decoding a gene" in {
     val maxValue = 6
-    val quantizer = new QuantizerInt(4, (n: Int) => n <= maxValue)
+    val quantizer = new QuantizerInt(4, maxValue)
     val input = 5
     val gene = Gene[Int](input, quantizer)
     val bitsSequence = gene.getBitsSequence
@@ -59,7 +59,7 @@ private[ga] final class GeneTest extends AnyFlatSpec{
   it should "Succeed mutating a gene as floating point" in {
     val maxValue = 10.0
     try {
-      val quantizer = new QuantizerDouble(6, (x: Double) => x <= maxValue, 2.0)
+      val quantizer = new QuantizerDouble(6, scaleFactor = 2.0, maxValue)
       val input = 9.0
       val gene = Gene[Double](input, quantizer)
       val mutationOp = new MutationOp {

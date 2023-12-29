@@ -31,7 +31,7 @@ self =>
    * @tparam U Type of second set of genes for each chromosome
    * @return Pair of off spring chromosomes
    */
-  def apply[T, U](
+  def apply[T : Ordering, U : Ordering](
     chromosome1: Chromosome[T, U],
     chromosome2: Chromosome[T, U]
   ): (Chromosome[T, U], Chromosome[T, U]) = {
@@ -79,7 +79,7 @@ self =>
  */
 private[ga] object XOverOp {
 
-  private def xOverFirstFeatures[T, U](
+  private def xOverFirstFeatures[T : Ordering, U : Ordering](
     chromosome1: Chromosome[T, U],
     chromosome2: Chromosome[T, U]
   ): (Chromosome[T, U], Chromosome[T, U]) = {
@@ -97,7 +97,7 @@ private[ga] object XOverOp {
     (offSpring1, offSpring2)
   }
 
-  private def features1OffSpring[T, U](
+  private def features1OffSpring[T : Ordering, U : Ordering](
     features1: Seq[Gene[T]],
     features2: Seq[Gene[T]],
     features3: Seq[Gene[U]],
@@ -109,7 +109,7 @@ private[ga] object XOverOp {
   }
 
 
-  private def xOverSecondFeatures[T, U](
+  private def xOverSecondFeatures[T : Ordering, U : Ordering](
     chromosome1: Chromosome[T, U],
     chromosome2: Chromosome[T, U]): (Chromosome[T, U], Chromosome[T, U]) = {
     val xOverIndex = (chromosome1.size() * Random.nextDouble).toInt
@@ -128,7 +128,7 @@ private[ga] object XOverOp {
     (offSpring1, offSpring2)
   }
 
-  private def features2OffSpring[T, U](
+  private def features2OffSpring[T : Ordering, U : Ordering](
     features1: Seq[Gene[U]],
     features2: Seq[Gene[U]],
     features3: Seq[Gene[T]],

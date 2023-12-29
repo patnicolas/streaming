@@ -12,7 +12,9 @@
 package org.pipeline.ga
 
 import org.pipeline.ga
+
 import java.util
+
 
 
 /**
@@ -24,7 +26,7 @@ import java.util
  * @author Patrick Nicolas
  */
 @throws(classOf[GAException])
-private[ga] class Gene[T] private (t: T, quantizer: Quantizer[T]) {
+private[ga] class Gene[T : Ordering] private (t: T, quantizer: Quantizer[T]) {
 
 
   // Encoding as a sequence if bits
@@ -61,10 +63,11 @@ private[ga] class Gene[T] private (t: T, quantizer: Quantizer[T]) {
 
   def getValidValue(bitsSet: util.BitSet): T = {
     var newValue: T = null.asInstanceOf[T]
+    val ord = implicitly[Ordering[T]]
     do {
       val bitsSequence = ga.repr(bitsSet, quantizer.encodingLength)
       newValue = quantizer.unapply(bitsSequence)
-    } while(!quantizer.isValid(newValue))
+    } while(ord.lt(newValue, quantizer.maxValue))
     newValue
   }
 
@@ -97,7 +100,12 @@ private[ga] class Gene[T] private (t: T, quantizer: Quantizer[T]) {
 
 private[ga] object Gene {
 
-  def apply[T](t: T, quantizer: Quantizer[T]): Gene[T] = new Gene[T](t, quantizer)
+  def apply[T : Ordering](t: T, quantizer: Quantizer[T]): Gene[T] = new Gene[T](t, quantizer)
 
-  def apply[T](quantizer: Quantizer[T]): Gene[T] = new Gene[T](null.asInstanceOf[T], quantizer)
+  /**
+   * Generate a random gene for initialization of the population
+   * @return Randomly generated Gene
+   */
+  def apply[T : Ordering](quantizer: Quantizer[T]): Gene[T] =
+    new Gene[T](quantizer.rand, quantizer)
 }

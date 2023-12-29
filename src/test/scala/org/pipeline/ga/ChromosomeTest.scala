@@ -9,11 +9,11 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
     var condition = true
     try {
       val maxValue = 10.0
-      val quantizer1 = new QuantizerDouble(6, (x: Double) => x <= maxValue, 2.0)
+      val quantizer1 = new QuantizerDouble(6, maxValue, 2.0)
       val inputs1 = Seq[Double](1.0, 3.5, 2.5)
       val genes1 = inputs1.map(Gene[Double](_, quantizer1))
 
-      val quantizer2 = new QuantizerInt(4, (x: Int) => x <= 8)
+      val quantizer2 = new QuantizerInt(4, 8)
       val inputs2 = Seq[Int](3, 0, 4)
       val genes2 = inputs2.map(Gene[Int](_, quantizer2))
 
@@ -33,7 +33,7 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
     var condition = true
     try {
       val maxValue = 10.0
-      val quantizer1 = new QuantizerDouble(6, (x: Double) => x <= maxValue, 2.0)
+      val quantizer1 = new QuantizerDouble(6, maxValue, 2.0)
       val inputs1 = Seq[Double](1.0, 3.5, 2.5)
       val genes1 = inputs1.map(Gene[Double](_, quantizer1))
 
@@ -51,11 +51,11 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
     var condition = true
     try {
       val maxValue = 10.0
-      val quantizer1 = new QuantizerDouble(6, (x: Double) => x <= maxValue, 2.0)
+      val quantizer1 = new QuantizerDouble(6, maxValue, 2.0)
       val inputs1 = Seq[Double](1.0, 3.5, 2.5)
       val genes1 = inputs1.map(Gene[Double](_, quantizer1))
 
-      val quantizer2 = new QuantizerInt(4, (x: Int) => x <= 8)
+      val quantizer2 = new QuantizerInt(4, 8)
       val inputs2 = Seq[Int](3, 0, 4)
       val genes2 = inputs2.map(Gene[Int](_, quantizer2))
 

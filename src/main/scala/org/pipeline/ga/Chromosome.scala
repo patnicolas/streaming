@@ -11,7 +11,6 @@
  */
 package org.pipeline.ga
 
-import org.pipeline.ga
 import java.util
 
 
@@ -30,11 +29,20 @@ import java.util
  * @author Patrick Nicolas
  */
 @throws(classOf[IllegalArgumentException])
-private[ga] class Chromosome[T, U] private (features1: Seq[Gene[T]], features2: Seq[Gene[U]]){
+private[ga] class Chromosome[T : Ordering, U : Ordering] private (
+  features1: Seq[Gene[T]],
+  features2: Seq[Gene[U]]){
+
+  var fitness: Double = -1.0
 
   final def getFeatures1: Seq[Gene[T]] = features1
 
   final def getFeatures2: Seq[Gene[U]] = features2
+
+
+
+
+
 
   def xOver(
     otherChromosome: Chromosome[T, U],
@@ -132,13 +140,24 @@ private[ga] class Chromosome[T, U] private (features1: Seq[Gene[T]], features2: 
  */
 private[ga] object Chromosome {
 
-  def apply[T](features: Seq[Gene[T]]): Chromosome[T, T] =
+  def apply[T : Ordering](features: Seq[Gene[T]]): Chromosome[T, T] =
     new Chromosome[T, T](features, Seq.empty[Gene[T]])
 
-  def apply[T, U](features1: Seq[Gene[T]], features2: Seq[Gene[U]]): Chromosome[T, U] =
+  def apply[T : Ordering, U : Ordering](features1: Seq[Gene[T]], features2: Seq[Gene[U]]): Chromosome[T, U] =
     new Chromosome[T, U](features1, features2)
 
-  def apply[T, U](): Chromosome[T, U] =
+  def apply[T : Ordering, U : Ordering](): Chromosome[T, U] =
     new Chromosome[T, U](Seq.empty[Gene[T]], Seq.empty[Gene[U]])
+
+  def rand[T : Ordering, U : Ordering](
+    numFirstGenes: Int,
+    quantizer1: Quantizer[T],
+    numSecondGenes: Int,
+    quantizer2: Quantizer[U]): Chromosome[T, U] = {
+    val features1 = Seq.fill(numFirstGenes)(Gene[T](quantizer1))
+    val features2 = Seq.fill(numSecondGenes)(Gene[U](quantizer2))
+
+    new Chromosome[T, U](features1, features2)
+  }
 
 }
