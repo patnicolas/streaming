@@ -65,6 +65,8 @@ private[ga] class Chromosome[T, U] private (features1: Seq[Gene[T]], features2: 
     bitSet
   }
 
+  final def size(): Int = features1.length + features2.length
+
   /**
    * Decode a sequence of bits {0, 1} into a Chromosome
    * @param bitsSequence List of integers {0, 1} representing the bits

@@ -14,9 +14,75 @@ package org.pipeline.ga
 import java.util
 import scala.util.Random
 
+/**
+ *
+ */
 private[ga] trait XOverOp extends GAOp {
 self =>
-  val xOverProbThreshold: Double
+  protected[this] val xOverProbThreshold: Double
+
+  /**
+   * Implements the XOver operator between two chromosomes
+   * @param chromosome1 First parent chromosome
+   * @param chromosome2 Second parent chromosome
+   * @tparam T Type of first set of genes for each chromosome
+   * @tparam U Type of second set of genes for each chromosome
+   * @return Pair of off spring chromosomes
+   */
+  def apply[T, U](
+    chromosome1: Chromosome[T, U],
+    chromosome2: Chromosome[T, U]
+  ): (Chromosome[T, U], Chromosome[T, U]) = {
+
+    // if the Cross-over is triggered
+    if(rand.nextDouble < xOverProbThreshold) {
+      val xOverIndex = (chromosome1.size()*Random.nextDouble).toInt
+      val features1Len = chromosome1.getFeatures1.length
+
+      // The cross-over cut-off is done within the first set of genes, preserving
+      // the second set of genes ..
+      if(xOverIndex < features1Len) {
+        val topChromosome1Genes = chromosome1.getFeatures1.slice(0, xOverIndex+1)
+        val botChromosome2Genes  = chromosome2.getFeatures1.slice(xOverIndex, features1Len)
+        val offSpring1 = Chromosome[T, U](
+          topChromosome1Genes ++ botChromosome2Genes,
+          chromosome2.getFeatures2
+        )
+
+        val topChromosome2Genes = chromosome2.getFeatures1.slice(0, xOverIndex+1)
+        val botChromosome1Genes =  chromosome1.getFeatures1.slice(xOverIndex, features1Len)
+        val offSpring2 = Chromosome[T, U](
+          topChromosome2Genes ++ botChromosome1Genes,
+          chromosome1.getFeatures2
+        )
+        (offSpring1, offSpring2)
+      }
+
+        // Otherwise the cross-over is performed within the second set of genes/features
+      else {
+        val features2Len = chromosome2.getFeatures2.length
+        val relativeIndex = xOverIndex - features1Len
+        val topChromosome1Genes = chromosome1.getFeatures2.slice(0, relativeIndex + 1)
+        val botChromosome2Genes = chromosome2.getFeatures2.slice(relativeIndex, features2Len)
+        val offSpring1 = Chromosome[T, U](
+          chromosome2.getFeatures1,
+          topChromosome1Genes ++ botChromosome2Genes
+        )
+
+        val topChromosome2Genes = chromosome2.getFeatures2.slice(0, relativeIndex + 1)
+        val botChromosome1Genes = chromosome1.getFeatures2.slice(relativeIndex, features2Len)
+
+        val offSpring2 = Chromosome[T, U](
+          chromosome1.getFeatures1,
+          topChromosome2Genes ++ botChromosome1Genes
+        )
+        (offSpring1, offSpring2)
+      }
+    }
+    else
+      (chromosome1, chromosome2)
+  }
+
 
   def apply(bitSet1: util.BitSet, bitSet2: util.BitSet, encodingSize: Int): (util.BitSet, util
   .BitSet) =
