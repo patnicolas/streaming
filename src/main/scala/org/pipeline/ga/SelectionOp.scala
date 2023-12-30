@@ -39,6 +39,13 @@ self =>
       Chromosome.rand(numFirstGenes, quantizer1, numSecondGenes, quantizer2)
     )
 
+  /**
+   * Order/Rank a sequence of chromosome by their fitness value, then select a subset
+   * @param chromosomes Population of chromosomes.
+   * @tparam T Built-in type for the first set of features
+   * @tparam U Built-in type for the second set of features
+   * @return Ranked and trimmed the current population of chromosomes
+   */
   def apply[T : Ordering, U : Ordering](chromosomes: Seq[Chromosome[T, U]]): Seq[Chromosome[T, U]] =
     chromosomes.sortWith(_.fitness > _.fitness).take(maxPopulationSize)
 }

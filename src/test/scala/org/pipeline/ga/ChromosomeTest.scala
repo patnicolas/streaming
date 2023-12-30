@@ -9,7 +9,7 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
     var condition = true
     try {
       val maxValue = 10.0
-      val quantizer1 = new QuantizerDouble(6, maxValue, 2.0)
+      val quantizer1 = new QuantizerDouble(encodingLength = 6, scaleFactor = 1.0, maxValue)
       val inputs1 = Seq[Double](1.0, 3.5, 2.5)
       val genes1 = inputs1.map(Gene[Double](_, quantizer1))
 
@@ -33,7 +33,7 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
     var condition = true
     try {
       val maxValue = 10.0
-      val quantizer1 = new QuantizerDouble(6, maxValue, 2.0)
+      val quantizer1 = new QuantizerDouble(6, scaleFactor = 2.0, maxValue)
       val inputs1 = Seq[Double](1.0, 3.5, 2.5)
       val genes1 = inputs1.map(Gene[Double](_, quantizer1))
 
@@ -51,7 +51,7 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
     var condition = true
     try {
       val maxValue = 10.0
-      val quantizer1 = new QuantizerDouble(6, maxValue, 2.0)
+      val quantizer1 = new QuantizerDouble(encodingLength = 6, scaleFactor = 2.0, maxValue)
       val inputs1 = Seq[Double](1.0, 3.5, 2.5)
       val genes1 = inputs1.map(Gene[Double](_, quantizer1))
 
@@ -69,6 +69,15 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
     } finally {
       assert(condition)
     }
+  }
+
+  it should "Succeed generating a random chromosome" in {
+    val numFirstGenes: Int = 5
+    val quantizer1 = new QuantizerInt(encodingLength = 4, maxValue = 6)
+    val numSecondGenes: Int = 3
+    val quantizer2 = new QuantizerDouble(encodingLength = 4, scaleFactor =1.0, maxValue = 6)
+    val chromosome = Chromosome[Int, Double](numFirstGenes, quantizer1, numSecondGenes, quantizer2)
+    println(s"Randomly initialized Chromosome ${chromosome.toString}")
   }
 
   ignore should "Succeed managing BitSets" in {
@@ -108,6 +117,8 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
     var result = bitsIntEncoder.unapply(bits)
     assert(result == 11)
   }
+
+
 
   /*
   ignore should "Succeed encoding a type into a chromosome" in {

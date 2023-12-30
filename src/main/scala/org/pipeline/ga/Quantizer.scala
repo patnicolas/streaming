@@ -16,17 +16,18 @@ import scala.util.Random
 /**
  * Generic quantizer that convert an object of type T to and from a sequence of bits {0, 1}
  * implemented as a list
- *
- * @tparam T Type of object
+ * @tparam T Build-in type of feature (Int, Float,....)
  * @author Patrick Nicolas
  */
 trait Quantizer[T]{
   val encodingLength: Int
   val maxValue: T
 
+  /**
+   * Generate a random value < maxValue
+   * @return Random value of type T
+   */
   def rand: T
-
-
   /**
    * Convert an object of type T into a bits sequence
    * @param t Object to be converted
@@ -40,8 +41,8 @@ trait Quantizer[T]{
 /**
  * Quantizer for Boolean value (0, 1}
  * @param encodingLength Number of bits representing the value
+ * @author Patrick Nicolas
  */
-
 final class QuantizerBool(
   override val encodingLength: Int,
   override val maxValue: Boolean = true
@@ -66,11 +67,12 @@ final class QuantizerBool(
 
 
 /**
- * Quantizer for integers
+ * Quantizer for integers. Only the integers which are less or equal to maximum authorized value
+ * are generated.
  * @param encodingLength Number of bits representing the integer
  * @param maxValue Constraint on the integer prior conversion
+ * @author Patrick Nicolas
  */
-
 final class QuantizerInt(
   override val encodingLength: Int,
   override val maxValue: Int) extends Quantizer[Int]{
@@ -102,6 +104,7 @@ final class QuantizerInt(
  * @param encodingLength Number of bits representing the floating point value
  * @param maxValue Constraint on the floating point value prior to conversion to bits sequence
  * @param scaleFactor Scaling factor applied to value prior to conversion
+ * @author Patrick Nicolas
  */
 class QuantizerDouble(
   override val encodingLength: Int,

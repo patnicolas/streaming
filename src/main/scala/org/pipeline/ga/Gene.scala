@@ -63,11 +63,13 @@ private[ga] class Gene[T : Ordering] private (t: T, quantizer: Quantizer[T]) {
 
   def getValidValue(bitsSet: util.BitSet): T = {
     var newValue: T = null.asInstanceOf[T]
+    var isValid: Boolean = false
     val ord = implicitly[Ordering[T]]
     do {
       val bitsSequence = ga.repr(bitsSet, quantizer.encodingLength)
-      newValue = quantizer.unapply(bitsSequence)
-    } while(ord.lt(newValue, quantizer.maxValue))
+      val newValue = quantizer.unapply(bitsSequence)
+      isValid = ord.lt(newValue, quantizer.maxValue)
+    } while(isValid)
     newValue
   }
 

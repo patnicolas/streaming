@@ -146,9 +146,32 @@ private[ga] object Chromosome {
   def apply[T : Ordering, U : Ordering](features1: Seq[Gene[T]], features2: Seq[Gene[U]]): Chromosome[T, U] =
     new Chromosome[T, U](features1, features2)
 
-  def apply[T : Ordering, U : Ordering](): Chromosome[T, U] =
-    new Chromosome[T, U](Seq.empty[Gene[T]], Seq.empty[Gene[U]])
+  /**
+   * Generate an initial, random Chromosome
+   * @param numFirstGenes  Number of features of first type (Int, Float,...)
+   * @param quantizer1     Quantizer associated with the first type of features
+   * @param numSecondGenes Number of features of second type
+   * @param quantizer2     Quantizer associated with the second type of features
+   * @tparam T Built-in type for the first set of features
+   * @tparam U Built-in type for the second set of features
+   * @return Initialized instance of a Chromosome */
+  def apply[T : Ordering, U : Ordering](
+    numFirstGenes: Int,
+    quantizer1: Quantizer[T],
+    numSecondGenes: Int,
+    quantizer2: Quantizer[U]): Chromosome[T, U] =
+    rand[T, U](numFirstGenes, quantizer1, numSecondGenes, quantizer2)
 
+  /**
+   * Generate an initial, random Chromosome
+   * @param numFirstGenes Number of features of first type (Int, Float,...)
+   * @param quantizer1 Quantizer associated with the first type of features
+   * @param numSecondGenes Number of features of second type
+   * @param quantizer2 Quantizer associated with the second type of features
+   * @tparam T Built-in type for the first set of features
+   * @tparam U Built-in type for the second set of features
+   * @return Initialized instance of a Chromosome
+   */
   def rand[T : Ordering, U : Ordering](
     numFirstGenes: Int,
     quantizer1: Quantizer[T],

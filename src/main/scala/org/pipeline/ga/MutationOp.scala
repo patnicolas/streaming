@@ -42,22 +42,21 @@ self =>
       val features2 = chromosome.getFeatures2
       val chromosomeLength: Int = features1.length + features2.length
 
-      val geneIndex = (chromosomeLength* Random.nextDouble).toInt + 1
+      val geneIndex = (chromosomeLength* Random.nextDouble).toInt
 
-      // If the index of the gene to mutate is within the first category or
+      // If the index of the gene to mutate is within the first set of features or
       // if there is only one set of features of same type..
       if(geneIndex < features1.length || features2.isEmpty) {
         val geneToMutate = features1(geneIndex)
-
-        apply[T](geneToMutate)
-        features1.updated(geneIndex, apply(geneToMutate))
+        val mutatedGene: Gene[T] = apply(geneToMutate)
+        features1.updated(geneIndex, mutatedGene)
       }
+        // Otherwise if the mutation has to be performed on the second set of features....
       else {
         val relativeIndex = geneIndex - features1.length
-        val geneToMutate = features2(relativeIndex)
-
-        apply[U](geneToMutate)
-        features2.updated(relativeIndex, apply(geneToMutate))
+        val geneToMutate: Gene[U] = features2(relativeIndex)
+        val mutatedGene: Gene[U] = apply(geneToMutate)
+        features2.updated(relativeIndex, mutatedGene)
       }
 
       Chromosome[T, U](features1, features2)
