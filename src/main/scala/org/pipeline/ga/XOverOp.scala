@@ -53,6 +53,28 @@ self =>
       (chromosome1, chromosome2)
   }
 
+  def apply[T : Ordering, U : Ordering](
+    chromosomes: Seq[Chromosome[T, U]],
+    xOverStrategy: String
+  ): Seq[Chromosome[T, U]] = xOverStrategy match {
+    case "midPoint" =>
+      val midPoint = chromosomes.length >> 1
+      val (topChromosomes, botChromosomes) = chromosomes.splitAt(midPoint)
+      val (offSprings1, offSpring2) = (0 until midPoint).map(
+        index => apply(topChromosomes(index), botChromosomes(index))
+      ).unzip
+      offSprings1 ++ offSpring2
+
+    case "pairing" =>
+      val (offSprings1, offSpring2) = (chromosomes.indices by 2).map(
+        index => apply(chromosomes(index), chromosomes(index+1))
+      ).unzip
+      offSprings1 ++ offSpring2
+
+    case _ => throw new GAException(s"XOver strategy $xOverStrategy is not supported")
+  }
+
+
 
   def apply(bitSet1: util.BitSet, bitSet2: util.BitSet, encodingSize: Int): (util.BitSet, util
   .BitSet) =

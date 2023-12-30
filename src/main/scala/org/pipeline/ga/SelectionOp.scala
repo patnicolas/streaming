@@ -11,6 +11,10 @@
  */
 package org.pipeline.ga
 
+
+/**
+ *
+ */
 trait SelectionOp{
 self =>
   protected[this] val maxPopulationSize: Int
