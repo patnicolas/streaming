@@ -14,6 +14,7 @@ package org.pipeline.ga
 import org.pipeline.ga
 
 import java.util
+import scala.util.Random
 
 
 
@@ -28,6 +29,7 @@ import java.util
 @throws(classOf[GAException])
 private[ga] class Gene[T : Ordering] private (t: T, quantizer: Quantizer[T]) {
 
+  private[this] val rand = new Random(42L)
 
   // Encoding as a sequence if bits
   private[this] val bitsSequence: BitsRepr = quantizer(t)
@@ -54,25 +56,21 @@ private[ga] class Gene[T : Ordering] private (t: T, quantizer: Quantizer[T]) {
       mutationProb >= 1e-5 && mutationProb < 0.5,
       s"Mutation probability $mutationProb is out of range [1e-5, 0,5]"
     )
-
     (new MutationOp{
       override val mutationProbThreshold: Double = mutationProb
     })(this)
   }
 
 
+  /**
+   * Convert a bit set into a value of feature type
+   * @param bitsSet Bitset
+   * @return Feature value of parameterized type
+   */
   def getValidValue(bitsSet: util.BitSet): T = {
-    var newValue: T = null.asInstanceOf[T]
-    var isValid: Boolean = false
-    val ord = implicitly[Ordering[T]]
-    do {
-      val bitsSequence = ga.repr(bitsSet, quantizer.encodingLength)
-      val newValue = quantizer.unapply(bitsSequence)
-      isValid = ord.lt(newValue, quantizer.maxValue)
-    } while(isValid)
-    newValue
+    val bitsSequence = ga.repr(bitsSet, quantizer.encodingLength)
+    quantizer.unapply(bitsSequence)
   }
-
 
   final def getQuantizer: Quantizer[T] = quantizer
 

@@ -40,23 +40,32 @@ private[ga] class Chromosome[T : Ordering, U : Ordering] private (
   final def getFeatures2: Seq[Gene[U]] = features2
 
 
-
-
-
-
+  /**
+   * Implements a cross-over with another chromosome. The operation generates two offsprings.
+   * @param otherChromosome The second 'parent' Chromosome
+   * @param xOverOp Cross-over operator
+   * @return Pair of offspring chromosomes
+   */
   def xOver(
     otherChromosome: Chromosome[T, U],
     xOverOp: XOverOp): (Chromosome[T, U], Chromosome[T, U]) = xOverOp(this, otherChromosome)
 
+  /**
+   * Implements a cross-over with another chromosome. The operation generates two offsprings.
+   * @param otherChromosome The second 'parent' Chromosome
+   * @param xOverThreshold Threshold for the probability to trigger a cross-over of this
+   *                       chromosome with another one.
+   * @return Pair of offspring chromosomes
+   */
   def xOver(
     otherChromosome: Chromosome[T, U],
-    xOverProb: Double): (Chromosome[T, U], Chromosome[T, U]) = {
+    xOverThreshold: Double): (Chromosome[T, U], Chromosome[T, U]) = {
     require(
-      xOverProb >= 1e-5 && xOverProb <= 0.9,
-      s"Cross-over probability $xOverProb is out of range [1e-5, 0.9]")
+      xOverThreshold >= 1e-5 && xOverThreshold <= 0.9,
+      s"Cross-over probability $xOverThreshold is out of range [1e-5, 0.9]")
 
     (new XOverOp{
-      override val xOverProbThreshold: Double = xOverProb
+      override val xOverProbThreshold: Double = xOverThreshold
     })(this, otherChromosome)
   }
 

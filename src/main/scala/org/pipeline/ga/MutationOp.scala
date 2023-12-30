@@ -11,8 +11,11 @@
  */
 package org.pipeline.ga
 
+import org.pipeline.ga
+
 import scala.util.Random
 import java.util
+import scala.annotation.tailrec
 
 /**
  * Mutation operator to be applied to Genes and Chromosomes (as defined has a sequence
@@ -24,18 +27,39 @@ import java.util
 trait MutationOp extends GAOp {
 self =>
   protected[this] val mutationProbThreshold: Double
+  private[this] val rand = new Random(42L)
 
+  /**
+   *
+   * @param gene
+   * @tparam T
+   * @return
+   */
   def apply[T: Ordering](gene: Gene[T]): Gene[T] = {
     if(rand.nextDouble < mutationProbThreshold) {
-      val flippedBitSet = flip(gene.getEncoded,  gene.size())
-      val newValue = gene.getValidValue(flippedBitSet)
+      val newValue = createValidMutation(gene, implicitly[Ordering[T]])
       Gene[T](newValue, gene.getQuantizer)
     }
     else
       gene
   }
 
+  @tailrec
+  private def createValidMutation[T: Ordering](gene: Gene[T], ord: Ordering[T]): T = {
+    val flippedBitSet: util.BitSet = flip(gene.getEncoded, gene.size())
+    val newValue = gene.getValidValue(flippedBitSet)
+    val isValid = ord.lt(newValue, gene.getQuantizer.maxValue)
+    if(isValid) newValue else createValidMutation(gene, ord)
+  }
 
+
+  /**
+   *
+   * @param chromosome
+   * @tparam T
+   * @tparam U
+   * @return
+   */
   def apply[T : Ordering, U: Ordering](chromosome: Chromosome[T, U]): Chromosome[T, U] =
     if(rand.nextDouble < mutationProbThreshold) {
       val features1 = chromosome.getFeatures1
@@ -65,7 +89,7 @@ self =>
       chromosome
 
   private def flip(bitSet: util.BitSet, encodingLength: Int): util.BitSet = {
-    val bitSetIndex = (encodingLength * Random.nextDouble).toInt + 1
+    val bitSetIndex = (encodingLength * rand.nextDouble).toInt
     bitSet.flip(bitSetIndex)
     bitSet
   }

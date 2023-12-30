@@ -17,7 +17,6 @@ self =>
 
   /**
    * Initial random initialization of the population of Chromosomes
-   * @param numChromosomes Initial size of the population
    * @param numFirstGenes Number of features of first type (Integer, Floating point,...)
    * @param quantizer1 Quantizer for the features of first type
    * @param numSecondGenes Number of features of second type (Integer, Floating point,...)
@@ -27,14 +26,13 @@ self =>
    * @return Random instance of a chromosome
    */
   def apply[T : Ordering, U : Ordering](
-    numChromosomes: Int,
     numFirstGenes: Int,
     quantizer1: Quantizer[T],
     numSecondGenes: Int,
     quantizer2: Quantizer[U]
   ): Seq[Chromosome[T, U]] =
     Seq.fill(
-      numChromosomes
+      maxPopulationSize
     )(
       Chromosome.rand(numFirstGenes, quantizer1, numSecondGenes, quantizer2)
     )
