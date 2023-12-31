@@ -12,11 +12,13 @@
 package org.pipeline.ga
 
 import org.pipeline.streams.spark.SparkConfiguration
+import org.pipeline.streams.spark.SparkConfiguration.mlSparkConfig
 
 import scala.collection.mutable.ListBuffer
 
-object SparkDynamicParams{
 
+
+object SparkDynamicParams{
 
   /**
    *
@@ -52,5 +54,26 @@ object SparkDynamicParams{
     Chromosome[Int, Double](intGenes, floatGenes)
   }
 
-  def unapply(chromosome: Chromosome[Int, Double]): SparkConfiguration = ???
+  def unapply(chromosome: Chromosome[Int, Double]): SparkConfiguration = {
+    val intGenes = chromosome.getFeatures1
+    val floatGenes = chromosome.getFeatures2
+    val sparkDynaParamsMap = mlSparkConfig.sparkParameters.map(param => (param.key, param)).toMap
+
+    val intSparkParams = intGenes.map(
+      gene => {
+        val param = sparkDynaParamsMap.getOrElse(
+          gene.getId,
+          throw new GAException(s"Gene identifier ${gene.getId} not found"))
+        param.copy(value = gene.getValue.toString)
+      }
+    )
+
+    val floatSparkParams = floatGenes.map(
+      gene => {
+        val param = sparkDynaParamsMap.getOrElse(gene.getId, throw new GAException(s"Gene identifier ${gene.getId} not found"))
+        param.copy(value = gene.getValue.toString)
+      }
+    )
+    new SparkConfiguration(intSparkParams ++ floatSparkParams)
+  }
 }

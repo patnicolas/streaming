@@ -26,8 +26,9 @@ import scala.util.Try
  * @author Patrick Nicolas
  * @version 0.0.2
  */
-case class SparkConfiguration(sparkParameters: Seq[ParameterDefinition])
-  extends TuningParameters[SparkConfiguration] {
+case class SparkConfiguration(
+  sparkParameters: Seq[ParameterDefinition]
+) extends TuningParameters[SparkConfiguration] {
   require(sparkParameters.nonEmpty, "Spark configuration parameters are undefined")
   /**
    * Extracts the tunable parameters
@@ -40,7 +41,7 @@ case class SparkConfiguration(sparkParameters: Seq[ParameterDefinition])
 
 
 
-private[streams] object SparkConfiguration {
+private[pipeline] object SparkConfiguration {
   import org.pipeline.util.LocalFileUtil._
 
   final val log: Logger = LoggerFactory.getLogger("SparkConfiguration")
