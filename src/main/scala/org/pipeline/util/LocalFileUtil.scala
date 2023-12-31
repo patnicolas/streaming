@@ -135,11 +135,12 @@ private[pipeline] object LocalFileUtil {
       }
     }
 
-    def local[T: ClassTag](fsFilename: String, parse: String => T): Option[Array[T]] = local[T](fsFilename, parse, true)
+    def local[T: ClassTag](fsFilename: String, parse: String => T): Option[Array[T]] =
+      local[T](fsFilename, parse, header = true)
 
     def local[T: ClassTag](fsFilename: String, parse: String => T, header: Boolean): Option[Array[T]] =
       if (header)
-        local[T](fsFilename, parse, 1, Int.MaxValue)
+        local[T](fsFilename, parse, from = 11, Int.MaxValue)
       else
         local[T](fsFilename, parse, 0, Int.MaxValue)
 

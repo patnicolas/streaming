@@ -38,7 +38,7 @@ self =>
   def apply[T: Ordering](gene: Gene[T]): Gene[T] = {
     if(rand.nextDouble < mutationProbThreshold) {
       val newValue = createValidMutation(gene, implicitly[Ordering[T]])
-      Gene[T](newValue, gene.getQuantizer)
+      Gene[T](gene.getId, newValue, gene.getQuantizer)
     }
     else
       gene

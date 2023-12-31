@@ -21,25 +21,21 @@ self =>
 
   /**
    * Initial random initialization of the population of Chromosomes
-   * @param numFirstGenes Number of features of first type (Integer, Floating point,...)
+   * @param idsT Identifiers for features of first type (Integer, Floating point,...)
    * @param quantizer1 Quantizer for the features of first type
-   * @param numSecondGenes Number of features of second type (Integer, Floating point,...)
+   * @param idsU Identifiers for features of second type (Integer, Floating point,...)
    * @param quantizer2 Quantizer for the features of second type
    * @tparam T Type of first set of features
    * @tparam U Type of second set of features
    * @return Random instance of a chromosome
    */
   def apply[T : Ordering, U : Ordering](
-    numFirstGenes: Int,
+    idsT: Seq[String],
     quantizer1: Quantizer[T],
-    numSecondGenes: Int,
+    idsU: Seq[String],
     quantizer2: Quantizer[U]
   ): Seq[Chromosome[T, U]] =
-    Seq.fill(
-      maxPopulationSize
-    )(
-      Chromosome.rand(numFirstGenes, quantizer1, numSecondGenes, quantizer2)
-    )
+    Seq.fill(maxPopulationSize)(Chromosome.rand(idsT, quantizer1, idsU, quantizer2))
 
   /**
    * Order/Rank a sequence of chromosome by their fitness value, then select a subset

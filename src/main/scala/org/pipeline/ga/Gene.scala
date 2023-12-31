@@ -20,6 +20,7 @@ import scala.util.Random
 
 /**
  * Define a parameterized gene defined as a pair {value, quantizer}
+ * @param id Identifier for the feature associated with the Gene
  * @param t Object of type T represented by a Gene
  * @param quantizer Quantizer associated with this Gene T <-> Bits sequence
  * @tparam T Type of underlying object for this gene
@@ -27,7 +28,7 @@ import scala.util.Random
  * @author Patrick Nicolas
  */
 @throws(classOf[GAException])
-private[ga] class Gene[T : Ordering] private (t: T, quantizer: Quantizer[T]) {
+private[ga] class Gene[T : Ordering] private (id: String, t: T, quantizer: Quantizer[T]) {
 
   private[this] val rand = new Random(42L)
 
@@ -40,6 +41,9 @@ private[ga] class Gene[T : Ordering] private (t: T, quantizer: Quantizer[T]) {
     bitsSequence.indices.foreach(index => bs.set(index, bitsSequence(index) == 1))
     bs
   }
+
+  @inline
+  final def getId: String = id
 
   /**
    * Mutates this gene using the MutationOp operator
@@ -85,7 +89,7 @@ private[ga] class Gene[T : Ordering] private (t: T, quantizer: Quantizer[T]) {
 
   def decode(bits: BitsRepr): Gene[T] = {
     val gene = quantizer.unapply(bits)
-    new Gene[T](gene, quantizer)
+    new Gene[T](id, gene, quantizer)
   }
 
   def ==(otherGene: Gene[T]): Boolean = otherGene.getBitsSequence == bitsSequence
@@ -93,19 +97,20 @@ private[ga] class Gene[T : Ordering] private (t: T, quantizer: Quantizer[T]) {
   @inline
   final def repr: String = bitsSequence.mkString(" ")
   override def toString: String =
-    s"${t.toString}: encoding length: ${quantizer.encodingLength}"
+    s"$id, ${t.toString}: encoding length: ${quantizer.encodingLength}"
 }
 
 
 
 private[ga] object Gene {
 
-  def apply[T : Ordering](t: T, quantizer: Quantizer[T]): Gene[T] = new Gene[T](t, quantizer)
+  def apply[T : Ordering](id: String, t: T, quantizer: Quantizer[T]): Gene[T] =
+    new Gene[T](id, t, quantizer)
 
   /**
    * Generate a random gene for initialization of the population
    * @return Randomly generated Gene
    */
-  def apply[T : Ordering](quantizer: Quantizer[T]): Gene[T] =
-    new Gene[T](quantizer.rand, quantizer)
+  def apply[T : Ordering](id: String, quantizer: Quantizer[T]): Gene[T] =
+    new Gene[T](id, quantizer.rand, quantizer)
 }

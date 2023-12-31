@@ -11,11 +11,11 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
       val maxValue = 10.0
       val quantizer1 = new QuantizerDouble(encodingLength = 6, scaleFactor = 1.0, maxValue)
       val inputs1 = Seq[Double](1.0, 3.5, 2.5)
-      val genes1 = inputs1.map(Gene[Double](_, quantizer1))
+      val genes1 = inputs1.map(x => Gene[Double](x.toString, x, quantizer1))
 
       val quantizer2 = new QuantizerInt(4, 8)
       val inputs2 = Seq[Int](3, 0, 4)
-      val genes2 = inputs2.map(Gene[Int](_, quantizer2))
+      val genes2 = inputs2.map(x => Gene[Int](x.toString, x, quantizer2))
 
       val chromosome: Chromosome[Double, Int] = Chromosome[Double, Int](genes1, genes2)
       println(s"Original Chromosome ${chromosome.toString}")
@@ -35,7 +35,7 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
       val maxValue = 10.0
       val quantizer1 = new QuantizerDouble(6, scaleFactor = 2.0, maxValue)
       val inputs1 = Seq[Double](1.0, 3.5, 2.5)
-      val genes1 = inputs1.map(Gene[Double](_, quantizer1))
+      val genes1 = inputs1.map(x => Gene[Double](x.toString, x, quantizer1))
 
       val chromosome = Chromosome[Double](genes1)
       println(s"Original Chromosome ${chromosome.toString}")
@@ -53,11 +53,11 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
       val maxValue = 10.0
       val quantizer1 = new QuantizerDouble(encodingLength = 6, scaleFactor = 2.0, maxValue)
       val inputs1 = Seq[Double](1.0, 3.5, 2.5)
-      val genes1 = inputs1.map(Gene[Double](_, quantizer1))
+      val genes1 = inputs1.map(x => Gene[Double](x.toString, x, quantizer1))
 
       val quantizer2 = new QuantizerInt(4, 8)
       val inputs2 = Seq[Int](3, 0, 4)
-      val genes2 = inputs2.map(Gene[Int](_, quantizer2))
+      val genes2 = inputs2.map(x => Gene[Int](x.toString, x, quantizer2))
 
       val chromosome: Chromosome[Double, Int] = Chromosome[Double, Int](genes1, genes2)
       val mutationProb: Double = 0.9
@@ -72,11 +72,11 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
   }
 
   it should "Succeed generating a random chromosome" in {
-    val numFirstGenes: Int = 5
+    val idsT = Seq.tabulate(5)(n => s"i$n")
     val quantizer1 = new QuantizerInt(encodingLength = 4, maxValue = 6)
-    val numSecondGenes: Int = 3
+    val idsU = Seq.tabulate(5)(n => s"f$n")
     val quantizer2 = new QuantizerDouble(encodingLength = 4, scaleFactor =1.0, maxValue = 6)
-    val chromosome = Chromosome[Int, Double](numFirstGenes, quantizer1, numSecondGenes, quantizer2)
+    val chromosome = Chromosome[Int, Double](idsT, quantizer1, idsU, quantizer2)
     println(s"Randomly initialized Chromosome ${chromosome.toString}")
   }
 

@@ -63,6 +63,4 @@ package object spark {
       joinType = "inner"
     )
   }
-
-
 }

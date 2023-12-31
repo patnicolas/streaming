@@ -191,5 +191,4 @@ private[org] object ResourceUtil {
       }
     }
   }
-
 }

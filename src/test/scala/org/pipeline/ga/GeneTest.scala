@@ -9,7 +9,7 @@ private[ga] final class GeneTest extends AnyFlatSpec{
     val maxValue = 6
     val quantizer = new QuantizerInt(4, maxValue)
     val input = 5
-    val gene = Gene[Int](input, quantizer)
+    val gene = Gene[Int]("id", input, quantizer)
     println(gene.toString)
     println(gene.getEncoded)
     println(gene.getBitsSequence)
@@ -20,7 +20,7 @@ private[ga] final class GeneTest extends AnyFlatSpec{
     try {
       val quantizer = new QuantizerDouble(6, scaleFactor = 1.0, maxValue)
       val input = 2.0
-      val gene = Gene[Double](input, quantizer)
+      val gene = Gene[Double]("id", input, quantizer)
       println(gene.toString)
       println(gene.getEncoded)
       println(gene.getBitsSequence)
@@ -35,7 +35,7 @@ private[ga] final class GeneTest extends AnyFlatSpec{
     try {
       val quantizer = new QuantizerDouble(encodingLength = 6, scaleFactor = 1.0, maxValue = 10.0)
       val input = 18.0
-      val gene = Gene[Double](input, quantizer)
+      val gene = Gene[Double]("id", input, quantizer)
       println(gene.toString)
       println(gene.getEncoded)
       println(gene.getBitsSequence)
@@ -50,7 +50,7 @@ private[ga] final class GeneTest extends AnyFlatSpec{
     val maxValue = 6
     val quantizer = new QuantizerInt(4, maxValue)
     val input = 5
-    val gene = Gene[Int](input, quantizer)
+    val gene = Gene[Int]("id", input, quantizer)
     val bitsSequence = gene.getBitsSequence
     val decodedGene = gene.decode(bitsSequence)
     assert(gene == decodedGene)
@@ -61,7 +61,7 @@ private[ga] final class GeneTest extends AnyFlatSpec{
     try {
       val quantizer = new QuantizerDouble(6, scaleFactor = 2.0, maxValue)
       val input = 9.0
-      val gene = Gene[Double](input, quantizer)
+      val gene = Gene[Double]("id", input, quantizer)
       val mutationOp = new MutationOp {
         val mutationProbThreshold: Double = 0.8
       }

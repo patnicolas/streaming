@@ -26,7 +26,7 @@ import scala.util.Try
  * @author Patrick Nicolas
  * @version 0.0.2
  */
-private[streams] case class SparkConfiguration(sparkParameters: Seq[ParameterDefinition])
+case class SparkConfiguration(sparkParameters: Seq[ParameterDefinition])
   extends TuningParameters[SparkConfiguration] {
   require(sparkParameters.nonEmpty, "Spark configuration parameters are undefined")
   /**

@@ -11,13 +11,28 @@
  */
 package org.pipeline
 
+import org.pipeline.util.LocalFileUtil
+
 import scala.annotation.tailrec
 
+/**
+ *
+ */
 package object ga{
 
   type BitsRepr = List[Int]
 
   final class GAException(msg: String) extends Exception(msg)
+
+  /**
+   *
+   * @param key
+   * @param value
+   * @param isDynamic
+   * @param paramType
+   */
+
+
 
   final class BitsIntEncoder(encodingLength: Int){
     def apply(n: Int): BitsRepr = {

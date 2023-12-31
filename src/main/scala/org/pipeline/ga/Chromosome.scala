@@ -11,7 +11,10 @@
  */
 package org.pipeline.ga
 
+import org.pipeline.streams.spark.SparkConfiguration
+
 import java.util
+import scala.collection.mutable.ListBuffer
 
 
 /**
@@ -122,20 +125,6 @@ private[ga] class Chromosome[T : Ordering, U : Ordering] private (
 
      */
 
-  /**
-   *
-   * @param bitSet
-   * @param encodingLength
-   * @return
-   */
-    /*
-  def decode(bitSet: util.BitSet, encodingLength: Int): Chromosome[T] = {
-    val bitsSequence = ga.repr(bitSet, encodingLength*code.length)
-    decode(bitsSequence, encodingLength)
-  }
-
-     */
-
   final def getEncoded: util.BitSet = encoded
 
   override def toString: String =
@@ -165,31 +154,29 @@ private[ga] object Chromosome {
    * @tparam U Built-in type for the second set of features
    * @return Initialized instance of a Chromosome */
   def apply[T : Ordering, U : Ordering](
-    numFirstGenes: Int,
+    idsT: Seq[String],
     quantizer1: Quantizer[T],
-    numSecondGenes: Int,
-    quantizer2: Quantizer[U]): Chromosome[T, U] =
-    rand[T, U](numFirstGenes, quantizer1, numSecondGenes, quantizer2)
+    idsU: Seq[String],
+    quantizer2: Quantizer[U]): Chromosome[T, U] = rand[T, U](idsT, quantizer1, idsU, quantizer2)
 
   /**
    * Generate an initial, random Chromosome
-   * @param numFirstGenes Number of features of first type (Int, Float,...)
+   * @param idsT List of identifiers fpr features of first type (Int, Float,...)
    * @param quantizer1 Quantizer associated with the first type of features
-   * @param numSecondGenes Number of features of second type
+   * @param idsU List of identifier for features of second type
    * @param quantizer2 Quantizer associated with the second type of features
    * @tparam T Built-in type for the first set of features
    * @tparam U Built-in type for the second set of features
    * @return Initialized instance of a Chromosome
    */
   def rand[T : Ordering, U : Ordering](
-    numFirstGenes: Int,
+    idsT: Seq[String],
     quantizer1: Quantizer[T],
-    numSecondGenes: Int,
+    idsU: Seq[String],
     quantizer2: Quantizer[U]): Chromosome[T, U] = {
-    val features1 = Seq.fill(numFirstGenes)(Gene[T](quantizer1))
-    val features2 = Seq.fill(numSecondGenes)(Gene[U](quantizer2))
+    val features1 = Seq.tabulate(idsT.length)(index => Gene[T](idsT(index), quantizer1))
+    val features2 = Seq.tabulate(idsU.length)(index => Gene[U](idsU(index), quantizer2))
 
     new Chromosome[T, U](features1, features2)
   }
-
 }
