@@ -13,11 +13,14 @@ private[ga] final class SelectionOpTest extends AnyFlatSpec{
       override val maxPopulationSize: Int = initialPopulationSize
     }
 
+    val validRange1 = Seq[Int](6, 8, 10, 12)
     val idsT = Seq.tabulate(5)(n => s"i$n")
-    val quantizer1 = new QuantizerInt(encodingLength = 4, maxValue = 6)
+    val quantizer1 = new QuantizerInt(encodingLength = 4, validRange1)
     val idsU = Seq.tabulate(3)(n => s"f$n")
-    val quantizer2 = new QuantizerDouble(encodingLength = 4, scaleFactor = 1.0, maxValue = 6)
-    val chromosome = selector[Int, Double](idsT, quantizer1, idsU, quantizer2)
+
+    val validRange2 = Seq[Float](10.0F, 15.0F, 20.0F, 30.0F)
+    val quantizer2 = new QuantizerFloat(encodingLength = 4, scaleFactor = 1.0F, validRange2)
+    val chromosome = selector[Int, Float](idsT, quantizer1, idsU, quantizer2)
     println(chromosome.toString)
   }
 
@@ -25,12 +28,15 @@ private[ga] final class SelectionOpTest extends AnyFlatSpec{
     import scala.util.Random
 
     val idsT = Seq.tabulate(5)(n => s"i$n")
-    val quantizer1 = new QuantizerInt(encodingLength = 4, maxValue = 6)
+    val validRange1 = Seq[Int](6, 8, 10, 12)
+    val quantizer1 = new QuantizerInt(encodingLength = 4, validRange1)
     val idsU = Seq.tabulate(3)(n => s"f$n")
-    val quantizer2 = new QuantizerDouble(encodingLength = 4, scaleFactor = 1.0, maxValue = 6)
+
+    val validRange2 = Seq[Float](2.0F, 4.0F, 6.0F, 8.0F)
+    val quantizer2 = new QuantizerFloat(encodingLength = 4, scaleFactor = 1.0F, validRange2)
     val chromosomes = Seq.tabulate(
       18
-    )(n => Chromosome[Int, Double](idsT, quantizer1, idsU, quantizer2))
+    )(n => Chromosome[Int, Float](idsT, quantizer1, idsU, quantizer2))
     assert(chromosomes.length == 18)
     chromosomes.foreach(_.fitness = Random.nextDouble*36)
 
@@ -38,7 +44,7 @@ private[ga] final class SelectionOpTest extends AnyFlatSpec{
     val selector = new SelectionOp{
       override val maxPopulationSize: Int = initialPopulationSize
     }
-    val selectedChromosomes = selector[Int, Double](chromosomes)
+    val selectedChromosomes = selector[Int, Float](chromosomes)
     println(selectedChromosomes.map(_.toString).mkString("\n"))
   }
 }

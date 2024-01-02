@@ -6,8 +6,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 private[ga] final class GeneTest extends AnyFlatSpec{
 
   it should "Succeed instantiating a gene with integer type" in {
-    val maxValue = 6
-    val quantizer = new QuantizerInt(4, maxValue)
+    val validRange = Seq[Int](6, 8, 10, 12)
+    val quantizer = new QuantizerInt(4, validRange)
     val input = 5
     val gene = Gene[Int]("id", input, quantizer)
     println(gene.toString)
@@ -16,39 +16,46 @@ private[ga] final class GeneTest extends AnyFlatSpec{
   }
 
   it should "Succeed instantiating a gene with floating point type" in {
-    val maxValue = 10.0
+    var condition = false
     try {
-      val quantizer = new QuantizerDouble(6, scaleFactor = 1.0, maxValue)
-      val input = 2.0
-      val gene = Gene[Double]("id", input, quantizer)
+      val validRange = Seq[Float](6.0F, 8.0F, 10.0F, 12.0F)
+      val quantizer = new QuantizerFloat(6, scaleFactor = 1.0F, validRange)
+      val input = 2.0F
+      val gene = Gene[Float]("id", input, quantizer)
       println(gene.toString)
       println(gene.getEncoded)
       println(gene.getBitsSequence)
-      assert(true)
+      condition = true
     } catch {
-      case e: GAException => assert(false)
+      case e: GAException =>
+        condition = false
+    }
+    finally {
+      assert(condition)
     }
   }
 
   it should "Succeed instantiating a gene with outbound floating point type" in {
-    val maxValue = 10.0
+    var condition = false
     try {
-      val quantizer = new QuantizerDouble(encodingLength = 6, scaleFactor = 1.0, maxValue = 10.0)
-      val input = 18.0
-      val gene = Gene[Double]("id", input, quantizer)
+      val validRange = Seq[Float](6.0F, 8.0F, 10.0F, 12.0F)
+      val quantizer = new QuantizerFloat(encodingLength = 6, scaleFactor = 1.0F, validRange)
+      val input = 18.0F
+      val gene = Gene[Float]("id", input, quantizer)
       println(gene.toString)
       println(gene.getEncoded)
       println(gene.getBitsSequence)
-      assert(false)
     }
     catch {
-      case e: GAException => assert(true)
+      case e: GAException => condition = true
+    } finally {
+      assert(condition)
     }
   }
 
   it should "Succeed decoding a gene" in {
-    val maxValue = 6
-    val quantizer = new QuantizerInt(4, maxValue)
+    val validRange = Seq[Int](6, 8, 10, 12)
+    val quantizer = new QuantizerInt(4, validRange)
     val input = 5
     val gene = Gene[Int]("id", input, quantizer)
     val bitsSequence = gene.getBitsSequence
@@ -57,11 +64,13 @@ private[ga] final class GeneTest extends AnyFlatSpec{
   }
 
   it should "Succeed mutating a gene as floating point" in {
-    val maxValue = 10.0
+
     try {
-      val quantizer = new QuantizerDouble(6, scaleFactor = 2.0, maxValue)
-      val input = 9.0
-      val gene = Gene[Double]("id", input, quantizer)
+      val validRange = Seq[Float](6.0F, 8.0F, 10.0F, 12.0F)
+
+      val quantizer = new QuantizerFloat(6, scaleFactor = 2.0F, validRange)
+      val input = 9.0F
+      val gene = Gene[Float]("id", input, quantizer)
       val mutationOp = new MutationOp {
         val mutationProbThreshold: Double = 0.8
       }

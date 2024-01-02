@@ -48,7 +48,7 @@ self =>
   private def createValidMutation[T: Ordering](gene: Gene[T], ord: Ordering[T]): T = {
     val flippedBitSet: util.BitSet = flip(gene.getEncoded, gene.size())
     val newValue = gene.getValidValue(flippedBitSet)
-    val isValid = ord.lt(newValue, gene.getQuantizer.maxValue)
+    val isValid = ord.lt(newValue, gene.getQuantizer.range.last)
     if(isValid) newValue else createValidMutation(gene, ord)
   }
 

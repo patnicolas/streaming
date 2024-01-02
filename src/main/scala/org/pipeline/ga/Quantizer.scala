@@ -21,7 +21,7 @@ import scala.util.Random
  */
 trait Quantizer[T]{
   val encodingLength: Int
-  val maxValue: T
+  val range: Seq[T]
 
   /**
    * Generate a random value < maxValue
@@ -45,7 +45,7 @@ trait Quantizer[T]{
  */
 final class QuantizerBool(
   override val encodingLength: Int,
-  override val maxValue: Boolean = true
+  override val range: Seq[Boolean] = Seq[Boolean](false, true)
 ) extends Quantizer[Boolean]{
   import scala.util.Random
   private[this] val encoder = new BitsIntEncoder(encodingLength)
@@ -70,16 +70,16 @@ final class QuantizerBool(
  * Quantizer for integers. Only the integers which are less or equal to maximum authorized value
  * are generated.
  * @param encodingLength Number of bits representing the integer
- * @param maxValue Constraint on the integer prior conversion
+ * @param range Range of valid values
  * @author Patrick Nicolas
  */
 final class QuantizerInt(
   override val encodingLength: Int,
-  override val maxValue: Int) extends Quantizer[Int]{
+  override val range: Seq[Int]) extends Quantizer[Int]{
 
   private[this] val encoder = new BitsIntEncoder(encodingLength)
 
-  override def rand: Int = Random.nextInt(maxValue)
+  override def rand: Int = Random.shuffle(range).head
 
   /**
    * Convert an integer into a bits sequence
@@ -90,7 +90,7 @@ final class QuantizerInt(
    */
   @throws(classOf[GAException])
   override def apply(t: Int): BitsRepr = {
-    if(t > maxValue)
+    if(!range.contains(t))
       throw new GAException(s"Value $t violates constraint of quantizer")
     encoder(t)
   }
@@ -102,18 +102,18 @@ final class QuantizerInt(
 /**
  * Quantizer for floating point value
  * @param encodingLength Number of bits representing the floating point value
- * @param maxValue Constraint on the floating point value prior to conversion to bits sequence
+ * @param range Range of valid values
  * @param scaleFactor Scaling factor applied to value prior to conversion
  * @author Patrick Nicolas
  */
-class QuantizerDouble(
+class QuantizerFloat(
   override val encodingLength: Int,
-  scaleFactor: Double,
-  override val maxValue: Double) extends Quantizer[Double]{
+  scaleFactor: Float,
+  override val range: Seq[Float]) extends Quantizer[Float]{
 
   private[this] val encoder = new BitsIntEncoder(encodingLength)
 
-  override def rand: Double = Random.nextDouble*maxValue
+  override def rand: Float =  Random.shuffle(range).head
 
   /**
    * Convert a floating point value into a bits sequence
@@ -123,13 +123,13 @@ class QuantizerDouble(
    * @return Bits sequence
    */
   @throws(classOf[GAException])
-  override def apply(x: Double): BitsRepr = {
-    if(x > maxValue)
+  override def apply(x: Float): BitsRepr = {
+    if(!range.contains(x))
       throw new GAException(s"Value $x violates constraint of quantizer")
     encoder((scaleFactor*x).toInt)
   }
 
-  override def unapply(bitsRepr: BitsRepr): Double = encoder.unapply(bitsRepr)/scaleFactor
+  override def unapply(bitsRepr: BitsRepr): Float = encoder.unapply(bitsRepr)/scaleFactor
 }
 
 

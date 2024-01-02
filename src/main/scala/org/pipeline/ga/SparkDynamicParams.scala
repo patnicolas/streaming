@@ -17,17 +17,19 @@ import org.pipeline.streams.spark.SparkConfiguration.mlSparkConfig
 import scala.collection.mutable.ListBuffer
 
 
+/**
+ * @author Patrick Nicolas
+ */
 
 object SparkDynamicParams{
 
   /**
-   *
-   * @param sparkConfig
-   * @tparam T
-   * @tparam U
-   * @return */
-  def apply(sparkConfig: SparkConfiguration): Chromosome[Int, Double] = {
-    val floatGenes = ListBuffer[Gene[Double]]()
+   * Convert the current Spark configuration parameters into a Chromosome
+   * @param sparkConfig Spark configuration as a list of dynamic parameters
+   * @return Chromosome associated with the current Spark configuration
+   */
+  def apply(sparkConfig: SparkConfiguration): Chromosome[Int, Float] = {
+    val floatGenes = ListBuffer[Gene[Float]]()
     val intGenes = ListBuffer[Gene[Int]]()
 
     sparkConfig.sparkParameters.foreach(paramValue => {
@@ -36,25 +38,30 @@ object SparkDynamicParams{
 
       paramValue.paramType match {
         case "Int" =>
-          val quantizer = new QuantizerInt(encodingLength = 6, maxValue = 10)
+          val quantizer = new QuantizerInt(encodingLength = 6, paramValue.range.map(_.toInt))
           val intGene = Gene[Int](paramValue.key, cleansedParamValue.toInt, quantizer)
           intGenes.append(intGene)
 
         case "Float" =>
-          val quantizer = new QuantizerDouble(
+          val quantizer = new QuantizerFloat(
             encodingLength = 6,
-            scaleFactor = 1.0,
-            maxValue = 120.0
+            scaleFactor = 1.0F,
+            paramValue.range.map(_.toFloat)
           )
-          val floatGene = Gene[Double](paramValue.key, cleansedParamValue.toDouble, quantizer)
+          val floatGene = Gene[Float](paramValue.key, cleansedParamValue.toFloat, quantizer)
           floatGenes.append(floatGene)
         case _ =>
       }
     })
-    Chromosome[Int, Double](intGenes, floatGenes)
+    Chromosome[Int, Float](intGenes, floatGenes)
   }
 
-  def unapply(chromosome: Chromosome[Int, Double]): SparkConfiguration = {
+  /**
+   * Convert a chromosome into a Spark configuration (sequence of dynamic parameters)
+   * @param chromosome Chromosome generated through GA
+   * @return Spark configuration
+   */
+  def unapply(chromosome: Chromosome[Int, Float]): SparkConfiguration = {
     val intGenes = chromosome.getFeatures1
     val floatGenes = chromosome.getFeatures2
     val sparkDynaParamsMap = mlSparkConfig.sparkParameters.map(param => (param.key, param)).toMap
@@ -63,14 +70,18 @@ object SparkDynamicParams{
       gene => {
         val param = sparkDynaParamsMap.getOrElse(
           gene.getId,
-          throw new GAException(s"Gene identifier ${gene.getId} not found"))
+          throw new GAException(s"Gene identifier ${gene.getId} not found")
+        )
         param.copy(value = gene.getValue.toString)
       }
     )
 
     val floatSparkParams = floatGenes.map(
       gene => {
-        val param = sparkDynaParamsMap.getOrElse(gene.getId, throw new GAException(s"Gene identifier ${gene.getId} not found"))
+        val param = sparkDynaParamsMap.getOrElse(
+          gene.getId,
+          throw new GAException(s"Gene identifier ${gene.getId} not found")
+        )
         param.copy(value = gene.getValue.toString)
       }
     )

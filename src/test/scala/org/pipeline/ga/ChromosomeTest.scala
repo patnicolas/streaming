@@ -8,16 +8,16 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
   it should "Succeed instantiating a chromosome as two sequences of features" in {
     var condition = true
     try {
-      val maxValue = 10.0
-      val quantizer1 = new QuantizerDouble(encodingLength = 6, scaleFactor = 1.0, maxValue)
-      val inputs1 = Seq[Double](1.0, 3.5, 2.5)
-      val genes1 = inputs1.map(x => Gene[Double](x.toString, x, quantizer1))
+      val validValues = Seq[Float](8.0F, 10.0F, 12.0F)
+      val quantizer1 = new QuantizerFloat(encodingLength = 6, scaleFactor = 1.0F, validValues)
+      val inputs1 = Seq[Float](1.0F, 3.5F, 2.5F)
+      val genes1 = inputs1.map(x => Gene[Float](x.toString, x, quantizer1))
 
-      val quantizer2 = new QuantizerInt(4, 8)
+      val quantizer2 = new QuantizerInt(4, Seq[Int](6, 8, 10))
       val inputs2 = Seq[Int](3, 0, 4)
       val genes2 = inputs2.map(x => Gene[Int](x.toString, x, quantizer2))
 
-      val chromosome: Chromosome[Double, Int] = Chromosome[Double, Int](genes1, genes2)
+      val chromosome: Chromosome[Float, Int] = Chromosome[Float, Int](genes1, genes2)
       println(s"Original Chromosome ${chromosome.toString}")
     } catch {
       case e: GAException =>
@@ -32,12 +32,12 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
   it should "Succeed instantiating a chromosome as a single sequences of features" in {
     var condition = true
     try {
-      val maxValue = 10.0
-      val quantizer1 = new QuantizerDouble(6, scaleFactor = 2.0, maxValue)
-      val inputs1 = Seq[Double](1.0, 3.5, 2.5)
-      val genes1 = inputs1.map(x => Gene[Double](x.toString, x, quantizer1))
+      val validValues = Seq[Float](8.0F, 10.0F, 12.0F)
+      val quantizer1 = new QuantizerFloat(encodingLength = 6, scaleFactor = 2.0F, validValues)
+      val inputs1 = Seq[Float](1.0F, 3.5F, 2.5F)
+      val genes1 = inputs1.map(x => Gene[Float](x.toString, x, quantizer1))
 
-      val chromosome = Chromosome[Double](genes1)
+      val chromosome = Chromosome[Float](genes1)
       println(s"Original Chromosome ${chromosome.toString}")
     } catch {
       case e: GAException => println(e.getMessage)
@@ -50,16 +50,16 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
   it should "Succeed mutating a heterogeneous chromosome" in {
     var condition = true
     try {
-      val maxValue = 10.0
-      val quantizer1 = new QuantizerDouble(encodingLength = 6, scaleFactor = 2.0, maxValue)
-      val inputs1 = Seq[Double](1.0, 3.5, 2.5)
-      val genes1 = inputs1.map(x => Gene[Double](x.toString, x, quantizer1))
+      val validValues = Seq[Float](8.0F, 10.0F, 12.0F)
+      val quantizer1 = new QuantizerFloat(encodingLength = 6, scaleFactor = 2.0F, validValues)
+      val inputs1 = Seq[Float](1.0F, 3.5F, 2.5F)
+      val genes1 = inputs1.map(x => Gene[Float](x.toString, x, quantizer1))
 
-      val quantizer2 = new QuantizerInt(4, 8)
-      val inputs2 = Seq[Int](3, 0, 4)
+      val quantizer2 = new QuantizerInt(encodingLength = 4, Seq[Int](4, 6, 8))
+      val inputs2 = Seq[Int](3, 4, 5)
       val genes2 = inputs2.map(x => Gene[Int](x.toString, x, quantizer2))
 
-      val chromosome: Chromosome[Double, Int] = Chromosome[Double, Int](genes1, genes2)
+      val chromosome: Chromosome[Float, Int] = Chromosome[Float, Int](genes1, genes2)
       val mutationProb: Double = 0.9
       val mutatedChromosome = chromosome.mutate(mutationProb)
       println(s"Original: ${chromosome.toString}\nMutated:  ${mutatedChromosome.toString}")
@@ -73,10 +73,12 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
 
   it should "Succeed generating a random chromosome" in {
     val idsT = Seq.tabulate(5)(n => s"i$n")
-    val quantizer1 = new QuantizerInt(encodingLength = 4, maxValue = 6)
+    val quantizer1 = new QuantizerInt(encodingLength = 4, Seq[Int](4, 6, 8))
     val idsU = Seq.tabulate(5)(n => s"f$n")
-    val quantizer2 = new QuantizerDouble(encodingLength = 4, scaleFactor =1.0, maxValue = 6)
-    val chromosome = Chromosome[Int, Double](idsT, quantizer1, idsU, quantizer2)
+
+    val validValues = Seq[Float](8.0F, 10.0F, 12.0F)
+    val quantizer2 = new QuantizerFloat(encodingLength = 4, scaleFactor =1.0F, validValues)
+    val chromosome = Chromosome[Int, Float](idsT, quantizer1, idsU, quantizer2)
     println(s"Randomly initialized Chromosome ${chromosome.toString}")
   }
 
