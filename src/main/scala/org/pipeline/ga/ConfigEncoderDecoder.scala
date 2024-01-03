@@ -40,6 +40,7 @@ private[ga] object ConfigEncoderDecoder{
         if (!value.last.isDigit) value.substring(0, value.length - 1)
         else value
 
+      // The type of encoder and gene depends on the type of configuration parameter
       paramValue.paramType match {
         case "Int" =>
           val gaEncoder = new GAEncoderInt(encodingLength = 6, paramValue.range.map(_.toInt))
