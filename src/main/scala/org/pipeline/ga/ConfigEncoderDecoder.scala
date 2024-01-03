@@ -33,6 +33,7 @@ private[ga] object ConfigEncoderDecoder{
     val floatGenes = ListBuffer[Gene[Float]]()
     val intGenes = ListBuffer[Gene[Int]]()
 
+    // Walk through the dynamic parameters of the current Spark configuration
     sparkConfig.sparkParameters.foreach(paramValue => {
       val value = paramValue.value
       val cleansedParamValue: String =
