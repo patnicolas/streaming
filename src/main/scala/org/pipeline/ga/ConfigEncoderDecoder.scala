@@ -18,17 +18,18 @@ import scala.collection.mutable.ListBuffer
 
 
 /**
+ * Wrapper object for encoding/decoding a Spark configuration
  * @author Patrick Nicolas
  */
 
-object SparkDynamicParams{
+private[ga] object ConfigEncoderDecoder{
 
   /**
    * Convert the current Spark configuration parameters into a Chromosome
    * @param sparkConfig Spark configuration as a list of dynamic parameters
    * @return Chromosome associated with the current Spark configuration
    */
-  def apply(sparkConfig: SparkConfiguration): Chromosome[Int, Float] = {
+  def encode(sparkConfig: SparkConfiguration): Chromosome[Int, Float] = {
     val floatGenes = ListBuffer[Gene[Float]]()
     val intGenes = ListBuffer[Gene[Int]]()
 
@@ -63,7 +64,7 @@ object SparkDynamicParams{
    * @param chromosome Chromosome generated through GA
    * @return Spark configuration
    */
-  def unapply(chromosome: Chromosome[Int, Float]): SparkConfiguration = {
+  def decode(chromosome: Chromosome[Int, Float]): SparkConfiguration = {
     val intGenes = chromosome.getFeatures1
     val floatGenes = chromosome.getFeatures2
     val sparkDynaParamsMap = mlSparkConfig.sparkParameters.map(param => (param.key, param)).toMap
