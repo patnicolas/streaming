@@ -7,9 +7,9 @@ private[ga] final class GeneTest extends AnyFlatSpec{
 
   it should "Succeed instantiating a gene with integer type" in {
     val validRange = Seq[Int](6, 8, 10, 12)
-    val quantizer = new QuantizerInt(4, validRange)
+    val gaEncoder = new GAEncoderInt(4, validRange)
     val input = 5
-    val gene = Gene[Int]("id", input, quantizer)
+    val gene = Gene[Int]("id", input, gaEncoder)
     println(gene.toString)
     println(gene.getEncoded)
     println(gene.getBitsSequence)
@@ -19,9 +19,9 @@ private[ga] final class GeneTest extends AnyFlatSpec{
     var condition = false
     try {
       val validRange = Seq[Float](6.0F, 8.0F, 10.0F, 12.0F)
-      val quantizer = new QuantizerFloat(6, scaleFactor = 1.0F, validRange)
+      val gaEncoder = new GAEncoderFloat(6, scaleFactor = 1.0F, validRange)
       val input = 2.0F
-      val gene = Gene[Float]("id", input, quantizer)
+      val gene = Gene[Float]("id", input, gaEncoder)
       println(gene.toString)
       println(gene.getEncoded)
       println(gene.getBitsSequence)
@@ -39,9 +39,9 @@ private[ga] final class GeneTest extends AnyFlatSpec{
     var condition = false
     try {
       val validRange = Seq[Float](6.0F, 8.0F, 10.0F, 12.0F)
-      val quantizer = new QuantizerFloat(encodingLength = 6, scaleFactor = 1.0F, validRange)
+      val gaEncoder = new GAEncoderFloat(encodingLength = 6, scaleFactor = 1.0F, validRange)
       val input = 18.0F
-      val gene = Gene[Float]("id", input, quantizer)
+      val gene = Gene[Float]("id", input, gaEncoder)
       println(gene.toString)
       println(gene.getEncoded)
       println(gene.getBitsSequence)
@@ -55,9 +55,9 @@ private[ga] final class GeneTest extends AnyFlatSpec{
 
   it should "Succeed decoding a gene" in {
     val validRange = Seq[Int](6, 8, 10, 12)
-    val quantizer = new QuantizerInt(4, validRange)
+    val gaEncoder = new GAEncoderInt(4, validRange)
     val input = 5
-    val gene = Gene[Int]("id", input, quantizer)
+    val gene = Gene[Int]("id", input, gaEncoder)
     val bitsSequence = gene.getBitsSequence
     val decodedGene = gene.decode(bitsSequence)
     assert(gene == decodedGene)
@@ -68,9 +68,9 @@ private[ga] final class GeneTest extends AnyFlatSpec{
     try {
       val validRange = Seq[Float](6.0F, 8.0F, 10.0F, 12.0F)
 
-      val quantizer = new QuantizerFloat(6, scaleFactor = 2.0F, validRange)
+      val gaEncoder = new GAEncoderFloat(6, scaleFactor = 2.0F, validRange)
       val input = 9.0F
-      val gene = Gene[Float]("id", input, quantizer)
+      val gene = Gene[Float]("id", input, gaEncoder)
       val mutationOp = new MutationOp {
         val mutationProbThreshold: Double = 0.8
       }

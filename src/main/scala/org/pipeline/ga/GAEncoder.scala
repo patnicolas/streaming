@@ -14,12 +14,12 @@ package org.pipeline.ga
 import scala.util.Random
 
 /**
- * Generic quantizer that convert an object of type T to and from a sequence of bits {0, 1}
+ * Generic Encoder that convert an object of type T to and from a sequence of bits {0, 1}
  * implemented as a list
  * @tparam T Build-in type of feature (Int, Float,....)
  * @author Patrick Nicolas
  */
-trait Quantizer[T]{
+trait GAEncoder[T]{
   val encodingLength: Int
   val range: Seq[T]
 
@@ -39,14 +39,14 @@ trait Quantizer[T]{
 }
 
 /**
- * Quantizer for Boolean value (0, 1}
+ * Encoder for Boolean value (0, 1}
  * @param encodingLength Number of bits representing the value
  * @author Patrick Nicolas
  */
-final class QuantizerBool(
+final class GAEncoderBool(
   override val encodingLength: Int,
   override val range: Seq[Boolean] = Seq[Boolean](false, true)
-) extends Quantizer[Boolean]{
+) extends GAEncoder[Boolean]{
   import scala.util.Random
   private[this] val encoder = new BitsIntEncoder(encodingLength)
 
@@ -67,15 +67,15 @@ final class QuantizerBool(
 
 
 /**
- * Quantizer for integers. Only the integers which are less or equal to maximum authorized value
+ * Encoder for integers. Only the integers which are less or equal to maximum authorized value
  * are generated.
  * @param encodingLength Number of bits representing the integer
  * @param range Range of valid values
  * @author Patrick Nicolas
  */
-final class QuantizerInt(
+final class GAEncoderInt(
   override val encodingLength: Int,
-  override val range: Seq[Int]) extends Quantizer[Int]{
+  override val range: Seq[Int]) extends GAEncoder[Int]{
 
   private[this] val encoder = new BitsIntEncoder(encodingLength)
 
@@ -100,16 +100,16 @@ final class QuantizerInt(
 
 
 /**
- * Quantizer for floating point value
+ * Encoder for floating point value
  * @param encodingLength Number of bits representing the floating point value
  * @param range Range of valid values
  * @param scaleFactor Scaling factor applied to value prior to conversion
  * @author Patrick Nicolas
  */
-class QuantizerFloat(
+class GAEncoderFloat(
   override val encodingLength: Int,
   scaleFactor: Float,
-  override val range: Seq[Float]) extends Quantizer[Float]{
+  override val range: Seq[Float]) extends GAEncoder[Float]{
 
   private[this] val encoder = new BitsIntEncoder(encodingLength)
 

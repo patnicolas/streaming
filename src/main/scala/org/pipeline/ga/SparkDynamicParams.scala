@@ -34,21 +34,23 @@ object SparkDynamicParams{
 
     sparkConfig.sparkParameters.foreach(paramValue => {
       val value = paramValue.value
-      val cleansedParamValue: String = if (!value.last.isDigit) value.substring(0, value.length - 1) else value
+      val cleansedParamValue: String =
+        if (!value.last.isDigit) value.substring(0, value.length - 1)
+        else value
 
       paramValue.paramType match {
         case "Int" =>
-          val quantizer = new QuantizerInt(encodingLength = 6, paramValue.range.map(_.toInt))
-          val intGene = Gene[Int](paramValue.key, cleansedParamValue.toInt, quantizer)
+          val gaEncoder = new GAEncoderInt(encodingLength = 6, paramValue.range.map(_.toInt))
+          val intGene = Gene[Int](paramValue.key, cleansedParamValue.toInt, gaEncoder)
           intGenes.append(intGene)
 
         case "Float" =>
-          val quantizer = new QuantizerFloat(
+          val gaEncoder = new GAEncoderFloat(
             encodingLength = 6,
             scaleFactor = 1.0F,
             paramValue.range.map(_.toFloat)
           )
-          val floatGene = Gene[Float](paramValue.key, cleansedParamValue.toFloat, quantizer)
+          val floatGene = Gene[Float](paramValue.key, cleansedParamValue.toFloat, gaEncoder)
           floatGenes.append(floatGene)
         case _ =>
       }

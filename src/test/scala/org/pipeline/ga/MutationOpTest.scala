@@ -8,7 +8,7 @@ private[ga] final class MutationOpTest extends AnyFlatSpec{
   it should "Succeed mutating a chromosome as a bit set" in {
     val encodingLength = 5
     val validRange = Seq[Int](6, 8, 10, 12)
-    val gene: Gene[Int] = Gene[Int]("id", 8, new QuantizerInt(encodingLength, validRange))
+    val gene: Gene[Int] = Gene[Int]("id", 8, new GAEncoderInt(encodingLength, validRange))
     val myMutationOp = new MutationOp {
       override val mutationProbThreshold: Double = 0.8
     }

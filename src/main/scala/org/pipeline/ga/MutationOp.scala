@@ -11,8 +11,6 @@
  */
 package org.pipeline.ga
 
-import org.pipeline.ga
-
 import scala.util.Random
 import java.util
 import scala.annotation.tailrec
@@ -21,6 +19,7 @@ import scala.annotation.tailrec
  * Mutation operator to be applied to Genes and Chromosomes (as defined has a sequence
  * of heterogeneous genes
  * mutationProbThreshold: Threshold for triggering a mutation
+ * rand Random generator
  *
  * @author Patrick Nicolas
  */
@@ -30,35 +29,26 @@ self =>
   private[this] val rand = new Random(42L)
 
   /**
-   *
-   * @param gene
-   * @tparam T
-   * @return
+   * Mutates a given Gene
+   * @param gene Input gene
+   * @tparam T Type of the input and output gene
+   * @return A valid, mutated Gene
    */
-  def apply[T: Ordering](gene: Gene[T]): Gene[T] = {
+  def apply[T: Ordering](gene: Gene[T]): Gene[T] =
     if(rand.nextDouble < mutationProbThreshold) {
       val newValue = createValidMutation(gene, implicitly[Ordering[T]])
-      Gene[T](gene.getId, newValue, gene.getQuantizer)
+      Gene[T](gene.getId, newValue, gene.getGAEncoder)
     }
     else
       gene
-  }
-
-  @tailrec
-  private def createValidMutation[T: Ordering](gene: Gene[T], ord: Ordering[T]): T = {
-    val flippedBitSet: util.BitSet = flip(gene.getEncoded, gene.size())
-    val newValue = gene.getValidValue(flippedBitSet)
-    val isValid = ord.lt(newValue, gene.getQuantizer.range.last)
-    if(isValid) newValue else createValidMutation(gene, ord)
-  }
-
 
   /**
-   *
-   * @param chromosome
-   * @tparam T
-   * @tparam U
-   * @return
+   * Mutates a Chromosome given a threshold for the mutation probability. The
+   * mutation select then mutate a gene
+   * @param chromosome Input chromosome
+   * @tparam T Type of the first set of features (Int, Float,....)
+   * @tparam U Type of the second set of features (Int, Float,....)
+   * @return Mutate chromosome
    */
   def apply[T : Ordering, U: Ordering](chromosome: Chromosome[T, U]): Chromosome[T, U] =
     if(rand.nextDouble < mutationProbThreshold) {
@@ -66,7 +56,8 @@ self =>
       val features2 = chromosome.getFeatures2
       val chromosomeLength: Int = features1.length + features2.length
 
-      val geneIndex = (chromosomeLength* Random.nextDouble).toInt
+      // Select the index of the gene to be mutated, randomly
+      val geneIndex = (chromosomeLength*Random.nextDouble).toInt
 
       // If the index of the gene to mutate is within the first set of features or
       // if there is only one set of features of same type..
@@ -93,4 +84,13 @@ self =>
     bitSet.flip(bitSetIndex)
     bitSet
   }
+
+
+  @tailrec private def createValidMutation[T: Ordering](gene: Gene[T], ord: Ordering[T]): T = {
+    val flippedBitSet: util.BitSet = flip(gene.getEncoded, gene.size())
+    val newValue = gene.getValidValue(flippedBitSet)
+    val isValid = ord.lt(newValue, gene.getGAEncoder.range.last)
+    if (isValid) newValue else createValidMutation(gene, ord)
+  }
+
 }

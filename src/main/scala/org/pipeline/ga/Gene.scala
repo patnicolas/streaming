@@ -12,9 +12,7 @@
 package org.pipeline.ga
 
 import org.pipeline.ga
-
 import java.util
-import scala.util.Random
 
 
 
@@ -22,22 +20,19 @@ import scala.util.Random
  * Define a parameterized gene defined as a pair {value, quantizer}
  * @param id Identifier for the feature associated with the Gene
  * @param t Object of type T represented by a Gene
- * @param quantizer Quantizer associated with this Gene T <-> Bits sequence
+ * @param gaEncoder Encoder associated with this Gene T <-> Bits sequence
  * @tparam T Type of underlying object for this gene
  *
  * @author Patrick Nicolas
  */
 @throws(classOf[GAException])
-private[ga] class Gene[T : Ordering] private (id: String, t: T, quantizer: Quantizer[T]) {
-
-  private[this] val rand = new Random(42L)
-
-  // Encoding as a sequence if bits
-  private[this] val bitsSequence: BitsRepr = quantizer(t)
+private[ga] class Gene[T : Ordering] private (id: String, t: T, gaEncoder: GAEncoder[T]) {
+  // Encoding as a sequence {0, 1}
+  private[this] val bitsSequence: BitsRepr = gaEncoder(t)
 
   // Encoding as Bit set
   private[this] val encoded: util.BitSet = {
-    val bs =  new java.util.BitSet(quantizer.encodingLength)
+    val bs =  new java.util.BitSet(gaEncoder.encodingLength)
     bitsSequence.indices.foreach(index => bs.set(index, bitsSequence(index) == 1))
     bs
   }
@@ -72,14 +67,14 @@ private[ga] class Gene[T : Ordering] private (id: String, t: T, quantizer: Quant
    * @return Feature value of parameterized type
    */
   def getValidValue(bitsSet: util.BitSet): T = {
-    val bitsSequence = ga.repr(bitsSet, quantizer.encodingLength)
-    quantizer.unapply(bitsSequence)
+    val bitsSequence = ga.repr(bitsSet, gaEncoder.encodingLength)
+    gaEncoder.unapply(bitsSequence)
   }
 
-  final def getQuantizer: Quantizer[T] = quantizer
+  final def getGAEncoder: GAEncoder[T] = gaEncoder
 
 
-  final def size(): Int = quantizer.encodingLength
+  final def size(): Int = gaEncoder.encodingLength
 
   final def getEncoded: util.BitSet = encoded
 
@@ -88,8 +83,8 @@ private[ga] class Gene[T : Ordering] private (id: String, t: T, quantizer: Quant
   final def getValue: T = t
 
   def decode(bits: BitsRepr): Gene[T] = {
-    val gene = quantizer.unapply(bits)
-    new Gene[T](id, gene, quantizer)
+    val gene = gaEncoder.unapply(bits)
+    new Gene[T](id, gene, gaEncoder)
   }
 
   def ==(otherGene: Gene[T]): Boolean = otherGene.getBitsSequence == bitsSequence
@@ -97,20 +92,20 @@ private[ga] class Gene[T : Ordering] private (id: String, t: T, quantizer: Quant
   @inline
   final def repr: String = bitsSequence.mkString(" ")
   override def toString: String =
-    s"$id, ${t.toString}: encoding length: ${quantizer.encodingLength}"
+    s"$id, ${t.toString}: encoding length: ${gaEncoder.encodingLength}"
 }
 
 
 
 private[ga] object Gene {
 
-  def apply[T : Ordering](id: String, t: T, quantizer: Quantizer[T]): Gene[T] =
+  def apply[T : Ordering](id: String, t: T, quantizer: GAEncoder[T]): Gene[T] =
     new Gene[T](id, t, quantizer)
 
   /**
    * Generate a random gene for initialization of the population
    * @return Randomly generated Gene
    */
-  def apply[T : Ordering](id: String, quantizer: Quantizer[T]): Gene[T] =
+  def apply[T : Ordering](id: String, quantizer: GAEncoder[T]): Gene[T] =
     new Gene[T](id, quantizer.rand, quantizer)
 }

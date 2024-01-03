@@ -9,13 +9,13 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
     var condition = true
     try {
       val validValues = Seq[Float](8.0F, 10.0F, 12.0F)
-      val quantizer1 = new QuantizerFloat(encodingLength = 6, scaleFactor = 1.0F, validValues)
+      val gaEncoder1 = new GAEncoderFloat(encodingLength = 6, scaleFactor = 1.0F, validValues)
       val inputs1 = Seq[Float](1.0F, 3.5F, 2.5F)
-      val genes1 = inputs1.map(x => Gene[Float](x.toString, x, quantizer1))
+      val genes1 = inputs1.map(x => Gene[Float](x.toString, x, gaEncoder1))
 
-      val quantizer2 = new QuantizerInt(4, Seq[Int](6, 8, 10))
+      val gaEncoder2 = new GAEncoderInt(4, Seq[Int](6, 8, 10))
       val inputs2 = Seq[Int](3, 0, 4)
-      val genes2 = inputs2.map(x => Gene[Int](x.toString, x, quantizer2))
+      val genes2 = inputs2.map(x => Gene[Int](x.toString, x, gaEncoder2))
 
       val chromosome: Chromosome[Float, Int] = Chromosome[Float, Int](genes1, genes2)
       println(s"Original Chromosome ${chromosome.toString}")
@@ -33,9 +33,9 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
     var condition = true
     try {
       val validValues = Seq[Float](8.0F, 10.0F, 12.0F)
-      val quantizer1 = new QuantizerFloat(encodingLength = 6, scaleFactor = 2.0F, validValues)
+      val gaEncoder1 = new GAEncoderFloat(encodingLength = 6, scaleFactor = 2.0F, validValues)
       val inputs1 = Seq[Float](1.0F, 3.5F, 2.5F)
-      val genes1 = inputs1.map(x => Gene[Float](x.toString, x, quantizer1))
+      val genes1 = inputs1.map(x => Gene[Float](x.toString, x, gaEncoder1))
 
       val chromosome = Chromosome[Float](genes1)
       println(s"Original Chromosome ${chromosome.toString}")
@@ -51,13 +51,13 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
     var condition = true
     try {
       val validValues = Seq[Float](8.0F, 10.0F, 12.0F)
-      val quantizer1 = new QuantizerFloat(encodingLength = 6, scaleFactor = 2.0F, validValues)
+      val gaEncoder1 = new GAEncoderFloat(encodingLength = 6, scaleFactor = 2.0F, validValues)
       val inputs1 = Seq[Float](1.0F, 3.5F, 2.5F)
-      val genes1 = inputs1.map(x => Gene[Float](x.toString, x, quantizer1))
+      val genes1 = inputs1.map(x => Gene[Float](x.toString, x, gaEncoder1))
 
-      val quantizer2 = new QuantizerInt(encodingLength = 4, Seq[Int](4, 6, 8))
+      val gaEncoder2 = new GAEncoderInt(encodingLength = 4, Seq[Int](4, 6, 8))
       val inputs2 = Seq[Int](3, 4, 5)
-      val genes2 = inputs2.map(x => Gene[Int](x.toString, x, quantizer2))
+      val genes2 = inputs2.map(x => Gene[Int](x.toString, x, gaEncoder2))
 
       val chromosome: Chromosome[Float, Int] = Chromosome[Float, Int](genes1, genes2)
       val mutationProb: Double = 0.9
@@ -73,12 +73,12 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
 
   it should "Succeed generating a random chromosome" in {
     val idsT = Seq.tabulate(5)(n => s"i$n")
-    val quantizer1 = new QuantizerInt(encodingLength = 4, Seq[Int](4, 6, 8))
+    val gaEncoder1 = new GAEncoderInt(encodingLength = 4, Seq[Int](4, 6, 8))
     val idsU = Seq.tabulate(5)(n => s"f$n")
 
     val validValues = Seq[Float](8.0F, 10.0F, 12.0F)
-    val quantizer2 = new QuantizerFloat(encodingLength = 4, scaleFactor =1.0F, validValues)
-    val chromosome = Chromosome[Int, Float](idsT, quantizer1, idsU, quantizer2)
+    val gaEncoder2 = new GAEncoderFloat(encodingLength = 4, scaleFactor =1.0F, validValues)
+    val chromosome = Chromosome[Int, Float](idsT, gaEncoder1, idsU, gaEncoder2)
     println(s"Randomly initialized Chromosome ${chromosome.toString}")
   }
 
