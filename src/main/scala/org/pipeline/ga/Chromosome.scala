@@ -53,7 +53,7 @@ private[ga] class Chromosome[T : Ordering, U : Ordering] private (
    */
   def xOver(
     otherChromosome: Chromosome[T, U],
-    xOverOp: XOverOp): (Chromosome[T, U], Chromosome[T, U]) = xOverOp(this, otherChromosome)
+    xOverOp: XOverOp): (Chromosome[T, U], Chromosome[T, U]) = xOverOp.xover(this, otherChromosome)
 
   /**
    * Implements a cross-over with another chromosome. The operation generates two offsprings.
@@ -71,7 +71,7 @@ private[ga] class Chromosome[T : Ordering, U : Ordering] private (
 
     (new XOverOp{
       override val xOverProbThreshold: Double = xOverThreshold
-    })(this, otherChromosome)
+    }).xover(this, otherChromosome)
   }
 
   def mutate(mutationOp: MutationOp): Chromosome[T, U] = mutationOp(this)

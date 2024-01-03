@@ -31,7 +31,7 @@ self =>
    * @tparam U Type of second set of genes for each chromosome
    * @return Pair of off spring chromosomes
    */
-  def apply[T : Ordering, U : Ordering](
+  def xover[T : Ordering, U : Ordering](
     chromosome1: Chromosome[T, U],
     chromosome2: Chromosome[T, U]
   ): (Chromosome[T, U], Chromosome[T, U]) = {
@@ -61,13 +61,13 @@ self =>
       val midPoint = chromosomes.length >> 1
       val (topChromosomes, botChromosomes) = chromosomes.splitAt(midPoint)
       val (offSprings1, offSpring2) = (0 until midPoint).map(
-        index => apply(topChromosomes(index), botChromosomes(index))
+        index => xover(topChromosomes(index), botChromosomes(index))
       ).unzip
       offSprings1 ++ offSpring2
 
     case "pairing" =>
       val (offSprings1, offSpring2) = (chromosomes.indices by 2).map(
-        index => apply(chromosomes(index), chromosomes(index+1))
+        index => xover(chromosomes(index), chromosomes(index+1))
       ).unzip
       offSprings1 ++ offSpring2
 
@@ -160,6 +160,7 @@ private[ga] object XOverOp {
 
     Chromosome[T, U](features3, topChromosome1Genes ++ botChromosome2Genes)
   }
+
   private def xOver(
     bitSet1: util.BitSet,
     encoding1Size: Int,

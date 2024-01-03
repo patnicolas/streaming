@@ -13,7 +13,11 @@ package org.pipeline.ga
 
 
 /**
- *
+ * Implements the selection operator. The main method, apply, rank the chromosomes by their
+ * fitness and select the top chromosomes constrained by the maximum allowed size of the population.
+ * maxPopulationSize Maximum size allowed for the number of chromosomes across the reproduction
+ *                   cycle
+ * @author Patrick Nicolas
  */
 trait SelectionOp{
 self =>
