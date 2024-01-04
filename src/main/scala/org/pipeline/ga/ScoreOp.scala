@@ -11,19 +11,36 @@
  */
 package org.pipeline.ga
 
+import org.pipeline.streams.spark.SparkConfiguration
+
+
+/**
+ * Define the scoring operator for a population of chromosomes each associated with a given
+ * Spark configuration.
+ * Practically, each Spark configuration is loaded prior the execution of a Spark submit.
+ * @author Patrick Nicolas
+ */
 trait ScoreOp{
 self =>
-  def apply[T : Ordering, U : Ordering](population: Chromosome[T, U]): Chromosome[T, U] = ???
+  protected[this] val execSparkSubmit: SparkConfiguration => (Int, Long)
+  protected[this] val latencyFactor: Float
+  protected[this] val serverHourlyCost: Float
 
-  {
+  /**
+   * Load a set of Spark configurations (each configuration defined as a set of parameters)
+   * then trigger Spark submit for each configuration.
+   * The execution of various Spark configuration is done concurrently through distributed
+   * containers
+   * @param population Set of chromosomes representing Spark configurations
+   * @return Chromosomes with updated fitness values
+   */
+  def apply(population: Seq[Chromosome[Int, Float]]): Seq[Chromosome[Int, Float]] =
+    population.map(ch => score(ch))
 
+  private def score(chromosome: Chromosome[Int, Float]): Chromosome[Int, Float] = {
+    val sparkConfiguration = ConfigEncoderDecoder.decode(chromosome)
+    val (numServers, latency) = execSparkSubmit(sparkConfiguration)
+    chromosome.fitness = 1.0/(math.exp(latencyFactor*latency) + serverHourlyCost*numServers)
+    chromosome
   }
-    // 1. Convert to Spark variable structure
-    // 2. Save into  configuration file
-    // 3. Execute Spark submit
-}
-
-
-private[ga] object ScoreOp {
-
 }

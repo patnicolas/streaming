@@ -20,7 +20,7 @@ private[ga] final class SelectionOpTest extends AnyFlatSpec{
 
     val validRange2 = Seq[Float](10.0F, 15.0F, 20.0F, 30.0F)
     val gaEncoder2 = new GAEncoderFloat(encodingLength = 4, scaleFactor = 1.0F, validRange2)
-    val chromosome = selector[Int, Float](idsT, gaEncoder1, idsU, gaEncoder2)
+    val chromosome = selector.rand(idsT, gaEncoder1, idsU, gaEncoder2)
     println(chromosome.toString)
   }
 

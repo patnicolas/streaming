@@ -33,7 +33,7 @@ self =>
    * @tparam U Type of second set of features
    * @return Random instance of a chromosome
    */
-  def apply[T : Ordering, U : Ordering](
+  def rand[T : Ordering, U : Ordering](
     idsT: Seq[String],
     gaEncoder1: GAEncoder[T],
     idsU: Seq[String],
