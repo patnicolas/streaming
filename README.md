@@ -1,7 +1,10 @@
-### streaming Patrick Nicolas Last update 01.03.2024.
+### org.pipeline Patrick Nicolas Last update 01.03.2024
+.  
+.  
+.  
+   
 
-
-![Evaluation and tips for Kafka and Spark streaming](images/streaming.jpg)
+![Evaluation and tips for Kafka and Spark streaming](images/Data_Pipelines.png)
 
 The pipeline packages contains implementation for 
 - Evaluation of Apache Kafka and Spark streaming functionality in Scala with application to weather 
@@ -339,4 +342,90 @@ Several approaches exist for choosing candidate chromosomes for crossover [ref 5
 - random: This approach randomly selects two candidate chromosomes.
 
 ![Illustration of selection chromosomes for crossover](images/XOver_Strategies.jpg)
+
+<pre>
+def xover[T : Ordering, U : Ordering](
+  chromosomes: Seq[Chromosome[T, U]],
+  xOverStrategy: String
+): Seq[Chromosome[T, U]] = xOverStrategy match {
+  
+ case "midPoint" =>
+    val midPoint = chromosomes.length >> 1
+    val (topChromosomes, botChromosomes) = chromosomes.splitAt(midPoint)
+    val (offSprings1, offSpring2) = (0 until midPoint).map(
+        index => xover(topChromosomes(index), botChromosomes(index))
+    ).unzip
+    offSprings1 ++ offSpring2
+
+ case "pairing" =>
+    val (offSprings1, offSpring2) = (chromosomes.indices by 2).map(
+         index => xover(chromosomes(index), chromosomes(index+1)) 
+    ).unzip
+    offSprings1 ++ offSpring2
+ 
+   .....
+ 
+ }
+</pre>
+
+### Mating Cycle
+A replication cycle involves the processes of crossing-over, mutation, scoring, and ultimately selecting chromosomes based on their fitness values. This cycle is encapsulated in the **Reproduction** class, which has the following attributes:
+- **execSparkSubmit**: A function for executing Spark Submit.
+- **latencyFactor**: A factor used in calculating the fitness of chromosomes, based on latency.
+- **serverHourlyCost**: The hourly cost of an average server or container, factored into the -
+- **fitness**: calculation of chromosomes.
+- **maxPopulationSize**: The upper limit on the number of chromosomes throughout the mating cycle.
+- **xOverProbThreshold**: A threshold value determining the likelihood of initiating a crossover.
+- **mutationProbThreshold**: A threshold value for the probability of triggering a mutation.
+- **xOverStrategy**: The strategy employed for crossover.
+- **stopCondition**: A function or condition that signals when to end the execution of the genetic algorithm.
+
+<pre>
+
+class Reproduction protected (
+  val execSparkSubmit: SparkConfiguration => (Int, Long),
+  override val latencyFactor: Float,
+  override val serverHourlyCost: Float,
+  override val maxPopulationSize: Int,
+  override val xOverProbThreshold: Double,
+  override val mutationProbThreshold: Double,
+  xOverStrategy: String,
+  stopCondition: Seq[Chromosome[Int, Float]] => Boolean
+) extends ScoreOp with SelectionOp with XOverOp with MutationOp {
+  
+  def mate(
+    idsInt: Seq[String],
+    gaEncoderInt: Seq[GAEncoder[Int]],
+    idsFloat: Seq[String],
+    gaEncoderFloat: Seq[GAEncoder[Float]]): Seq[Chromosome[Int, Float]] = {
+
+    // Initialization of chromosomes
+    val initialChromosomes = Seq.fill(maxPopulationSize)(
+      Chromosome.rand(idsInt, gaEncoderInt, idsFloat, gaEncoderFloat)
+    )
+    // Recursive reproduction cycle
+    mate(initialChromosomes, iterationCount = 0)
+  }
+
+
+  @tailrec 
+  private def mate(
+    chromosomes: Seq[Chromosome[Int, Float]], 
+    iterationCount: Int): Seq[Chromosome[Int, Float]] = {
+
+    val offSprings = xOver(chromosomes, xOverStrategy)
+    val mutatedChromosomes = mutate(chromosomes ++ offSprings)
+    val scoredChromosomes = score(mutatedChromosomes)
+    val selectedChromosomes = select(scoredChromosomes)
+
+    // If condition met, exit
+    if (iterationCount > 16 || stopCondition(selectedChromosomes)) 
+         selectedChromosomes
+     // Otherwise recurse 
+    else 
+        mate(selectedChromosomes, iterationCount + 1)
+  }
+
+</pre>
+
 
