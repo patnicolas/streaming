@@ -53,7 +53,7 @@ private[ga] class Chromosome[T : Ordering, U : Ordering] private (
    */
   def xOver(
     otherChromosome: Chromosome[T, U],
-    xOverOp: XOverOp): (Chromosome[T, U], Chromosome[T, U]) = xOverOp.xover(this, otherChromosome)
+    xOverOp: XOverOp): (Chromosome[T, U], Chromosome[T, U]) = xOverOp.xOver(this, otherChromosome)
 
   /**
    * Implements a cross-over with another chromosome. The operation generates two offsprings.
@@ -71,10 +71,10 @@ private[ga] class Chromosome[T : Ordering, U : Ordering] private (
 
     (new XOverOp{
       override val xOverProbThreshold: Double = xOverThreshold
-    }).xover(this, otherChromosome)
+    }).xOver(chromosome1 = this, otherChromosome)
   }
 
-  def mutate(mutationOp: MutationOp): Chromosome[T, U] = mutationOp(this)
+  def mutate(mutationOp: MutationOp): Chromosome[T, U] = mutationOp.mutate(chromosome = this)
 
   def mutate(mutationProb: Double): Chromosome[T, U] = {
     require(
@@ -83,7 +83,7 @@ private[ga] class Chromosome[T : Ordering, U : Ordering] private (
     )
     (new MutationOp{
       override val mutationProbThreshold: Double = mutationProb
-    })(this)
+    }).mutate(chromosome = this)
   }
 
   private[this] lazy val encoded: util.BitSet = {
@@ -103,29 +103,6 @@ private[ga] class Chromosome[T : Ordering, U : Ordering] private (
   }
 
   final def size(): Int = features1.length + features2.length
-
-  /**
-   * Decode a sequence of bits {0, 1} into a Chromosome
-   * @param bitsSequence List of integers {0, 1} representing the bits
-   * @return Instance of chromosome
-   */
-    /*
-  def decode(bitsSequence: BitsRepr, encodingLength: Int): Chromosome[T] = {
-    require(
-      bitsSequence.size >= encodingLength,
-      s"Failed to decode ${bitsSequence.size} bits should be >= $encodingLength"
-    )
-    val gene = Gene[T](encodingLength)
-    val code = (bitsSequence.indices by encodingLength).map(
-      index => {
-        val bitsSlice: BitsRepr = bitsSequence.slice(index, index + encodingLength)
-        gene.decode(bitsSlice)
-      }
-    )
-    new Chromosome[T](code)
-  }
-
-     */
 
   final def getEncoded: util.BitSet = encoded
 
@@ -157,9 +134,10 @@ private[ga] object Chromosome {
    * @return Initialized instance of a Chromosome */
   def apply[T : Ordering, U : Ordering](
     idsT: Seq[String],
-    quantizer1: GAEncoder[T],
+    quantizer1: Seq[GAEncoder[T]],
     idsU: Seq[String],
-    quantizer2: GAEncoder[U]): Chromosome[T, U] = rand[T, U](idsT, quantizer1, idsU, quantizer2)
+    quantizer2: Seq[GAEncoder[U]]): Chromosome[T, U] =
+    rand[T, U](idsT, quantizer1, idsU, quantizer2)
 
   /**
    * Generate an initial, random Chromosome
@@ -173,11 +151,11 @@ private[ga] object Chromosome {
    */
   def rand[T : Ordering, U : Ordering](
     idsT: Seq[String],
-    quantizer1: GAEncoder[T],
+    quantizer1: Seq[GAEncoder[T]],
     idsU: Seq[String],
-    quantizer2: GAEncoder[U]): Chromosome[T, U] = {
-    val features1 = Seq.tabulate(idsT.length)(index => Gene[T](idsT(index), quantizer1))
-    val features2 = Seq.tabulate(idsU.length)(index => Gene[U](idsU(index), quantizer2))
+    quantizer2: Seq[GAEncoder[U]]): Chromosome[T, U] = {
+    val features1 = Seq.tabulate(idsT.length)(index => Gene[T](idsT(index), quantizer1(index)))
+    val features2 = Seq.tabulate(idsU.length)(index => Gene[U](idsU(index), quantizer2(index)))
 
     new Chromosome[T, U](features1, features2)
   }

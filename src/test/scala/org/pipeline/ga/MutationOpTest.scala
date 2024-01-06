@@ -13,7 +13,7 @@ private[ga] final class MutationOpTest extends AnyFlatSpec{
       override val mutationProbThreshold: Double = 0.8
     }
 
-    val mutatedGene = myMutationOp(gene)
+    val mutatedGene = myMutationOp.mutate(gene)
     println(mutatedGene.toString)
   }
 

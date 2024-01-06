@@ -34,7 +34,7 @@ self =>
    * @tparam T Type of the input and output gene
    * @return A valid, mutated Gene
    */
-  def apply[T: Ordering](gene: Gene[T]): Gene[T] =
+  def mutate[T: Ordering](gene: Gene[T]): Gene[T] =
     if(rand.nextDouble < mutationProbThreshold) {
       val newValue = createValidMutation(gene, implicitly[Ordering[T]])
       Gene[T](gene.getId, newValue, gene.getGAEncoder)
@@ -50,7 +50,7 @@ self =>
    * @tparam U Type of the second set of features (Int, Float,....)
    * @return Mutate chromosome
    */
-  def apply[T : Ordering, U: Ordering](chromosome: Chromosome[T, U]): Chromosome[T, U] =
+  def mutate[T : Ordering, U: Ordering](chromosome: Chromosome[T, U]): Chromosome[T, U] =
     if(rand.nextDouble < mutationProbThreshold) {
       val features1 = chromosome.getFeatures1
       val features2 = chromosome.getFeatures2
@@ -63,14 +63,14 @@ self =>
       // if there is only one set of features of same type..
       if(geneIndex < features1.length || features2.isEmpty) {
         val geneToMutate = features1(geneIndex)
-        val mutatedGene: Gene[T] = apply(geneToMutate)
+        val mutatedGene: Gene[T] = mutate(geneToMutate)
         features1.updated(geneIndex, mutatedGene)
       }
         // Otherwise if the mutation has to be performed on the second set of features....
       else {
         val relativeIndex = geneIndex - features1.length
         val geneToMutate: Gene[U] = features2(relativeIndex)
-        val mutatedGene: Gene[U] = apply(geneToMutate)
+        val mutatedGene: Gene[U] = mutate(geneToMutate)
         features2.updated(relativeIndex, mutatedGene)
       }
 
@@ -78,6 +78,11 @@ self =>
     }
     else
       chromosome
+
+  def mutate[T : Ordering, U: Ordering](
+    chromosomes: Seq[Chromosome[T, U]]
+  ): Seq[Chromosome[T,U]] = chromosomes.map(mutate(_))
+
 
   private def flip(bitSet: util.BitSet, encodingLength: Int): util.BitSet = {
     val bitSetIndex = (encodingLength * rand.nextDouble).toInt

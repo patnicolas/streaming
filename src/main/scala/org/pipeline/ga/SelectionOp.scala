@@ -23,6 +23,7 @@ trait SelectionOp{
 self =>
   protected[this] val maxPopulationSize: Int
 
+
   /**
    * Initial random initialization of the population of Chromosomes
    * @param idsT Identifiers for features of first type (Integer, Floating point,...)
@@ -35,9 +36,9 @@ self =>
    */
   def rand[T : Ordering, U : Ordering](
     idsT: Seq[String],
-    gaEncoder1: GAEncoder[T],
+    gaEncoder1: Seq[GAEncoder[T]],
     idsU: Seq[String],
-    gaEncoder2: GAEncoder[U]
+    gaEncoder2: Seq[GAEncoder[U]]
   ): Seq[Chromosome[T, U]] =
     Seq.fill(maxPopulationSize)(Chromosome.rand(idsT, gaEncoder1, idsU, gaEncoder2))
 
@@ -48,6 +49,7 @@ self =>
    * @tparam U Built-in type for the second set of features
    * @return Ranked and trimmed the current population of chromosomes
    */
-  def apply[T : Ordering, U : Ordering](chromosomes: Seq[Chromosome[T, U]]): Seq[Chromosome[T, U]] =
+  def select[T : Ordering, U : Ordering](chromosomes: Seq[Chromosome[T, U]]): Seq[Chromosome[T,
+    U]] =
     chromosomes.sortWith(_.fitness > _.fitness).take(maxPopulationSize)
 }

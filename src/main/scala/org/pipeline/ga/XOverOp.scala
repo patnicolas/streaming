@@ -16,6 +16,7 @@ import scala.util.Random
 
 /**
  * Implements Cross-over for Chromosomes with heterogeneous features (Gene types)
+ * xOverProbThreshold: Threshold value for the probability to trigger a cross-over
  * @author Patrick Nicolas
  */
 private[ga] trait XOverOp extends GAOp {
@@ -31,7 +32,7 @@ self =>
    * @tparam U Type of second set of genes for each chromosome
    * @return Pair of off spring chromosomes
    */
-  def xover[T : Ordering, U : Ordering](
+  def xOver[T : Ordering, U : Ordering](
     chromosome1: Chromosome[T, U],
     chromosome2: Chromosome[T, U]
   ): (Chromosome[T, U], Chromosome[T, U]) = {
@@ -53,7 +54,7 @@ self =>
       (chromosome1, chromosome2)
   }
 
-  def apply[T : Ordering, U : Ordering](
+  def xOver[T : Ordering, U : Ordering](
     chromosomes: Seq[Chromosome[T, U]],
     xOverStrategy: String
   ): Seq[Chromosome[T, U]] = xOverStrategy match {
@@ -61,13 +62,13 @@ self =>
       val midPoint = chromosomes.length >> 1
       val (topChromosomes, botChromosomes) = chromosomes.splitAt(midPoint)
       val (offSprings1, offSpring2) = (0 until midPoint).map(
-        index => xover(topChromosomes(index), botChromosomes(index))
+        index => xOver(topChromosomes(index), botChromosomes(index))
       ).unzip
       offSprings1 ++ offSpring2
 
     case "pairing" =>
       val (offSprings1, offSpring2) = (chromosomes.indices by 2).map(
-        index => xover(chromosomes(index), chromosomes(index+1))
+        index => xOver(chromosomes(index), chromosomes(index+1))
       ).unzip
       offSprings1 ++ offSpring2
 

@@ -11,8 +11,8 @@
  */
 package org.pipeline.ga
 
-import scala.annotation.switch
-import scala.util.Random
+import org.pipeline.streams.spark.SparkConfiguration
+import scala.annotation.tailrec
 
 
 /**
@@ -24,32 +24,94 @@ import scala.util.Random
  *  @tparam T type of gene (inherited from '''Gene''')
  *  @author Patrick Nicolas
  */
-final private[ga] class Reproduction[T : Ordering, U: Ordering] protected (
+
+/**
+ * Define the replication cycle in the execution of the genetic algorithm optimizer.
+ * A replication cycle consists of a selection of chromosomes according to their
+ * fitness/unfitness values, cross-over of pair of chromosomes and mutation
+ * @param execSparkSubmit Function that execute a Spark Submit
+ * @param latencyFactor Latency Factor used in the computation of the fitness of chromosomes
+ * @param serverHourlyCost Hourly cost of average server or container used in the computation of
+ *                         the fitness of chromosomes
+ * @param maxPopulationSize Maximum size allowed for the number of chromosomes across the
+ *                          reproduction cycle
+ * @param xOverProbThreshold Threshold value for the probability to trigger a cross-over
+ * @param mutationProbThreshold Threshold value for the probability to trigger a mutation
+ * @param xOverStrategy Cross-over strategy
+ * @param stopCondition Function or condition used to terminate the execution of genetic algorithm
+ */
+final private[ga] class Reproduction protected (
+  val execSparkSubmit: SparkConfiguration => (Int, Long),
+  override val latencyFactor: Float,
+  override val serverHourlyCost: Float,
   override val maxPopulationSize: Int,
   override val xOverProbThreshold: Double,
   override val mutationProbThreshold: Double,
-  xOverStrategy: String
-) extends SelectionOp with XOverOp with MutationOp {
-  private[this] val rand = new Random(System.currentTimeMillis)
+  xOverStrategy: String,
+  stopCondition: Seq[Chromosome[Int, Float]] => Boolean
+) extends ScoreOp with SelectionOp with XOverOp with MutationOp {
 
-  def mate(chromosomes: Seq[Chromosome[T, U]]): Seq[Chromosome[T, U]] = {
-    val selectedChromosomes = apply(chromosomes)   // Selection
-    val offSprings = apply(selectedChromosomes, xOverStrategy)
-    (chromosomes ++ offSprings).map(apply(_))
+
+  /**
+   * Execute the reproduction cycle, implemented as a tail recursion performed after the
+   * initial random initialization of chromosomes
+   * @param idsInt List if identifiers for the configuration parameters of integer type
+   * @param gaEncoderInt Encoders for the genes of type Integer
+   * @param idsFloat List if identifiers for the configuration parameters of integer Float
+   * @param gaEncoderFloat Encoders for the genes of type Float
+   * @return The sequence of chromosomes ranked by decreasing order of their fitness
+   */
+  def mate(
+    idsInt: Seq[String],
+    gaEncoderInt: Seq[GAEncoder[Int]],
+    idsFloat: Seq[String],
+    gaEncoderFloat: Seq[GAEncoder[Float]]): Seq[Chromosome[Int, Float]] = {
+    // Initialization of chromosomes
+    val initialChromosomes = Seq.fill(maxPopulationSize)(
+      Chromosome.rand(idsInt, gaEncoderInt, idsFloat, gaEncoderFloat)
+    )
+    // Recursive reproduction cycle
+    mate(initialChromosomes, iterationCount = 0)
   }
 
-  def apply(chromosomes: Seq[Chromosome[T, U]]): Seq[Chromosome[T, U]] = ???
-
+  @tailrec
+  private def mate(
+    chromosomes: Seq[Chromosome[Int, Float]],
+    iterationCount: Int): Seq[Chromosome[Int, Float]] = {
+    val offSprings = xOver(chromosomes, xOverStrategy)
+    val mutatedChromosomes = mutate(chromosomes ++ offSprings)
+    val scoredChromosomes = score(mutatedChromosomes)
+    val selectedChromosomes = select(scoredChromosomes)
+    // If condition met, exit
+    if (iterationCount > 16 || stopCondition(selectedChromosomes)) selectedChromosomes
+     // Otherwise recurse
+    else mate(selectedChromosomes, iterationCount + 1)
+  }
 }
 
-/**
- * Companion object for the Reproduction class. This singleton is used
- * to define the default constructor of the Reproduction class.
- * @author Patrick Nicolas
- */
+
 private[ga] object Reproduction {
 
-}
+  /**
+   * Stop conditions as the fitness for the best chromosome (Spark Configuration)
+   * is at least 20% better than the fitness of the next best chromosome
+   */
+  final val stopDifferentialCondition = (chromosomes: Seq[Chromosome[Int, Float]]) =>
+    if(chromosomes.size == 1) true
+    else
+      chromosomes.head.fitness/chromosomes(1).fitness >= 1.20
 
+  /**
+   * Stop condition as the fitness for the best chromosome is at least 50% better that
+   * the average fitness of all other chromosomes.
+   */
+  final val stopAveCondition = (chromosomes: Seq[Chromosome[Int, Float]]) =>
+    if (chromosomes.size ==1) true
+    else {
+      val chromosomesAveFitness = chromosomes.map(_.fitness).sum/chromosomes.size
+      chromosomes.head.fitness / chromosomesAveFitness > 2.0
+    }
+
+}
 
 

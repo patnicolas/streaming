@@ -44,7 +44,7 @@ private[ga] class Gene[T : Ordering] private (id: String, t: T, gaEncoder: GAEnc
    * Mutates this gene using the MutationOp operator
    * @return Mutated gene of same type
    */
-  def mutate(mutationOp: MutationOp): Gene[T] = mutationOp(this)
+  def mutate(mutationOp: MutationOp): Gene[T] = mutationOp.mutate(gene = this)
 
   /**
    * Mutates this gene given a mutation probability
@@ -57,7 +57,7 @@ private[ga] class Gene[T : Ordering] private (id: String, t: T, gaEncoder: GAEnc
     )
     (new MutationOp{
       override val mutationProbThreshold: Double = mutationProb
-    })(this)
+    }).mutate(gene =this)
   }
 
 
