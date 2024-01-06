@@ -1,8 +1,5 @@
-### org.pipeline Patrick Nicolas Last update 01.03.2024
-.  
-.  
-.  
-   
+### streaming Patrick Nicolas Last update 01.03.2024.
+
 
 ![Evaluation and tips for Kafka and Spark streaming](images/Data_Pipelines.png)
 
@@ -253,7 +250,7 @@ class Chromosome[T : Ordering, U : Ordering](
   }
 }
 </pre>
-The process of encoding a Spark configuration is carried out by the 'encode' method. This involves purifying the parameter values from any units (denoted as 'cleansedParamValue'). The type of the configuration parameter, referred to as 'paramType', is utilized to create the encoder and gene of the suitable type.
+The process of encoding a Spark configuration is carried out by the **encode** method. This involves purifying the parameter values from any units (denoted as **cleansedParamValue**). The type of the configuration parameter, referred to as **paramType**, is utilized to create the encoder and gene of the suitable type.
 
 <pre>
 def encode(sparkConfig: SparkConfiguration): Chromosome[Int, Float] = {
@@ -278,7 +275,7 @@ The mutation process of a chromosome occurs in two stages:
 The genetic algorithm chooses a gene for mutation if the mutation probability falls below a specified threshold.
 A bit within the bit sequence is randomly selected and flipped based on a certain probability.
 
-![Illustration of muation](images/Spark_Param_Mutate.jpg)
+![Illustration of mutation](images/Spark_Param_Mutate.png)
 
 The mutation operation initiates when a randomly generated value between [0, 1] remains below a specified low mutation rate, termed 'mutationProbThreshold'.
 
@@ -309,7 +306,7 @@ self =>
 ### Crossover
 The crossover process involves dividing two 'parent' chromosomes and then merging their upper and lower segments to create two new 'offspring' chromosomes.
 
-![Illustration of crossover](images/XOver.jpg)
+![Illustration of crossover](images/XOver.png)
 
 <pre>
 def xover[T : Ordering, U : Ordering](
@@ -341,7 +338,7 @@ Several approaches exist for choosing candidate chromosomes for crossover [ref 5
 - pairing: This strategy selects chromosome pairs that are contiguous in terms of their ranking.
 - random: This approach randomly selects two candidate chromosomes.
 
-![Illustration of selection chromosomes for crossover](images/XOver_Strategies.jpg)
+![Illustration of selection chromosomes for crossover](images/XOver_Strategies.png)
 
 <pre>
 def xover[T : Ordering, U : Ordering](
