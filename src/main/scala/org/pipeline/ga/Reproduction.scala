@@ -11,7 +11,10 @@
  */
 package org.pipeline.ga
 
+import org.pipeline.ga.Reproduction.defaultMaxNumIterations
+import org.pipeline.ga.XOverOp.randomStrategy
 import org.pipeline.streams.spark.SparkConfiguration
+
 import scala.annotation.tailrec
 
 
@@ -74,16 +77,26 @@ final private[ga] class Reproduction protected (
     mate(initialChromosomes, iterationCount = 0)
   }
 
+  override def toString: String = {
+    s"""Latency scale factor:     $latencyFactor
+       |Server hourly rate:       $serverHourlyCost
+       |maximum population size:  $maxPopulationSize
+       |Threshold crossover prob: $xOverProbThreshold
+       |Threshold mutation prob:  $mutationProbThreshold
+       |Cross-over strategy:      $xOverStrategy""".stripMargin
+  }
+
   @tailrec
   private def mate(
     chromosomes: Seq[Chromosome[Int, Float]],
-    iterationCount: Int): Seq[Chromosome[Int, Float]] = {
+    iterationCount: Int,
+    maxNumIterations: Int = defaultMaxNumIterations): Seq[Chromosome[Int, Float]] = {
     val offSprings = xOver(chromosomes, xOverStrategy)
     val mutatedChromosomes = mutate(chromosomes ++ offSprings)
     val scoredChromosomes = score(mutatedChromosomes)
     val selectedChromosomes = select(scoredChromosomes)
     // If condition met, exit
-    if (iterationCount > 16 || stopCondition(selectedChromosomes)) selectedChromosomes
+    if (iterationCount > defaultMaxNumIterations || stopCondition(selectedChromosomes)) selectedChromosomes
      // Otherwise recurse
     else mate(selectedChromosomes, iterationCount + 1)
   }
@@ -91,6 +104,41 @@ final private[ga] class Reproduction protected (
 
 
 private[ga] object Reproduction {
+
+  final val defaultMaxNumIterations = 16
+
+  def apply(
+    execSparkSubmit: SparkConfiguration => (Int, Long),
+    latencyFactor: Float,
+    serverHourlyCost: Float,
+    maxPopulationSize: Int,
+    xOverProbThreshold: Double,
+    mutationProbThreshold: Double,
+    xOverStrategy: String
+  ): Reproduction =  new Reproduction(
+    execSparkSubmit,
+    latencyFactor,
+    serverHourlyCost,
+    maxPopulationSize,
+    xOverProbThreshold,
+    mutationProbThreshold,
+    xOverStrategy,
+    stopAveCondition)
+
+
+  def apply(
+    execSparkSubmit: SparkConfiguration => (Int, Long),
+    latencyFactor: Float,
+    serverHourlyCost: Float,
+    maxPopulationSize: Int): Reproduction = new Reproduction(
+    execSparkSubmit,
+    latencyFactor,
+    serverHourlyCost,
+    maxPopulationSize,
+    xOverProbThreshold = 0.2F,
+    mutationProbThreshold = 0.01F,
+    randomStrategy,
+    stopAveCondition)
 
   /**
    * Stop conditions as the fitness for the best chromosome (Spark Configuration)

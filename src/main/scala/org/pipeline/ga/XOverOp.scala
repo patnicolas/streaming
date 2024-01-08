@@ -54,27 +54,40 @@ self =>
       (chromosome1, chromosome2)
   }
 
+  /**
+   * Implements the following crossover strategies for chromosomes ranked by their decreasing
+   * order of fitness.
+   * - midPoint for which the pair of parent ranked chromosomes are selected across the mid point
+   * - pairing for which the pair of parent ranked chromosomes are selected consecutively
+   * - random for which the pair of parent chromosomes are selected randomly
+   * @param chromosomes Parent chromosomes
+   * @param xOverStrategy Crossover strategy (MidPoint, Pairing, Random)
+   * @tparam T Type of the first set of features
+   * @tparam U Type of the second set of features
+   * @return Parent and offspring chromosomes
+   */
   def xOver[T : Ordering, U : Ordering](
     chromosomes: Seq[Chromosome[T, U]],
     xOverStrategy: String
   ): Seq[Chromosome[T, U]] = xOverStrategy match {
-    case "midPoint" =>
+    case `midPointStrategy` =>
       val midPoint = chromosomes.length >> 1
       val (topChromosomes, botChromosomes) = chromosomes.splitAt(midPoint)
       val (offSprings1, offSpring2) = (0 until midPoint).map(
         index => xOver(topChromosomes(index), botChromosomes(index))
       ).unzip
-      offSprings1 ++ offSpring2
+      chromosomes ++ offSprings1 ++ offSpring2
 
-    case "pairing" =>
-      val (offSprings1, offSpring2) = (chromosomes.indices by 2).map(
-        index => xOver(chromosomes(index), chromosomes(index+1))
-      ).unzip
-      offSprings1 ++ offSpring2
+    case `pairingStrategy` =>
+      chromosomes ++ pairingChromosomes(chromosomes)
+
+    case `randomStrategy` =>
+      import scala.util.Random._
+      val shuffledChromosomes = shuffle(chromosomes)
+      chromosomes ++ pairingChromosomes(shuffledChromosomes)
 
     case _ => throw new GAException(s"XOver strategy $xOverStrategy is not supported")
   }
-
 
 
   def apply(bitSet1: util.BitSet, bitSet2: util.BitSet, encodingSize: Int): (util.BitSet, util
@@ -92,6 +105,17 @@ self =>
     }
     else
       (bitSet1, bitSet2)
+
+  // ----------------------  Helper methods -----------------------------------
+  private def pairingChromosomes[T: Ordering, U: Ordering](
+    chromosomes: Seq[Chromosome[T, U]]
+  ): Seq[Chromosome[T, U]] = {
+    val (offSprings1, offSpring2) = (chromosomes.indices by 2).map(
+      index => xOver(chromosomes(index), chromosomes(index + 1))
+    ).unzip
+    offSprings1 ++ offSpring2
+  }
+
 }
 
 
@@ -101,6 +125,10 @@ self =>
  * @author Patrick Nicolas
  */
 private[ga] object XOverOp {
+
+  final val midPointStrategy = "midPoint"
+  final val pairingStrategy = "pairing"
+  final val randomStrategy = "random"
 
   private def xOverFirstFeatures[T : Ordering, U : Ordering](
     chromosome1: Chromosome[T, U],

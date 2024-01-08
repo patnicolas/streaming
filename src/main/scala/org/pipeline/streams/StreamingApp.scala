@@ -18,13 +18,7 @@ import org.pipeline.streams.kafka.streams.RequestsStreams
 import org.pipeline.util.LocalFileUtil
 
 object StreamingApp extends App {
-  val b: String = b + b // de-sugared as val b = (new StringBuilder()).append(null).append(null)
-  // .toString()   => "nullnull"   (JVM)
-  print(b.length)    // Print a8
-  val a: String = a; // Failed because infinite recursion
-  println(a.length)
 
-/*
   final val simpleProc: RequestPayload => ResponsePayload = (reqPayload: RequestPayload) => {
     val response = s"${reqPayload.consumedPayload}_produced"
     println(response)
@@ -82,6 +76,4 @@ object StreamingApp extends App {
       }
     )
   }
-
- */
 }

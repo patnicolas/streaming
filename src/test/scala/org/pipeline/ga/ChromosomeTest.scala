@@ -123,34 +123,4 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
     var result = bitsIntEncoder.unapply(bits)
     assert(result == 11)
   }
-
-
-
-  /*
-  ignore should "Succeed encoding a type into a chromosome" in {
-    import ChromosomeTest._
-
-    val prices = List[Double](2.9, 4.0, 22.4, 1.0, 0.5, 13.7, 15.2)
-    val encodingLength = 4
-    val chromosomeDouble = Chromosome[Double](prices)
-    println(ga.repr(chromosomeDouble., prices.length*encodingLength))
-    print(s"Chromosome double: ${chromosomeDouble.repr.mkString("")}")
-  }
-
-  it should "Succeed decoding a set of bits into a Chromosome" in {
-    import ChromosomeTest._
-
-    val bitStr = "0010100101000000011001000001000000000101110101111111001"
-    val bits = bitStr.toCharArray.map(_.toInt).toList
-    val encodingLength = 4
-    val chromosomeInt = Chromosome[Int](encodingLength)
-    val newChromosome = chromosomeInt.decode(bits)
-    print(s"\n${newChromosome.toString}")
-  }
-
-   */
-}
-
-
-private[ga] object ChromosomeTest {
 }

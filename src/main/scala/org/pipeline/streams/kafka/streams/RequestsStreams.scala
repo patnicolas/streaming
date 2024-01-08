@@ -29,7 +29,7 @@ import org.slf4j.{Logger, LoggerFactory}
  * @author Patrick Nicolas
  * @version 0.0.1
  */
-private[streams] final class RequestsStreams(proc: RequestPayload => ResponsePayload)
+final class RequestsStreams(proc: RequestPayload => ResponsePayload)
   extends PipelineStreams[RequestMessage](RequestSerDe.deserializingClass) {
   import RequestsStreams._
 
