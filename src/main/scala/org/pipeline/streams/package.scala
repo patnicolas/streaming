@@ -11,6 +11,7 @@
  */
 package org.pipeline
 
+import org.pipeline.streams.spark.ParameterDefinition
 
 
 package object streams {
@@ -46,10 +47,12 @@ package object streams {
    * @author Patrick Nicolas
    * @version 0.0.2
    */
-  case class ParameterDefinition(key: String, value: String, isDynamic: Boolean, paramType: String) {
+ // case class ParameterDefinition(key: String, value: String, isDynamic: Boolean,
+//    paramType: String) {
 
-    override def toString: String = s"$key $value ${if (isDynamic) "dynamic" else "static"}, $paramType"
-  }
+  //  override def toString: String = s"$key $value ${if (isDynamic) "dynamic" else "static"}, " +
+  //    s"$paramType"
+ // }
 
   /**
    * Define tuning parameters

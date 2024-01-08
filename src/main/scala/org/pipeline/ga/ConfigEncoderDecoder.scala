@@ -11,6 +11,8 @@
  */
 package org.pipeline.ga
 
+import org.pipeline.streams
+import org.pipeline.streams.spark.ParameterDefinition
 import org.pipeline.streams.spark.SparkConfiguration
 import org.pipeline.streams.spark.SparkConfiguration.mlSparkConfig
 
@@ -69,27 +71,21 @@ private[ga] object ConfigEncoderDecoder{
   def decode(chromosome: Chromosome[Int, Float]): SparkConfiguration = {
     val intGenes = chromosome.getFeatures1
     val floatGenes = chromosome.getFeatures2
-    val sparkDynaParamsMap = mlSparkConfig.sparkParameters.map(param => (param.key, param)).toMap
+    val sparkDynaParamsMap = mlSparkConfig.sparkParameters.map(param => (param.key, param))
+      .toMap
 
-    val intSparkParams = intGenes.map(
-      gene => {
-        val param = sparkDynaParamsMap.getOrElse(
-          gene.getId,
-          throw new GAException(s"Gene identifier ${gene.getId} not found")
-        )
-        param.copy(value = gene.getValue.toString)
-      }
-    )
-
-    val floatSparkParams = floatGenes.map(
-      gene => {
-        val param = sparkDynaParamsMap.getOrElse(
-          gene.getId,
-          throw new GAException(s"Gene identifier ${gene.getId} not found")
-        )
-        param.copy(value = gene.getValue.toString)
-      }
-    )
+    val intSparkParams = intGenes.map(gene => getParamValue(sparkDynaParamsMap, gene.getId))
+    val floatSparkParams = floatGenes.map(gene => getParamValue(sparkDynaParamsMap, gene.getId))
     new SparkConfiguration(intSparkParams ++ floatSparkParams)
+  }
+
+  private def getParamValue(
+    sparkDynaParamsMap: Map[String, ParameterDefinition],
+    geneId: String): ParameterDefinition = {
+    var param: Option[ParameterDefinition] = None
+    do {
+      param = sparkDynaParamsMap.get(geneId)
+    } while (param.isDefined)
+    param.get
   }
 }

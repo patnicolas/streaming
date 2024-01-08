@@ -15,7 +15,8 @@ package org.pipeline.streams.kafka
 import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.JsonMappingException
 import org.pipeline.util.LocalFileUtil.{Json, Load}
-import org.pipeline.streams.{ParameterDefinition, TuningParameters}
+import org.pipeline.streams.TuningParameters
+import org.pipeline.streams.spark.ParameterDefinition
 import org.slf4j.{Logger, LoggerFactory}
 
 import java.io.IOException

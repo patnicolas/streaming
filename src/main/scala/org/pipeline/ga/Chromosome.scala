@@ -142,20 +142,20 @@ private[ga] object Chromosome {
   /**
    * Generate an initial, random Chromosome
    * @param idsT List of identifiers fpr features of first type (Int, Float,...)
-   * @param quantizer1 Quantizer associated with the first type of features
+   * @param gaEncoderT Quantizer associated with the first type of features
    * @param idsU List of identifier for features of second type
-   * @param quantizer2 Quantizer associated with the second type of features
+   * @param geEncoderU Quantizer associated with the second type of features
    * @tparam T Built-in type for the first set of features
    * @tparam U Built-in type for the second set of features
    * @return Initialized instance of a Chromosome
    */
   def rand[T : Ordering, U : Ordering](
     idsT: Seq[String],
-    quantizer1: Seq[GAEncoder[T]],
+    gaEncoderT: Seq[GAEncoder[T]],
     idsU: Seq[String],
-    quantizer2: Seq[GAEncoder[U]]): Chromosome[T, U] = {
-    val features1 = Seq.tabulate(idsT.length)(index => Gene[T](idsT(index), quantizer1(index)))
-    val features2 = Seq.tabulate(idsU.length)(index => Gene[U](idsU(index), quantizer2(index)))
+    geEncoderU: Seq[GAEncoder[U]]): Chromosome[T, U] = {
+    val features1 = Seq.tabulate(idsT.length)(index => Gene[T](idsT(index), gaEncoderT(index)))
+    val features2 = Seq.tabulate(idsU.length)(index => Gene[U](idsU(index), geEncoderU(index)))
 
     new Chromosome[T, U](features1, features2)
   }

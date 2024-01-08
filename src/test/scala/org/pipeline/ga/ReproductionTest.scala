@@ -14,7 +14,7 @@ private[ga] final class ReproductionTest extends AnyFlatSpec{
   }
 
 
-  it should "Succeed instantiating a reproduction cycle" in {
+  it should "Succeed execute a reproduction cycle for randomly initialized chromosomes" in {
 
     val idsInt = Seq.tabulate(5)(n => s"i$n")
     val gaEncoder1 = new GAEncoderInt(encodingLength = 4, Seq[Int](4, 6, 8))
@@ -28,9 +28,10 @@ private[ga] final class ReproductionTest extends AnyFlatSpec{
     val reproduction = Reproduction(execSparkSubmit, 0.001F, 0.47F, 20)
     val optimizedChromosomes = reproduction.mate(
       idsInt,
-      Seq[GAEncoderInt](gaEncoder1),
+      Seq.fill(idsInt.length)(gaEncoder1),
       idsFloat,
-      Seq[GAEncoderFloat](gaEncoder2))
+      Seq.fill(idsFloat.length)(gaEncoder2)
+    )
     println(s"Final population:\n${optimizedChromosomes.mkString("\n")}")
   }
 }
