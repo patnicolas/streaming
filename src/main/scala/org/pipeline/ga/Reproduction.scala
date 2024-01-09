@@ -96,7 +96,8 @@ final private[ga] class Reproduction protected (
     val scoredChromosomes = score(mutatedChromosomes)
     val selectedChromosomes = select(scoredChromosomes)
     // If condition met, exit
-    if (iterationCount > defaultMaxNumIterations || stopCondition(selectedChromosomes)) selectedChromosomes
+    if (iterationCount > maxNumIterations || stopCondition(selectedChromosomes))
+      selectedChromosomes
      // Otherwise recurse
     else mate(selectedChromosomes, iterationCount + 1)
   }

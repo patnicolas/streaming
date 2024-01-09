@@ -64,15 +64,28 @@ private[ga] object ConfigEncoderDecoder{
   }
 
   /**
-   * Convert a chromosome into a Spark configuration (sequence of dynamic parameters)
+   * Convert a chromosome into a Spark configuration (sequence of dynamic parameters) given the
+   * default Spark configuration for the current application.
    * @param chromosome Chromosome generated through GA
    * @return Spark configuration
    */
-  def decode(chromosome: Chromosome[Int, Float]): SparkConfiguration = {
+  def decode(chromosome: Chromosome[Int, Float]): SparkConfiguration =
+    decode(chromosome, mlSparkConfig)
+
+
+  /**
+   * Convert a chromosome into a Spark configuration (sequence of dynamic parameters)
+   *
+   * @param chromosome Chromosome generated through GA
+   * @param sparkConfiguration Spark configuration parameters
+   * @return Spark configuration
+   */
+  def decode(
+    chromosome: Chromosome[Int, Float],
+    sparkConfiguration: SparkConfiguration): SparkConfiguration = {
     val intGenes = chromosome.getFeatures1
     val floatGenes = chromosome.getFeatures2
-    val sparkDynaParamsMap = mlSparkConfig.sparkParameters.map(param => (param.key, param))
-      .toMap
+    val sparkDynaParamsMap = sparkConfiguration.sparkParameters.map(param => (param.key, param)).toMap
 
     val intSparkParams = intGenes.map(gene => getParamValue(sparkDynaParamsMap, gene.getId))
     val floatSparkParams = floatGenes.map(gene => getParamValue(sparkDynaParamsMap, gene.getId))
@@ -81,11 +94,8 @@ private[ga] object ConfigEncoderDecoder{
 
   private def getParamValue(
     sparkDynaParamsMap: Map[String, ParameterDefinition],
-    geneId: String): ParameterDefinition = {
-    var param: Option[ParameterDefinition] = None
-    do {
-      param = sparkDynaParamsMap.get(geneId)
-    } while (param.isDefined)
-    param.get
-  }
+    geneId: String): ParameterDefinition =
+    sparkDynaParamsMap.getOrElse(
+      geneId,
+      throw new GAException(s"Gene: ${geneId} could not be decoded"))
 }

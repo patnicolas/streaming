@@ -35,25 +35,6 @@ package object streams {
   )
 
 
-
-  /**
-   * Default entry for architecture (Kafka, Spark) parameters
-   *
-   * @param key       Native name of the parameter
-   * @param value     Typed value of the parameter
-   * @param isDynamic Is parameter tunable
-   * @param paramType Type of parameter (Int, String, Double,....)
-   *
-   * @author Patrick Nicolas
-   * @version 0.0.2
-   */
- // case class ParameterDefinition(key: String, value: String, isDynamic: Boolean,
-//    paramType: String) {
-
-  //  override def toString: String = s"$key $value ${if (isDynamic) "dynamic" else "static"}, " +
-  //    s"$paramType"
- // }
-
   /**
    * Define tuning parameters
    */
