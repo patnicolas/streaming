@@ -11,11 +11,9 @@
  */
 package org.pipeline.ga
 
-import org.pipeline.streams
 import org.pipeline.streams.spark.ParameterDefinition
 import org.pipeline.streams.spark.SparkConfiguration
 import org.pipeline.streams.spark.SparkConfiguration.mlSparkConfig
-
 import scala.collection.mutable.ListBuffer
 
 
@@ -83,8 +81,8 @@ private[ga] object ConfigEncoderDecoder{
   def decode(
     chromosome: Chromosome[Int, Float],
     sparkConfiguration: SparkConfiguration): SparkConfiguration = {
-    val intGenes = chromosome.getFeatures1
-    val floatGenes = chromosome.getFeatures2
+    val intGenes = chromosome.getFeaturesT
+    val floatGenes = chromosome.getFeaturesU
     val sparkDynaParamsMap = sparkConfiguration.sparkParameters.map(param => (param.key, param)).toMap
 
     val intSparkParams = intGenes.map(gene => getParamValue(sparkDynaParamsMap, gene.getId))

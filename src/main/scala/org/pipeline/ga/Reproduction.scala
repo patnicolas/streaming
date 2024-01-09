@@ -58,20 +58,20 @@ final private[ga] class Reproduction protected (
   /**
    * Execute the reproduction cycle, implemented as a tail recursion performed after the
    * initial random initialization of chromosomes
-   * @param idsInt List if identifiers for the configuration parameters of integer type
-   * @param gaEncoderInt Encoders for the genes of type Integer
-   * @param idsFloat List if identifiers for the configuration parameters of integer Float
-   * @param gaEncoderFloat Encoders for the genes of type Float
+   * @param featureIntIds List if identifiers for the configuration parameters of integer type
+   * @param gaIntEncoders Encoders for the genes of type Integer
+   * @param featureFloatIds List if identifiers for the configuration parameters of integer Float
+   * @param gaFloatEncoders Encoders for the genes of type Float
    * @return The sequence of chromosomes ranked by decreasing order of their fitness
    */
   def mate(
-    idsInt: Seq[String],
-    gaEncoderInt: Seq[GAEncoder[Int]],
-    idsFloat: Seq[String],
-    gaEncoderFloat: Seq[GAEncoder[Float]]): Seq[Chromosome[Int, Float]] = {
+    featureIntIds: Seq[String],
+    gaIntEncoders: Seq[GAEncoder[Int]],
+    featureFloatIds: Seq[String],
+    gaFloatEncoders: Seq[GAEncoder[Float]]): Seq[Chromosome[Int, Float]] = {
     // Initialization of chromosomes
     val initialChromosomes = Seq.fill(maxPopulationSize)(
-      Chromosome.rand(idsInt, gaEncoderInt, idsFloat, gaEncoderFloat)
+      Chromosome.rand(featureIntIds, gaIntEncoders, featureFloatIds, gaFloatEncoders)
     )
     // Recursive reproduction cycle
     mate(initialChromosomes, iterationCount = 0)

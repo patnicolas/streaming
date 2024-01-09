@@ -24,6 +24,8 @@ self =>
   import XOverOp._
   protected[this] val xOverProbThreshold: Double
 
+
+
   /**
    * Implements the XOver operator between two chromosomes
    * @param chromosome1 First parent chromosome
@@ -40,7 +42,7 @@ self =>
     // if the Cross-over is triggered
     if(rand.nextDouble < xOverProbThreshold) {
       val xOverIndex = (chromosome1.size()*Random.nextDouble).toInt
-      val features1Len = chromosome1.getFeatures1.length
+      val features1Len = chromosome1.getFeaturesT.length
 
       // The cross-over cut-off is done within the first set of genes, preserving
       // the second set of genes ..
@@ -107,6 +109,14 @@ self =>
       (bitSet1, bitSet2)
 
   // ----------------------  Helper methods -----------------------------------
+
+  @throws(clazz = classOf[GAException])
+  private def validate(): Unit =
+    if (xOverProbThreshold < 0.0 || xOverProbThreshold > 0.7)
+      throw new GAException(
+        s"Cross-over probability threshold $xOverProbThreshold should be [0.0, 0.7]")
+
+
   private def pairingChromosomes[T: Ordering, U: Ordering](
     chromosomes: Seq[Chromosome[T, U]]
   ): Seq[Chromosome[T, U]] = {
@@ -136,14 +146,14 @@ private[ga] object XOverOp {
   ): (Chromosome[T, U], Chromosome[T, U]) = {
     val xOverIndex = (chromosome1.size() * Random.nextDouble).toInt
     val offSpring1 = features1OffSpring(
-      chromosome1.getFeatures1,
-      chromosome2.getFeatures1,
-      chromosome2.getFeatures2,
+      chromosome1.getFeaturesT,
+      chromosome2.getFeaturesT,
+      chromosome2.getFeaturesU,
       xOverIndex)
     val offSpring2 = features1OffSpring(
-      chromosome2.getFeatures1,
-      chromosome1.getFeatures1,
-      chromosome1.getFeatures2,
+      chromosome2.getFeaturesT,
+      chromosome1.getFeaturesT,
+      chromosome1.getFeaturesU,
       xOverIndex)
     (offSpring1, offSpring2)
   }
@@ -164,17 +174,17 @@ private[ga] object XOverOp {
     chromosome1: Chromosome[T, U],
     chromosome2: Chromosome[T, U]): (Chromosome[T, U], Chromosome[T, U]) = {
     val xOverIndex = (chromosome1.size() * Random.nextDouble).toInt
-    val relativeIndex = xOverIndex - chromosome1.getFeatures1.length
+    val relativeIndex = xOverIndex - chromosome1.getFeaturesT.length
 
     val offSpring1 = features2OffSpring(
-      chromosome1.getFeatures2,
-      chromosome2.getFeatures2,
-      chromosome2.getFeatures1,
+      chromosome1.getFeaturesU,
+      chromosome2.getFeaturesU,
+      chromosome2.getFeaturesT,
       relativeIndex)
     val offSpring2 = features2OffSpring(
-      chromosome2.getFeatures2,
-      chromosome1.getFeatures2,
-      chromosome1.getFeatures1,
+      chromosome2.getFeaturesU,
+      chromosome1.getFeaturesU,
+      chromosome1.getFeaturesT,
       relativeIndex)
     (offSpring1, offSpring2)
   }

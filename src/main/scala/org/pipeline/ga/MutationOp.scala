@@ -34,13 +34,16 @@ self =>
    * @tparam T Type of the input and output gene
    * @return A valid, mutated Gene
    */
-  def mutate[T: Ordering](gene: Gene[T]): Gene[T] =
+  @throws(clazz = classOf[GAException])
+  def mutate[T: Ordering](gene: Gene[T]): Gene[T] = {
+    validate()
     if(rand.nextDouble < mutationProbThreshold) {
       val newValue = createValidMutation(gene, implicitly[Ordering[T]])
       Gene[T](gene.getId, newValue, gene.getGAEncoder)
     }
     else
       gene
+  }
 
   /**
    * Mutates a Chromosome given a threshold for the mutation probability. The
@@ -52,8 +55,8 @@ self =>
    */
   def mutate[T : Ordering, U: Ordering](chromosome: Chromosome[T, U]): Chromosome[T, U] =
     if(rand.nextDouble < mutationProbThreshold) {
-      val features1 = chromosome.getFeatures1
-      val features2 = chromosome.getFeatures2
+      val features1 = chromosome.getFeaturesT
+      val features2 = chromosome.getFeaturesU
       val chromosomeLength: Int = features1.length + features2.length
 
       // Select the index of the gene to be mutated, randomly
@@ -84,6 +87,16 @@ self =>
   ): Seq[Chromosome[T,U]] = chromosomes.map(mutate(_))
 
 
+  // ---------------------  Helper methods -------------------------------
+
+  @throws(clazz = classOf[GAException])
+  private def validate(): Unit =
+    if (mutationProbThreshold < 0.0 || mutationProbThreshold > 0.5)
+      throw new GAException(
+        s"Mutation probability threshold $mutationProbThreshold should be [0.0, 0.5]"
+      )
+
+
   private def flip(bitSet: util.BitSet, encodingLength: Int): util.BitSet = {
     val bitSetIndex = (encodingLength * rand.nextDouble).toInt
     bitSet.flip(bitSetIndex)
@@ -91,7 +104,8 @@ self =>
   }
 
 
-  @tailrec private def createValidMutation[T: Ordering](gene: Gene[T], ord: Ordering[T]): T = {
+  @tailrec
+  private def createValidMutation[T: Ordering](gene: Gene[T], ord: Ordering[T]): T = {
     val flippedBitSet: util.BitSet = flip(gene.getEncoded, gene.size())
     val newValue = gene.getValidValue(flippedBitSet)
     val isValid = ord.lt(newValue, gene.getGAEncoder.range.last)

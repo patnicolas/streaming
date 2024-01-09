@@ -26,21 +26,23 @@ self =>
 
   /**
    * Initial random initialization of the population of Chromosomes
-   * @param idsT Identifiers for features of first type (Integer, Floating point,...)
-   * @param gaEncoder1 Encoder for the features of first type
-   * @param idsU Identifiers for features of second type (Integer, Floating point,...)
-   * @param gaEncoder2 Encoder for the features of second type
+   * @param featureTIds Identifiers for features of first type (Integer, Floating point,...)
+   * @param gaTEncoders Encoder for the features of first type
+   * @param featureUIds Identifiers for features of second type (Integer, Floating point,...)
+   * @param gaUEncoders Encoder for the features of second type
    * @tparam T Type of first set of features
    * @tparam U Type of second set of features
    * @return Random instance of a chromosome
    */
   def rand[T : Ordering, U : Ordering](
-    idsT: Seq[String],
-    gaEncoder1: Seq[GAEncoder[T]],
-    idsU: Seq[String],
-    gaEncoder2: Seq[GAEncoder[U]]
-  ): Seq[Chromosome[T, U]] =
-    Seq.fill(maxPopulationSize)(Chromosome.rand(idsT, gaEncoder1, idsU, gaEncoder2))
+    featureTIds: Seq[String],
+    gaTEncoders: Seq[GAEncoder[T]],
+    featureUIds: Seq[String],
+    gaUEncoders: Seq[GAEncoder[U]]
+  ): Seq[Chromosome[T, U]] = {
+    validate()
+    Seq.fill(maxPopulationSize)(Chromosome.rand(featureTIds, gaTEncoders, featureUIds, gaUEncoders))
+  }
 
   /**
    * Order/Rank a sequence of chromosome by their fitness value, then select a subset
@@ -49,7 +51,16 @@ self =>
    * @tparam U Built-in type for the second set of features
    * @return Ranked and trimmed the current population of chromosomes
    */
-  def select[T : Ordering, U : Ordering](chromosomes: Seq[Chromosome[T, U]]): Seq[Chromosome[T,
-    U]] =
+  def select[T : Ordering, U : Ordering](
+    chromosomes: Seq[Chromosome[T, U]]): Seq[Chromosome[T, U]] =
     chromosomes.sortWith(_.fitness > _.fitness).take(maxPopulationSize)
+
+
+  // ------------------- Helper methods ------------------------------
+
+  @throws(clazz = classOf[GAException])
+  private def validate(): Unit =
+    if (maxPopulationSize < 0 || maxPopulationSize > 1024)
+      throw new GAException(
+        s"Selection max population size $maxPopulationSize should be [0, 1024]")
 }

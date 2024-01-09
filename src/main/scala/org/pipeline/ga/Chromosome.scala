@@ -11,10 +11,7 @@
  */
 package org.pipeline.ga
 
-import org.pipeline.streams.spark.SparkConfiguration
-
 import java.util
-import scala.collection.mutable.ListBuffer
 
 
 /**
@@ -26,8 +23,8 @@ import scala.collection.mutable.ListBuffer
  * @tparam U Parameterized type for features (i.e. Int, Float,...)
  * @constructor Create a chromosome with parameterized type for features
  * @throws IllegalArgumentException if the genetic code is undefined or empty
- * @param features1 List of features with parameterized type T
- * @param features2 List of features with parameterized type U
+ * @param featuresT List of features with parameterized type T
+ * @param featuresU List of features with parameterized type U
  * @note This particular implementation computes the chromosome cost or unfitness.
  *       The fitness value of a chromosome is computes as 1/cost
  *
@@ -35,14 +32,14 @@ import scala.collection.mutable.ListBuffer
  */
 @throws(classOf[IllegalArgumentException])
 private[ga] class Chromosome[T : Ordering, U : Ordering] private (
-  features1: Seq[Gene[T]],
-  features2: Seq[Gene[U]]){
+  featuresT: Seq[Gene[T]],
+  featuresU: Seq[Gene[U]]){
 
   var fitness: Double = -1.0
 
-  final def getFeatures1: Seq[Gene[T]] = features1
+  final def getFeaturesT: Seq[Gene[T]] = featuresT
 
-  final def getFeatures2: Seq[Gene[U]] = features2
+  final def getFeaturesU: Seq[Gene[U]] = featuresU
 
 
   /**
@@ -88,11 +85,11 @@ private[ga] class Chromosome[T : Ordering, U : Ordering] private (
 
   private[this] lazy val encoded: util.BitSet = {
     require(
-      features1.nonEmpty || features2.nonEmpty,
+      featuresT.nonEmpty || featuresU.nonEmpty,
       "Chromosome Cannot create a chromosome from undefined genes"
     )
 
-    val bitsSequence = features1.flatMap(_.getBitsSequence) ++ features2.flatMap(_.getBitsSequence)
+    val bitsSequence = featuresT.flatMap(_.getBitsSequence) ++ featuresU.flatMap(_.getBitsSequence)
     val numBits = bitsSequence.length
     val bitSet = new java.util.BitSet(numBits)
     (0 until  numBits).foreach(
@@ -102,12 +99,12 @@ private[ga] class Chromosome[T : Ordering, U : Ordering] private (
     bitSet
   }
 
-  final def size(): Int = features1.length + features2.length
+  final def size(): Int = featuresT.length + featuresU.length
 
   final def getEncoded: util.BitSet = encoded
 
   override def toString: String =
-    (features1.map(_.getValue.toString) ++ features2.map(_.getValue.toString)).mkString(" ")
+    (featuresT.map(_.getValue.toString) ++ featuresU.map(_.getValue.toString)).mkString(" ")
 }
 
 
@@ -120,43 +117,58 @@ private[ga] object Chromosome {
   def apply[T : Ordering](features: Seq[Gene[T]]): Chromosome[T, T] =
     new Chromosome[T, T](features, Seq.empty[Gene[T]])
 
-  def apply[T : Ordering, U : Ordering](features1: Seq[Gene[T]], features2: Seq[Gene[U]]): Chromosome[T, U] =
-    new Chromosome[T, U](features1, features2)
+  def apply[T : Ordering, U : Ordering](
+    featuresT: Seq[Gene[T]],
+    featuresU: Seq[Gene[U]]): Chromosome[T, U] = new Chromosome[T, U](featuresT, featuresU)
 
   /**
    * Generate an initial, random Chromosome
-   * @param idsT           List of identifiers for the features of first type
-   * @param GA encoder1     Quantizer associated with the first type of features
-   * @param idsU           List of identifiers for the features of second type
-   * @param quantizer2     Quantizer associated with the second type of features
+   * @param featureTIds           List of identifiers for the features of first type
+   * @param gaTEncoders     Quantizer associated with the first type of features
+   * @param featureUIds           List of identifiers for the features of second type
+   * @param gaUEncoders     Quantizer associated with the second type of features
    * @tparam T Built-in type for the first set of features
    * @tparam U Built-in type for the second set of features
    * @return Initialized instance of a Chromosome */
   def apply[T : Ordering, U : Ordering](
-    idsT: Seq[String],
-    quantizer1: Seq[GAEncoder[T]],
-    idsU: Seq[String],
-    quantizer2: Seq[GAEncoder[U]]): Chromosome[T, U] =
-    rand[T, U](idsT, quantizer1, idsU, quantizer2)
+    featureTIds: Seq[String],
+    gaTEncoders: Seq[GAEncoder[T]],
+    featureUIds: Seq[String],
+    gaUEncoders: Seq[GAEncoder[U]]): Chromosome[T, U] =
+    rand[T, U](featureTIds, gaTEncoders, featureUIds, gaUEncoders)
 
   /**
    * Generate an initial, random Chromosome
-   * @param idsT List of identifiers fpr features of first type (Int, Float,...)
-   * @param gaEncoderT Quantizer associated with the first type of features
-   * @param idsU List of identifier for features of second type
-   * @param geEncoderU Quantizer associated with the second type of features
+   * @param featureTIds List of identifiers fpr features of first type (Int, Float,...)
+   * @param gaTEncoders Quantizer associated with the first type of features
+   * @param featureUIds List of identifier for features of second type
+   * @param gaUEncoders Quantizer associated with the second type of features
    * @tparam T Built-in type for the first set of features
    * @tparam U Built-in type for the second set of features
    * @return Initialized instance of a Chromosome
    */
+  @throws(clazz = classOf[IllegalArgumentException])
   def rand[T : Ordering, U : Ordering](
-    idsT: Seq[String],
-    gaEncoderT: Seq[GAEncoder[T]],
-    idsU: Seq[String],
-    geEncoderU: Seq[GAEncoder[U]]): Chromosome[T, U] = {
-    val features1 = Seq.tabulate(idsT.length)(index => Gene[T](idsT(index), gaEncoderT(index)))
-    val features2 = Seq.tabulate(idsU.length)(index => Gene[U](idsU(index), geEncoderU(index)))
+    featureTIds: Seq[String],
+    gaTEncoders: Seq[GAEncoder[T]],
+    featureUIds: Seq[String],
+    gaUEncoders: Seq[GAEncoder[U]]): Chromosome[T, U] = {
+    require(
+      featureTIds.length == gaTEncoders.length,
+      s"Number features ${featureTIds.length} should be == number of encoder ${gaTEncoders.length}"
+    )
+    require(
+      featureUIds.length == gaUEncoders.length,
+      s"Number features ${featureTIds.length} should be == number of encoder ${gaTEncoders.length}"
+    )
 
-    new Chromosome[T, U](features1, features2)
+    val featuresT = Seq.tabulate(featureTIds.length)(
+      index => Gene[T](featureTIds(index), gaTEncoders(index))
+    )
+    val featuresU = Seq.tabulate(featureUIds.length)(
+      index => Gene[U](featureUIds(index), gaUEncoders(index))
+    )
+
+    new Chromosome[T, U](featuresT, featuresU)
   }
 }
