@@ -12,6 +12,8 @@
 package org.pipeline.ga
 
 import org.pipeline.ga
+import org.pipeline.streams.spark.ParameterDefinition
+
 import java.util
 
 
@@ -98,7 +100,6 @@ private[ga] class Gene[T : Ordering] private (id: String, t: T, gaEncoder: GAEnc
 
 
 private[ga] object Gene {
-
   def apply[T : Ordering](id: String, t: T, quantizer: GAEncoder[T]): Gene[T] =
     new Gene[T](id, t, quantizer)
 
@@ -108,4 +109,30 @@ private[ga] object Gene {
    */
   def apply[T : Ordering](id: String, quantizer: GAEncoder[T]): Gene[T] =
     new Gene[T](id, quantizer.rand, quantizer)
+
+
+  /**
+   * Convert a gene into a parameter definition
+   * @param gene Gene of type T
+   * @tparam T Type of gene (Int, Float, Boolean,)
+   * @return Spark Parameter definition
+   */
+  def geneToParameter[T](gene: Gene[T]): ParameterDefinition = {
+    val paramType = gene.getValue match {
+      case _: Int => "Int"
+      case _: Float => "Float"
+      case _: Boolean => "Boolean"
+      case _ =>
+        throw new GAException(s"Param type ${gene.getValue} for gene ${gene.getId} not supported")
+    }
+
+    ParameterDefinition(
+      gene.getId,
+      gene.getValue.toString,
+      isDynamic = true,
+      paramType = paramType,
+      range = gene.getGAEncoder.range.map(_.toString))
+  }
+
+
 }

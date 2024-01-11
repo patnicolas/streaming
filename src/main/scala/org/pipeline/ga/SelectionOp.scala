@@ -11,12 +11,15 @@
  */
 package org.pipeline.ga
 
+import org.pipeline.streams.spark.SparkConfiguration
+
 
 /**
  * Implements the selection operator. The main method, apply, rank the chromosomes by their
  * fitness and select the top chromosomes constrained by the maximum allowed size of the population.
  * maxPopulationSize Maximum size allowed for the number of chromosomes across the reproduction
  *                   cycle
+ *
  * @author Patrick Nicolas
  */
 trait SelectionOp{
@@ -41,7 +44,10 @@ self =>
     gaUEncoders: Seq[GAEncoder[U]]
   ): Seq[Chromosome[T, U]] = {
     validate()
-    Seq.fill(maxPopulationSize)(Chromosome.rand(featureTIds, gaTEncoders, featureUIds, gaUEncoders))
+    Seq.tabulate(maxPopulationSize)(
+      index =>
+        Chromosome.rand(featureTIds, gaTEncoders, featureUIds, gaUEncoders)
+    )
   }
 
   /**

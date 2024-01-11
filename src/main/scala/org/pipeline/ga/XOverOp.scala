@@ -11,6 +11,8 @@
  */
 package org.pipeline.ga
 
+import org.pipeline.streams.spark.SparkConfiguration
+
 import java.util
 import scala.util.Random
 

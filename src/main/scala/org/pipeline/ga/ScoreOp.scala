@@ -38,10 +38,11 @@ self =>
    * @return Chromosomes with updated fitness values
    */
   protected def score(population: Seq[Chromosome[Int, Float]]): Seq[Chromosome[Int, Float]] =
-    population.map(ch => score(ch))
+    population.map(score(_))
 
-  private def score(chromosome: Chromosome[Int, Float]): Chromosome[Int, Float] = {
-    val sparkConfig = ConfigEncoderDecoder.decode(chromosome)
+  private def score(
+    chromosome: Chromosome[Int, Float]): Chromosome[Int, Float] = {
+    val sparkConfig = ConfigEncoderDecoder.decode(chromosome, chromosome.getConfiguration)
     val (numServers, latency) = execSparkSubmit(sparkConfig)
     chromosome.fitness = 1.0/(math.exp(latencyFactor*latency) + serverHourlyCost*numServers)
     chromosome

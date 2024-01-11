@@ -11,6 +11,8 @@
  */
 package org.pipeline.ga
 
+import org.pipeline.streams.spark.SparkConfiguration
+
 import scala.util.Random
 import java.util
 import scala.annotation.tailrec
@@ -49,11 +51,14 @@ self =>
    * Mutates a Chromosome given a threshold for the mutation probability. The
    * mutation select then mutate a gene
    * @param chromosome Input chromosome
+   * @param configuration Spark configuration associated with the chromosome to mutate
    * @tparam T Type of the first set of features (Int, Float,....)
    * @tparam U Type of the second set of features (Int, Float,....)
    * @return Mutate chromosome
    */
-  def mutate[T : Ordering, U: Ordering](chromosome: Chromosome[T, U]): Chromosome[T, U] =
+  def mutate[T : Ordering, U: Ordering](
+    chromosome: Chromosome[T, U],
+    configuration: SparkConfiguration): Chromosome[T, U] =
     if(rand.nextDouble < mutationProbThreshold) {
       val features1 = chromosome.getFeaturesT
       val features2 = chromosome.getFeaturesU
@@ -84,7 +89,7 @@ self =>
 
   def mutate[T : Ordering, U: Ordering](
     chromosomes: Seq[Chromosome[T, U]]
-  ): Seq[Chromosome[T,U]] = chromosomes.map(mutate(_))
+  ): Seq[Chromosome[T,U]] = chromosomes.map(ch => mutate(ch, ch.getConfiguration))
 
 
   // ---------------------  Helper methods -------------------------------

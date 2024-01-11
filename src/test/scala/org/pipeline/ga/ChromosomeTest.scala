@@ -82,7 +82,8 @@ private[ga] final class ChromosomeTest extends AnyFlatSpec{
       featureIntIds,
       Seq[GAEncoderInt](gaIntEncoder),
       featureFloatIds,
-      Seq[GAEncoderFloat](gaFloatEncoder))
+      Seq[GAEncoderFloat](gaFloatEncoder),
+      )
     println(s"Randomly initialized Chromosome ${chromosome.toString}")
   }
 

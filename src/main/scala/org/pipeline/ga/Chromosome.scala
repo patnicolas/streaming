@@ -11,6 +11,9 @@
  */
 package org.pipeline.ga
 
+import org.pipeline.ga.Gene.geneToParameter
+import org.pipeline.streams.spark.SparkConfiguration
+
 import java.util
 
 
@@ -33,13 +36,20 @@ import java.util
 @throws(classOf[IllegalArgumentException])
 private[ga] class Chromosome[T : Ordering, U : Ordering] private (
   featuresT: Seq[Gene[T]],
-  featuresU: Seq[Gene[U]]){
+  featuresU: Seq[Gene[U]],
+  configuration: SparkConfiguration){
 
   var fitness: Double = -1.0
 
+
+  @inline
   final def getFeaturesT: Seq[Gene[T]] = featuresT
 
+  @inline
   final def getFeaturesU: Seq[Gene[U]] = featuresU
+
+  @inline
+  final def getConfiguration: SparkConfiguration = configuration
 
 
   /**
@@ -71,7 +81,8 @@ private[ga] class Chromosome[T : Ordering, U : Ordering] private (
     }).xOver(chromosome1 = this, otherChromosome)
   }
 
-  def mutate(mutationOp: MutationOp): Chromosome[T, U] = mutationOp.mutate(chromosome = this)
+  def mutate(mutationOp: MutationOp): Chromosome[T, U] =
+    mutationOp.mutate(chromosome = this, getConfiguration)
 
   def mutate(mutationProb: Double): Chromosome[T, U] = {
     require(
@@ -80,7 +91,7 @@ private[ga] class Chromosome[T : Ordering, U : Ordering] private (
     )
     (new MutationOp{
       override val mutationProbThreshold: Double = mutationProb
-    }).mutate(chromosome = this)
+    }).mutate(chromosome = this, getConfiguration)
   }
 
   private[this] lazy val encoded: util.BitSet = {
@@ -114,12 +125,24 @@ private[ga] class Chromosome[T : Ordering, U : Ordering] private (
  */
 private[ga] object Chromosome {
 
-  def apply[T : Ordering](features: Seq[Gene[T]]): Chromosome[T, T] =
-    new Chromosome[T, T](features, Seq.empty[Gene[T]])
+  def apply[T : Ordering](features: Seq[Gene[T]]): Chromosome[T, T] = {
+    val parameterTDefinition = features.map(f => geneToParameter(f))
+    new Chromosome[T, T](features, Seq.empty[Gene[T]], SparkConfiguration(parameterTDefinition))
+  }
 
-  def apply[T : Ordering, U : Ordering](
+
+  def apply[T: Ordering, U: Ordering](
     featuresT: Seq[Gene[T]],
-    featuresU: Seq[Gene[U]]): Chromosome[T, U] = new Chromosome[T, U](featuresT, featuresU)
+    featuresU: Seq[Gene[U]]): Chromosome[T, U] = {
+
+    val parameterTDefinition = featuresT.map(f => geneToParameter(f))
+    val parameterUDefinition = featuresU.map(f => geneToParameter(f))
+    new Chromosome[T, U](
+      featuresT,
+      featuresU,
+      SparkConfiguration(parameterTDefinition ++ parameterUDefinition))
+  }
+
 
   /**
    * Generate an initial, random Chromosome
@@ -169,6 +192,7 @@ private[ga] object Chromosome {
       index => Gene[U](featureUIds(index), gaUEncoders(index))
     )
 
-    new Chromosome[T, U](featuresT, featuresU)
+    val parameters = featuresT.map(geneToParameter(_)) ++ featuresU.map(geneToParameter(_))
+    new Chromosome[T, U](featuresT, featuresU, SparkConfiguration(parameters))
   }
 }

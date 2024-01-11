@@ -90,6 +90,33 @@ private[ga] object ConfigEncoderDecoder{
     new SparkConfiguration(intSparkParams ++ floatSparkParams)
   }
 
+
+  /**
+   * Convert a gene into a parameter definition
+   *
+   * @param id Identifier for the feature/gene
+   * @param gaEncoder GA encoder
+   * @tparam T Type of gene (Int, Float, Boolean,)
+   * @return Spark Parameter definition */
+  def encoderToParameter[T](id: String, value: T, gaEncoder: GAEncoder[T]): ParameterDefinition = {
+    val paramType = value match {
+      case _: Int => "Int"
+      case _: Float => "Float"
+      case _: Boolean => "Boolean"
+      case _ =>
+        throw new GAException(s"Param type ${value} for gene ${id} not supported")
+    }
+    ParameterDefinition(
+      id,
+      value.toString,
+      isDynamic = true,
+      paramType = paramType,
+      range = gaEncoder.range.map(_.toString))
+  }
+
+
+  // ---------------------  Helper methods -------------------------
+
   private def getParamValue(
     sparkDynaParamsMap: Map[String, ParameterDefinition],
     geneId: String): ParameterDefinition =
