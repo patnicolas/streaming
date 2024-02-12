@@ -24,7 +24,7 @@ import DKalman._
  */
 private[kalman] final class DKalman(
   initialKalmanParams: KalmanParameters
-)(implicit qrNoise: QRNoise){
+)(implicit qrNoise: KalmanNoise){
   private[this] var kalmanParams: KalmanParameters = initialKalmanParams
 
   @inline

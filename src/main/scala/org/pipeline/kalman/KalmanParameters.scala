@@ -74,8 +74,16 @@ private[kalman] case class KalmanParameters(
 /**
  * Companion object for dedicated constructors
  */
-
 private[kalman] object KalmanParameters {
+  /**
+   * Constructor for the Kalman parameters with matrices and vectors defined as arrays
+   * @param A State transition single array
+   * @param B Control single array (optional)
+   * @param H Measurement single array
+   * @param P Error covariance single array
+   * @param x Estimated value single array
+   * @return Instance of KalmanParameters
+   */
   def apply(
     A: Array[Double],
     B: Array[Double],
@@ -92,20 +100,60 @@ private[kalman] object KalmanParameters {
     )
   }
 
-
+  /**
+   * Constructor for the Kalman parameters with matrices and vectors defined as arrays or array
+   *
+   * @param A State transition 2-dimension array
+   * @param B Control 2-dimension array
+   * @param H Measurement 2-dimension array
+   * @param P Error covariance 2-dimension array
+   * @param x Estimated value single array
+   * @return Instance of KalmanParameters
+   */
   def apply(
     A: Array[Array[Double]],
     B: Array[Array[Double]],
     H: Array[Array[Double]],
-    P: Array[Array[Double]], x: Array[Double])
-  : KalmanParameters = {
+    P: Array[Array[Double]],
+    x: Array[Double]): KalmanParameters = {
     val nRows = A.length
     val nCols = A.head.length
     new KalmanParameters(
       new DenseMatrix(nRows, nCols, A.flatten),
       new DenseMatrix(nRows, nCols, B.flatten),
       new DenseMatrix(nRows, nCols, H.flatten),
-      new DenseMatrix(nRows, nCols, P.flatten), new DenseVector
-      (x))
+      new DenseMatrix(nRows, nCols, P.flatten), new DenseVector(x))
   }
+
+  def apply(
+    A: Array[Array[Double]],
+    B: Option[Array[Array[Double]]],
+    H: Array[Array[Double]],
+    P: Option[Array[Array[Double]]],
+    x: Array[Double]): KalmanParameters = {
+    val nRows = A.length
+    val nCols = A.head.length
+    val b = B.getOrElse(identityMatrix(nRows))
+    val p = P.getOrElse((identityMatrix(nRows)))
+
+    new KalmanParameters(
+      new DenseMatrix(nRows, nCols, A.flatten),
+      new DenseMatrix(nRows, nCols, b.flatten),
+      new DenseMatrix(nRows, nCols, H.flatten),
+      new DenseMatrix(nRows, nCols, p.flatten), new DenseVector(x))
+  }
+
+
+  /**
+   * Simplified constructors with no Control or initial error convariance matrices
+   * @param A  State transition 2-dimension array
+   * @param H  measurement 2-dimension array
+   * @param x  Estimated value single array
+   * @return Instance of KalmanParameters
+   */
+
+  def apply(
+    A: Array[Array[Double]],
+    H: Array[Array[Double]],
+    x: Array[Double]): KalmanParameters = KalmanParameters(A, None, H, None, x)
 }
