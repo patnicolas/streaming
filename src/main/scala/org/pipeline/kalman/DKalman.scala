@@ -11,20 +11,23 @@
  */
 package org.pipeline.kalman
 
-import org.apache.spark.ml.linalg.{DenseMatrix, DenseVector, Matrices, Matrix, Vector, Vectors}
+import org.apache.spark.ml.linalg.{DenseMatrix, DenseVector}
 
-import DKalman._
+import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
+
 
 
 
 /**
- *
- * @param initialKalmanParams
- * @param qrNoise
+ * Implementation of the Discrete Kalman filter
+ * @param initialKalmanParams Initial parameters for the State and Measurement equations
+ * @param kalmanNoise Pair (Process, Measurement) noises
+ * @author Patrick Nicolas
  */
 private[kalman] final class DKalman(
   initialKalmanParams: KalmanParameters
-)(implicit qrNoise: KalmanNoise){
+)(implicit kalmanNoise: KalmanNoise){
   private[this] var kalmanParams: KalmanParameters = initialKalmanParams
 
   @inline
@@ -33,27 +36,65 @@ private[kalman] final class DKalman(
   @inline
   def getEstimate: DenseVector = kalmanParams.x
 
-  /**
-   *
-   * @param u
-   * @return
-   */
-  def predict(u: DenseVector = nullVector): Unit = {
-    val newX = kalmanParams.A.multiply(kalmanParams.x)
-    val correctedX =
-      if(isVectorNull(u)) add(newX, kalmanParams.B.multiply(u))
-      else newX
 
-    val newP = add(
-      kalmanParams.A.multiply(kalmanParams.P).multiply(kalmanParams.ATranspose),
-      qrNoise.processNoise
-    )
-    kalmanParams = kalmanParams.copy(x = correctedX, P = newP)
+  /**
+   * Recursive implementation of the Kalman filter
+   * @param z Series of observed measurements
+   * @return List of predictions as dense vector
+   */
+  def apply(z: Array[DenseVector]): List[DenseVector] = {
+    @tailrec
+    def execute(
+      z: Array[DenseVector],
+      index: Int,
+      predictions: ListBuffer[DenseVector]): List[DenseVector] = {
+        if (index >= z.length)
+          predictions.toList
+        else {
+          val nextX = predict()
+          val nextZ: DenseVector = kalmanParams.H.multiply(nextX)
+          predictions.append(nextZ)
+          update(z(index))
+
+          execute(z, index + 1, predictions)
+        }
+    }
+
+    execute(z, 0, ListBuffer[DenseVector]())
   }
 
+  /**
+   * Implement the prediction of the state variable
+   * x(t+1) = A.x(t) + B.u(t) + Q
+   * P(t+1) = A.P(t)A^T^ + Q
+   * @param U Optional control vector
+   * @return New, updated estimation
+   */
+  def predict(U: Option[DenseVector] = None): DenseVector = {
+    // Compute the first part of the state equation S = A.x
+    val newX = kalmanParams.A.multiply(kalmanParams.x)
+
+    // Add the control matrix if u is provided  S += B.u
+    val correctedX = U.map(u => kalmanParams.B.multiply(u)).getOrElse(newX)
+
+    // Update the error covariance matrix P as P(t+1) = A.P(t).A_transpose + Q
+    val newP = add(
+      kalmanParams.A.multiply(kalmanParams.P).multiply(kalmanParams.ATranspose),
+      kalmanNoise.processNoise
+    )
+    // Update the kalman parameters
+    kalmanParams = kalmanParams.copy(x = correctedX, P = newP)
+    kalmanParams.x
+  }
+
+  /**
+   * Implement the update of the
+   * @param z Measurement value vector
+   * @return Kalman gain matrix
+   */
   def update(z: DenseVector): DenseMatrix = {
     val y = kalmanParams.measureDiff(z)
-    val S = kalmanParams.computeS( qrNoise.measureNoise)
+    val S = kalmanParams.computeS( kalmanNoise.measureNoise)
 
     val kalmanGain: DenseMatrix = kalmanParams.gain(S)
     kalmanParams = kalmanParams.copy(x = add(kalmanParams.x, kalmanGain.multiply(y)))
@@ -66,7 +107,7 @@ private[kalman] final class DKalman(
     val identity = DenseMatrix.eye(kalmanGain.numRows)
     val kHP = subtract(identity, kalmanGain.multiply(kalmanParams.H)).multiply(kalmanParams.P)
     val kH = subtract(identity, kalmanGain.multiply(kalmanParams.H).transpose)
-    val kR = (kalmanGain.multiply(qrNoise.measureNoise)).multiply(kalmanGain.transpose)
+    val kR = (kalmanGain.multiply(kalmanNoise.measureNoise)).multiply(kalmanGain.transpose)
     add(kHP.multiply(kH), kR)
   }
 

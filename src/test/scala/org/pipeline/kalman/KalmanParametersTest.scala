@@ -29,7 +29,7 @@ private[kalman] final class KalmanParametersTest extends AnyFlatSpec{
   }
 
 
-  it should "Succeed instantiating the parameters of the Kalman filter with easurements"in {
+  it should "Succeed instantiating the parameters of the Kalman filter with measurements"in {
     val velocity = 0.0167
     val A = Array[Array[Double]](
       Array[Double](1.0, velocity, 0.0),
@@ -47,7 +47,7 @@ private[kalman] final class KalmanParametersTest extends AnyFlatSpec{
 
     val z = Array[Double](0.3, 1.3, 1.0)
     val diff = kalmanParameters.measureDiff(new DenseVector(z))
-    println(s"Diff measurement: {diff}")
+    println(s"Diff measurement: $diff")
     val S = kalmanParameters.computeS(new DenseMatrix(
       3,
       3,
