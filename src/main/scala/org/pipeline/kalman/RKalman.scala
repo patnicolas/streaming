@@ -25,7 +25,7 @@ import scala.collection.mutable.ListBuffer
  * @param kalmanNoise Pair (Process, Measurement) noises
  * @author Patrick Nicolas
  */
-private[kalman] final class DKalman(
+private[kalman] final class RKalman(
   initialKalmanParams: KalmanParameters
 )(implicit kalmanNoise: KalmanNoise){
   private[this] var kalmanParams: KalmanParameters = initialKalmanParams
@@ -34,8 +34,10 @@ private[kalman] final class DKalman(
   def getKalmanParams: KalmanParameters = kalmanParams
 
   @inline
-  def getEstimate: DenseVector = kalmanParams.x
+  def getState: DenseVector = kalmanParams.x
 
+
+  def getNumRows: Int = kalmanParams.A.numRows
 
   /**
    * Recursive implementation of the Kalman filter
@@ -48,14 +50,14 @@ private[kalman] final class DKalman(
       z: Array[DenseVector],
       index: Int,
       predictions: ListBuffer[DenseVector]): List[DenseVector] = {
-        if (index >= z.length)
+        if (index >= z.length)  // Criteria to end recursion
           predictions.toList
         else {
           val nextX = predict()
           val nextZ: DenseVector = kalmanParams.H.multiply(nextX)
           predictions.append(nextZ)
           update(z(index))
-
+            // Execute the next measurement points
           execute(z, index + 1, predictions)
         }
     }
@@ -88,9 +90,9 @@ private[kalman] final class DKalman(
   }
 
   /**
-   * Implement the update of the
-   * @param z Measurement value vector
-   * @return Kalman gain matrix
+   * Implement the update of the state x and error covariance P while computing the Kalman gain
+   * @param z Measurement dense vector
+   * @return Kalman gain dense matrix
    */
   def update(z: DenseVector): DenseMatrix = {
     val y = kalmanParams.measureDiff(z)
@@ -101,6 +103,18 @@ private[kalman] final class DKalman(
     kalmanParams = kalmanParams.copy(P = updateErrorCovariance(kalmanGain))
 
     kalmanGain
+  }
+
+  /**
+   * Implement the update of the state x and error covariance P while computing the Kalman gain
+   * @param z Measurement as a array
+   * @return Kalman gain as an array of arrays
+   */
+  def update(z: Array[Double]): Array[Array[Double]] = {
+    val zVec = new DenseVector(z)
+    val kalmanGain = update(zVec)
+    kalmanGain.values
+    Array.tabulate(zVec.size)(i => Array.tabulate(zVec.size)(j => kalmanGain(i, j)))
   }
 
   private def updateErrorCovariance(kalmanGain: DenseMatrix): DenseMatrix = {
@@ -115,7 +129,7 @@ private[kalman] final class DKalman(
 
 
 
-private[pipeline] object DKalman {
+private[pipeline] object RKalman {
 
   val nullVector = new DenseVector(Array.empty[Double])
   private def isVectorNull(v: DenseVector): Boolean = v.size == 0
