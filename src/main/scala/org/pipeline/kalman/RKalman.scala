@@ -12,9 +12,10 @@
 package org.pipeline.kalman
 
 import org.apache.spark.ml.linalg.{DenseMatrix, DenseVector}
-
+import org.pipeline.kalman.KalmanUtil._
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
+
 
 
 
@@ -58,7 +59,7 @@ private[kalman] final class RKalman(
    * @return List of predictions as dense vector
    */
   def apply(z: Array[DenseVector]): List[DenseVector] = {
-    
+
     @tailrec
     def execute(
       z: Array[DenseVector],

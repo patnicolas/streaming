@@ -40,7 +40,6 @@ private[kalman] case class KalmanNoise(
  */
 
 private[kalman] object KalmanNoise {
-  import org.apache.commons.math3.distribution.NormalDistribution
   import scala.util.Random
 
   /**
@@ -60,9 +59,5 @@ private[kalman] object KalmanNoise {
    */
   def apply(length: Int): KalmanNoise =
     new KalmanNoise(1.0, 1.0, length, normalRandomValue)
-
-
-  private def normalRandomValue(stdDev: Double): Double =
-    new NormalDistribution(0.0, stdDev).density(Random.nextDouble)
 }
 

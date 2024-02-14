@@ -12,6 +12,7 @@
 package org.pipeline.kalman
 
 import org.apache.spark.ml.linalg.{DenseMatrix, DenseVector}
+import org.pipeline.kalman.KalmanUtil._
 
 
 /**

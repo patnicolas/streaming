@@ -2,6 +2,7 @@ package org.pipeline.kalman
 
 import org.apache.spark.ml.linalg.DenseMatrix
 import org.scalatest.flatspec.AnyFlatSpec
+import org.pipeline.kalman.KalmanUtil._
 
 private[kalman] final class KalmanTest extends AnyFlatSpec{
 

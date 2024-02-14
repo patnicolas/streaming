@@ -63,7 +63,7 @@ private[kalman] final class RKalmanTest extends AnyFlatSpec{
 
 
   it should "Succeed processing and display Kalman prediction" in {
-    val z = Array.tabulate(20)(n => n*n*0.01 + 0.002/(n +2) + )
+    val z = Array.tabulate(20)(n => n*n*0.01 + 0.002/(n +2) + normalRandomValue(0.2))
 
   }
 
