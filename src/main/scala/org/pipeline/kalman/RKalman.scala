@@ -39,12 +39,26 @@ private[kalman] final class RKalman(
 
   def getNumRows: Int = kalmanParams.A.numRows
 
+
   /**
    * Recursive implementation of the Kalman filter
-   * @param z Series of observed measurements
+   *
+   * @param zs Series of observed measurements as array of double
+   * @return List of predictions defined as arrays
+   */
+  def apply(zs: DMatrix): List[DVector] = {
+    val _zs = zs.map(new DenseVector(_))
+    val xS = this.apply(_zs)
+    xS.map(_.values)
+  }
+
+  /**
+   * Recursive implementation of the Kalman filter
+   * @param z Series of observed measurements as dense vector
    * @return List of predictions as dense vector
    */
   def apply(z: Array[DenseVector]): List[DenseVector] = {
+    
     @tailrec
     def execute(
       z: Array[DenseVector],
@@ -61,7 +75,6 @@ private[kalman] final class RKalman(
           execute(z, index + 1, predictions)
         }
     }
-
     execute(z, 0, ListBuffer[DenseVector]())
   }
 
@@ -74,13 +87,13 @@ private[kalman] final class RKalman(
    */
   def predict(U: Option[DenseVector] = None): DenseVector = {
     // Compute the first part of the state equation S = A.x
-    val newX = kalmanParams.A.multiply(kalmanParams.x)
+    val newX = kalmanParams.A.multiply(kalmanParams.x)        // Equation (1)
 
     // Add the control matrix if u is provided  S += B.u
-    val correctedX = U.map(u => kalmanParams.B.multiply(u)).getOrElse(newX)
+    val correctedX = U.map(u => kalmanParams.B.multiply(u)).getOrElse(newX)  // Equation (1)
 
     // Update the error covariance matrix P as P(t+1) = A.P(t).A_transpose + Q
-    val newP = add(
+    val newP = add(             // Equation (2)
       kalmanParams.A.multiply(kalmanParams.P).multiply(kalmanParams.ATranspose),
       kalmanNoise.processNoise
     )
@@ -95,12 +108,15 @@ private[kalman] final class RKalman(
    * @return Kalman gain dense matrix
    */
   def update(z: DenseVector): DenseMatrix = {
-    val y = kalmanParams.measureDiff(z)
-    val S = kalmanParams.computeS( kalmanNoise.measureNoise)
+    val y = kalmanParams.residuals(z)
 
-    val kalmanGain: DenseMatrix = kalmanParams.gain(S)
-    kalmanParams = kalmanParams.copy(x = add(kalmanParams.x, kalmanGain.multiply(y)))
-    kalmanParams = kalmanParams.copy(P = updateErrorCovariance(kalmanGain))
+    val S = kalmanParams.innovation(kalmanNoise.measureNoise)   // Equation (3)
+
+    val kalmanGain: DenseMatrix = kalmanParams.gain(S)          // Equation (4)
+    val nextX = add(kalmanParams.x, kalmanGain.multiply(y))     // Equation (5)
+    kalmanParams = kalmanParams.copy(x = nextX)
+    val nextP = updateErrorCovariance(kalmanGain)               // Equation (7)
+    kalmanParams = kalmanParams.copy(P = nextP)
 
     kalmanGain
   }
@@ -110,10 +126,9 @@ private[kalman] final class RKalman(
    * @param z Measurement as a array
    * @return Kalman gain as an array of arrays
    */
-  def update(z: Array[Double]): Array[Array[Double]] = {
+  def update(z: DVector): DMatrix = {
     val zVec = new DenseVector(z)
     val kalmanGain = update(zVec)
-    kalmanGain.values
     Array.tabulate(zVec.size)(i => Array.tabulate(zVec.size)(j => kalmanGain(i, j)))
   }
 

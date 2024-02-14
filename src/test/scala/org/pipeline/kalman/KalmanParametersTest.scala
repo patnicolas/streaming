@@ -24,7 +24,7 @@ private[kalman] final class KalmanParametersTest extends AnyFlatSpec{
     println(s"A transposed:\n${kalmanParameters.ATranspose}")
 
     val z = Array[Double](0.3, 1.3, 1.0)
-    val diff = kalmanParameters.measureDiff(new DenseVector(z))
+    val diff = kalmanParameters.residuals(new DenseVector(z))
     println(diff)
   }
 
@@ -46,9 +46,9 @@ private[kalman] final class KalmanParametersTest extends AnyFlatSpec{
     val kalmanParameters = KalmanParameters(A, H, x)
 
     val z = Array[Double](0.3, 1.3, 1.0)
-    val diff = kalmanParameters.measureDiff(new DenseVector(z))
+    val diff = kalmanParameters.residuals(new DenseVector(z))
     println(s"Diff measurement: $diff")
-    val S = kalmanParameters.computeS(new DenseMatrix(
+    val S = kalmanParameters.innovation(new DenseMatrix(
       3,
       3,
       randUniformMatrix(z.length).flatten))

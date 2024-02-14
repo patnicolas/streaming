@@ -17,15 +17,15 @@ import org.apache.spark.ml.linalg.DenseMatrix
 /**
  * Wrapper for process (Q matrix) and measurement (R Matrix) noises
  *
- * @param qNoise Mean of process noise
- * @param rNoise mean of the measurement noise
+ * @param qNoise Standard deviation of process noise
+ * @param rNoise Standard deviation of the measurement noise
  * @param length Size of the process and measurement noise vectors
  * @param noiseGen Noise generator function from a given value
  * @author Patrick Nicolas
  */
 private[kalman] case class KalmanNoise(
-  qNoise: Double,          // Mean of process noise
-  rNoise: Double,          // mean of the measurement noise
+  qNoise: Double,          // Standard deviation of process noise
+  rNoise: Double,          // Standard deviation of the measurement noise
   length: Int,             // Number of features or rows associated with the noise
   noiseGen: Double => Double) {  // Distribution function for generating noise
   final def processNoise: DenseMatrix =
@@ -62,7 +62,7 @@ private[kalman] object KalmanNoise {
     new KalmanNoise(1.0, 1.0, length, normalRandomValue)
 
 
-  private def normalRandomValue(mean: Double): Double =
-    new NormalDistribution(mean, 1.0).density(Random.nextDouble)
+  private def normalRandomValue(stdDev: Double): Double =
+    new NormalDistribution(0.0, stdDev).density(Random.nextDouble)
 }
 

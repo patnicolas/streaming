@@ -34,38 +34,34 @@ private[kalman] case class KalmanParameters(
   P: DenseMatrix,     // Error covariance dense matrix
   x: DenseVector) {   // Estimated value dense vector
 
-  private lazy val HTranspose: DenseMatrix = H.transpose
+  private def HTranspose: DenseMatrix = H.transpose
 
-  lazy val ATranspose: DenseMatrix = A.transpose
+  def ATranspose: DenseMatrix = A.transpose
 
   /**
    * Compute the difference z = H.x
    * @param z Measurement dense vector
    * @return Difference between estimated measurement and actual measurement
    */
-  def measureDiff(z: DenseVector): DenseVector = subtract(z, H.multiply(x))
+  def residuals(z: DenseVector): DenseVector = subtract(z, H.multiply(x))
 
   /**
    * Compute H.P.H[T] + measurement noise
    * @param measureNoise Measurement or device noise
    * @return Estimated error covariance
    */
-  def computeS(measureNoise: DenseMatrix): DenseMatrix =
+  def innovation(measureNoise: DenseMatrix): DenseMatrix =
     add(H.multiply(P).multiply(HTranspose), measureNoise)
 
-  def innovation(z: DenseVector): DenseVector = subtract(z, H.multiply(x))
 
   /**
    * Compute the Kalman gain, given an estimated state S  P.H[T]*S[-1]
    *           P * H_transpose * S_inverse
-   * @param S Estimated state
+   * @param S Innovation value for this iteration
    * @return Kalman gain
    */
   def gain(S: DenseMatrix): DenseMatrix = {
-    val bzStateMatrix = new breeze.linalg.DenseMatrix(S.numRows,S.numCols, S.values)
-    val invBzStateMatrix = breeze.linalg.inv(bzStateMatrix)
-    val invStateMatrix = new DenseMatrix(S.numCols, S.numRows, invBzStateMatrix.toArray)
-
+    val invStateMatrix = inv(S)
     P.multiply(HTranspose).multiply(invStateMatrix)
   }
 }
@@ -85,11 +81,11 @@ private[kalman] object KalmanParameters {
    * @return Instance of KalmanParameters
    */
   def apply(
-    A: Array[Double],
-    B: Array[Double],
-    H: Array[Double],
-    P: Array[Double],
-    x: Array[Double]): KalmanParameters = {
+    A: DVector,
+    B: DVector,
+    H: DVector,
+    P: DVector,
+    x: DVector): KalmanParameters = {
     val nRows = A.length >> 1
     new KalmanParameters(
       new DenseMatrix(nRows, nRows, A),
@@ -111,11 +107,11 @@ private[kalman] object KalmanParameters {
    * @return Instance of KalmanParameters
    */
   def apply(
-    A: Array[Array[Double]],
-    B: Array[Array[Double]],
-    H: Array[Array[Double]],
-    P: Array[Array[Double]],
-    x: Array[Double]): KalmanParameters = {
+    A: DMatrix,
+    B: DMatrix,
+    H: DMatrix,
+    P: DMatrix,
+    x: DVector): KalmanParameters = {
     val nRows = A.length
     val nCols = A.head.length
     new KalmanParameters(
@@ -126,11 +122,11 @@ private[kalman] object KalmanParameters {
   }
 
   def apply(
-    A: Array[Array[Double]],
-    B: Option[Array[Array[Double]]],
-    H: Array[Array[Double]],
-    P: Option[Array[Array[Double]]],
-    x: Array[Double]): KalmanParameters = {
+    A: DMatrix,
+    B: Option[DMatrix],
+    H: DMatrix,
+    P: Option[DMatrix],
+    x: DVector): KalmanParameters = {
     val nRows = A.length
     val nCols = A.head.length
     val b = B.getOrElse(identityMatrix(nRows))
@@ -140,7 +136,8 @@ private[kalman] object KalmanParameters {
       new DenseMatrix(nRows, nCols, A.flatten),
       new DenseMatrix(nRows, nCols, b.flatten),
       new DenseMatrix(nRows, nCols, H.flatten),
-      new DenseMatrix(nRows, nCols, p.flatten), new DenseVector(x))
+      new DenseMatrix(nRows, nCols, p.flatten),
+      new DenseVector(x))
   }
 
 
@@ -153,7 +150,7 @@ private[kalman] object KalmanParameters {
    */
 
   def apply(
-    A: Array[Array[Double]],
-    H: Array[Array[Double]],
-    x: Array[Double]): KalmanParameters = KalmanParameters(A, None, H, None, x)
+    A: DMatrix,
+    H: DMatrix,
+    x: DVector): KalmanParameters = KalmanParameters(A, None, H, None, x)
 }

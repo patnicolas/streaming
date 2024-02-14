@@ -6,6 +6,7 @@ import scala.util.Random
 
 package object kalman{
   type DMatrix = Array[Array[Double]]
+  type DVector = Array[Double]
 
 
   def identityMatrix(numRows: Int): DMatrix = {
@@ -53,6 +54,12 @@ package object kalman{
 
     val c: Array[Double] = a.values.indices.map(index => a.values(index) + b.values(index)).toArray
     new DenseVector(c)
+  }
+
+
+  def inv(a: DenseMatrix): DenseMatrix = {
+    val invValues = a.values.map(x => if(math.abs(x) < 1e-18) 0.0 else 1.0/x)
+    new DenseMatrix(a.numRows, a.numCols, invValues)
   }
 
   @throws(clazz = classOf[IllegalArgumentException])
