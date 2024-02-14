@@ -23,6 +23,7 @@
         <akka.version>2.6.19</akka.version>
         <kubernetes.version>16.0.0</kubernetes.version>
         <kafka.version>3.4.0</kafka.version>
+        <tablesaw.version>0.38.1</tablesaw.version>
         <djl.version>0.20.0</djl.version>
         <tablesaw.version>0.38.1</tablesaw.version>
         <hadoop.version>3.3.2</hadoop.version>
@@ -118,13 +119,7 @@
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-rds</artifactId>
         </dependency>
-        <!--
-        <dependency>
-            <groupId>org.reactivestreams</groupId>
-            <artifactId>reactive-streams</artifactId>
-            <version>1.0.4</version>
-        </dependency>
-        -->
+
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-sync</artifactId>
@@ -155,13 +150,13 @@
             <artifactId>mongodb-driver-reactivestreams</artifactId>
             <version>4.10.0</version>
         </dependency>
-        <!--
+
         <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-            <version>3.12.14</version>
+            <groupId>org.jfree</groupId>
+            <artifactId>jfreechart</artifactId>
+            <version>1.5.4</version>
         </dependency>
-        -->
+
         <!--  Jackson -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -326,7 +321,6 @@
             <version>${hadoop.version}</version>
         </dependency>
 
-        <!--   PostgreSQL    -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -462,6 +456,14 @@
 
     <distributionManagement>
         <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
+    </distributionManagement>
+
+    <!--
+    <distributionManagement>
+        <repository>
             <id>central</id>
             <name>7002ea9dd48d-releases</name>
             <url>http://artifactory.aideo-tech.com:8082/artifactory/ml2</url>
@@ -472,4 +474,5 @@
             <url>http://artifactory.aideo-tech.com:8082/artifactory/ml2</url>
         </snapshotRepository>
     </distributionManagement>
+    -->
 </project>
