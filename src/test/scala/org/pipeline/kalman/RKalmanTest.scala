@@ -2,6 +2,7 @@ package org.pipeline.kalman
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.apache.spark.ml.linalg.{DenseMatrix, DenseVector, Matrices, Matrix, Vector, Vectors}
+import org.pipeline.kalman.RKalmanTest.trajectory
 
 private[kalman] final class RKalmanTest extends AnyFlatSpec{
 
@@ -30,7 +31,7 @@ private[kalman] final class RKalmanTest extends AnyFlatSpec{
     import RKalmanTest._
     val x = Array[Double](0.0, 12.0)
     println(s"Initial measurement:\n${x.mkString(", ")}")
-    val recursiveKalman = new RKalman(kalman2Parameters(x))
+    val recursiveKalman = new RKalman(trajectory(x))
 
     val z = Array[Double](0.1, 10.0)
     val kGain = recursiveKalman.update(z)
@@ -41,12 +42,26 @@ private[kalman] final class RKalmanTest extends AnyFlatSpec{
   it should "Succeed recursive application of Kalman for a two dimension state" in {
     import RKalmanTest._
     val xInitial = Array[Double](0.0, 0.0)
-    val recursiveKalman = new RKalman(kalman2Parameters(xInitial))
+    val recursiveKalman = new RKalman(trajectory(xInitial))
 
     val measurements = Array.tabulate(20)(n => Array[Double](n*n*0.01 + 0.002/(n +2), 0.0))
     println(s"Measurements:\n${measurements.map(_.head).mkString(", ")}")
     val states = recursiveKalman(measurements).map(_.head)
     println(s"States:\n ${states.mkString(", ")}")
+  }
+
+
+  it should "Succeed processing and display Kalman prediction" in {
+    import RKalmanTest._
+
+    val z = Array.tabulate(20)(n =>
+      Array[Double](n * n * 0.01 + 0.002 / (n + 2) + normalRandomValue(0.2), 1.0)
+    )
+    val zVec = z.map(new DenseVector(_))
+    val xInitial = Array[Double](0.001, 1.0)
+    val recursiveKalman = new RKalman(trajectory(xInitial))
+
+    val predictedStates = recursiveKalman.apply(zVec)
   }
 
   ignore should "Succeed update next state and compute gain for a three dimension state" in {
@@ -59,12 +74,6 @@ private[kalman] final class RKalmanTest extends AnyFlatSpec{
     val z = Array[Double](3.1, 1.0, 0.95)
     val kGain = recursiveKalman.update(z)
     println(s"Kalman gain:\n ${kGain.map(_.mkString(" ")).mkString("\n")}")
-  }
-
-
-  it should "Succeed processing and display Kalman prediction" in {
-    val z = Array.tabulate(20)(n => n*n*0.01 + 0.002/(n +2) + normalRandomValue(0.2))
-
   }
 
 }
@@ -94,7 +103,7 @@ private[kalman] object RKalmanTest {
   }
 
 
-  private def kalman2Parameters(x: Array[Double]): KalmanParameters = {
+  private def trajectory(x: Array[Double]): KalmanParameters = {
     val velocity = 0.0167
     val A = Array[Array[Double]](
       Array[Double](1.0, velocity),

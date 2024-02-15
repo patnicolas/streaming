@@ -40,7 +40,6 @@ private[kalman] case class KalmanNoise(
  */
 
 private[kalman] object KalmanNoise {
-  import scala.util.Random
 
   /**
    * Constructor for Kalman Gaussian noises
