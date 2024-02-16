@@ -57,11 +57,11 @@ private[kalman] final class RKalman(
    * @param z Series of observed measurements as dense vector
    * @return List of predictions as dense vector
    */
-  def apply(z: Array[DenseVector]): List[DenseVector] = {
+  def apply(z: Seq[DenseVector]): List[DenseVector] = {
 
     @tailrec
     def execute(
-      z: Array[DenseVector],
+      z: Seq[DenseVector],
       index: Int,
       predictions: ListBuffer[DenseVector]): List[DenseVector] = {
         if (index >= z.length)  // Criteria to end recursion
