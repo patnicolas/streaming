@@ -10,51 +10,72 @@ import scala.reflect.ClassTag.Any
 import scala.util.Try
 
 
-trait HashingAlgorithm
+trait HashingAlgo
 
-case object SHA1Algorithm extends HashingAlgorithm {
+case class SHA1Algo() extends HashingAlgo {
   override def toString: String = "SHA1"
 }
-case object MD5Algorithm extends HashingAlgorithm {
+case class MD5Algo() extends HashingAlgo {
   override def toString: String = "MD5"
 }
 
 
 /**
  * Implementation of the Bloom filter
- * @param length
- * @param numHashFunctions
- * @param hashingAlgorithm
+ * @param length Length or capacity of the Bloom filter
+ * @param numHashFunctions Number of hash functions
+ * @param hashingAlgo Hashing algorithm SHA1, MD5, ..
+ * @param sparkSession Implicit reference to the current Spark Session
+ * @author Patrick Nicolas
  */
 private[bloom] final class BloomFilter[T: ClassTag](
-  length: Int,
-  numHashFunctions: Int,
-  hashingAlgorithm: HashingAlgorithm = SHA1Algorithm
-) {
-
+  length: Int,             // Length or capacity of the Bloom filter
+  numHashFunctions: Int,   // Number of hash functions
+  hashingAlgo: HashingAlgo = SHA1Algo()  // Hashing algorithm SHA1, MD5, ..
+)(implicit sparkSession: SparkSession) {
   import BloomFilter._
+  require(hashingAlgo.isInstanceOf[SHA1Algo], s"Only SHA1 digest is currently supported")
+
   private[this] val set = new Array[Byte](length)
-  private[this] val digest = Try(MessageDigest.getInstance(hashingAlgorithm.toString))
+  private[this] val digest = Try(MessageDigest.getInstance(hashingAlgo.toString))
   private[this] var size: Int = 0
 
-  def +(elements: Array[T]): Int = digest.map(
-    _ => {
-      elements.foreach(+)
-      size
-    }
-  ).getOrElse(-1)
-
-
-  def contains(t: T): Boolean =
-    digest.map(_ =>
-      hashToArray(t).forall(n =>
-        set(n) == 1)
-    ).getOrElse(false)
-
+  /**
+   * Add a new element of type T to the set of the Bloom filter
+   * @param t New element to be added
+   */
   def +(t: T): Unit = {
     hashToArray(t).foreach(set(_) = 1)
     size += 1
   }
+
+  /**
+   * Add an array of elements of type T to the
+   * @param elements Elements to be added in the filter
+   * @return Updated number of elements in the filter if digest is defined, -1 otherwise
+   */
+  def +(elements: Array[T]): Int =
+    if(elements.length > 0)
+      digest.map(
+      _ => {
+        elements.foreach(+)
+        size
+      }
+    ).getOrElse(-1)
+    else
+      size
+
+  @inline
+  def getSize: Int = size
+
+  /**
+   * Test whether the element t is contained in the
+   * @param t Element evaluated
+   * @return true if the digest is properly instantiated and the element t has been added to
+   *         the filter, false otherwise
+   */
+  def contains(t: T): Boolean =
+    digest.map(_ => hashToArray(t).forall(set(_) == 1)).getOrElse(false)
 
 
   override def toString: String = {

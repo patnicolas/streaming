@@ -16,7 +16,6 @@ private[bloom] final class BloomFilterTest extends AnyFlatSpec{
 
   it should "Succeed adding items into the bloom filter" in {
     import org.pipeline.streams.spark.implicits._
-    implicit val _toInt: Long => Int = (n: Long) => n.toInt
     val filter = new BloomFilter[Long](100, 100)
 
     val newValues = Array[Long](5L, 97L, 91L, 23L, 67L, 33L)
@@ -29,11 +28,9 @@ private[bloom] final class BloomFilterTest extends AnyFlatSpec{
 
   ignore should "Succeed populating the bloom filter" in {
     import org.pipeline.streams.spark.implicits._
-    type U = Long
 
-    implicit val _toInt: U => Int = (n: U) => n.toInt
-    val bloomFilter = new BloomFilter[U](1000, 500, SHA1Algorithm)
-    val data: Seq[Long] = Seq.tabulate(100)(n => n*n)
+    val bloomFilter = new BloomFilter[Int](1000, 500, SHA1Algo())
+    val data: Seq[Int] = Seq.tabulate(100)(n => n*n)
     val shuffleData = Random.shuffle(data)
     bloomFilter.+(shuffleData.toArray)
     println(bloomFilter.toString)
