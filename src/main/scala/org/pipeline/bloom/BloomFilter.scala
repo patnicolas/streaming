@@ -11,6 +11,17 @@
  */
 package org.pipeline.bloom
 
+/**
+ * Interface to the various implementation Bloom Filters
+ * The 3 key methods are
+ * - add (Add an element to the filter)
+ * - addAll (add multiple elements to the filter)
+ * - mightContain (Test if an element might be contained in the filter)
+ *
+ * @tparam T Type of elements to be added to the filter
+ *
+ * @author Patrick Nicolas
+ */
 trait BloomFilter[T]{
   def add(t: T): Unit
 

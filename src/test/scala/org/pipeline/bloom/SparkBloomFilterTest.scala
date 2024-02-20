@@ -8,7 +8,7 @@ private[bloom] final class SparkBloomFilterTest extends AnyFlatSpec{
     val filter = new SparkBloomFilter[Long](100, 0.05F)
 
     val newValues = Array[Long](5L, 97L, 91L, 23L, 67L, 33L)
-    newValues.foreach( filter.add(_))
+    newValues.foreach(n => filter.add(n))
     assert(filter.mightContain(97L))
   }
 }

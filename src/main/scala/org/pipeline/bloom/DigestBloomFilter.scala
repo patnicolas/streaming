@@ -58,7 +58,7 @@ private[bloom] final class DigestBloomFilter[T: ClassTag](
 
 
   /**
-   * Add an array of elements of type T to the
+   * Add an array of elements of type T to the filter
    * @param ts Elements to be added in the filter
    * @return Updated number of elements in the filter if digest is defined, -1 otherwise
    */
@@ -71,7 +71,7 @@ private[bloom] final class DigestBloomFilter[T: ClassTag](
   def getSize: Int = size
 
   /**
-   * Test whether the element t is contained in the
+   * Test whether the filter might contain a given element
    * @param t Element evaluated
    * @return true if the digest is properly instantiated and the element t has been added to
    *         the filter, false otherwise
@@ -88,7 +88,7 @@ private[bloom] final class DigestBloomFilter[T: ClassTag](
 
 
   // ---------------------   Helper private methods -----------------
-  private def hashToArray(t: T): Array[Int] = {
+  private def hashToArray(t: T): Array[Int] =
     (0 until numHashFunctions).foldLeft(new Array[Int](numHashFunctions))(
       (buf, idx) => {
         val value = if(idx > 0) hash(buf(idx -1)) else hash(t.hashCode)
@@ -96,7 +96,6 @@ private[bloom] final class DigestBloomFilter[T: ClassTag](
         buf
       }
     )
-  }
 
   /**
    * @param value Value to hash
@@ -115,53 +114,6 @@ private[bloom] final class DigestBloomFilter[T: ClassTag](
 private[bloom] object DigestBloomFilter {
   private val numBytes: Int = 4
   private val lastByte: Int = numBytes - 1
-
-  /*
-  case class BloomFilterParams(length: Int, // Length or capacity of the Bloom filter
-    numHashFunctions: Int, // Number of hash functions
-    hashingAlgo: HashingAlgo = SHA1Algo()
-  )
-
-  def contains[T](t: T, numHashFunctions: Int, digest: MessageDigest, set: Array[Byte]): Boolean = {
-    _hashToArray(t, numHashFunctions, digest: MessageDigest, set).forall(set(_) == 1)
-  }
-
-  def +[T](
-    dataSet: Dataset[T],
-    bloomFilter: BloomFilterParams)(implicit sparkSession: SparkSession): Array[Byte] = {
-    import sparkSession.implicits._
-
-    dataSet.mapPartitions((elIterator: Iterator[T]) => {
-      val digest = MessageDigest.getInstance(bloomFilter.hashingAlgo.toString)
-      val set = new Array[Byte](bloomFilter.length)
-      while (elIterator.hasNext) {
-        val t = elIterator.next()
-        BloomFilter._hashToArray(t, bloomFilter.numHashFunctions, digest, set).foreach(set(_) = 1)
-      }
-      set.iterator
-    }).collect()
-  }
-
-
-  private def _hashToArray[T](
-    t: T,
-    numHashFunctions: Int,
-    digest: MessageDigest,
-    set: Array[Byte]): Array[Int] = {
-    (0 until numHashFunctions).foldLeft(new Array[Int](numHashFunctions))((buf, idx) => {
-      val value = if (idx > 0) hash(buf(idx - 1), digest, set) else hash(t.hashCode, digest, set)
-      buf.update(idx, value)
-      buf
-    })
-  }
-
-  private def hash(value: Int, d: MessageDigest, set: Array[Byte]): Int = {
-    d.reset()
-    d.update(value)
-    Math.abs(new BigInteger(1, d.digest).intValue) % (set.length - 1)
-  }
-
-   */
 
   implicit def int2Bytes(value: Int): Array[Byte] = Array.tabulate(numBytes)(
     n => {
