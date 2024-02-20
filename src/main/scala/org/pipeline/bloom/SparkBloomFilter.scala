@@ -11,10 +11,26 @@
  */
 package org.pipeline.bloom
 
-trait BloomFilter[T]{
-  def add(t: T): Unit
 
-  def addAll(ts: Array[T]): Unit
-  def mightContain(t: T): Boolean
+/**
+ *
+ * @param capacity
+ * @param falsePositiveRate
+ * @tparam T
+ */
 
+private[bloom] final class SparkBloomFilter[T](
+  capacity: Int,
+  falsePositiveRate: Float) extends BloomFilter[T] {
+  import org.apache.spark.util.sketch._
+
+  private[this] val bloomFilter = BloomFilter.create(capacity, falsePositiveRate)
+
+  override def mightContain(t: T): Boolean = bloomFilter.mightContain(t)
+
+  override def add(t: T): Unit = bloomFilter.put(t)
+
+  override def addAll(ts: Array[T]): Unit =
+    if(ts.nonEmpty)
+      ts.foreach(add)
 }
