@@ -5,7 +5,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import java.security.MessageDigest
 import scala.util.Random
 
-private[bloom] final class BloomFilterTest extends AnyFlatSpec{
+private[bloom] final class DigestBloomFilterTest extends AnyFlatSpec{
 
   ignore should "Succeed converting array of bytes from/to int" in {
     import DigestBloomFilter._
@@ -19,7 +19,6 @@ private[bloom] final class BloomFilterTest extends AnyFlatSpec{
     val filter = new DigestBloomFilter[Long](100, 100)
 
     val newValues = Array[Long](5L, 97L, 91L, 23L, 67L, 33L)
-
     filter.addAll(newValues)
     assert(filter.mightContain(5))
     assert(filter.mightContain(97))

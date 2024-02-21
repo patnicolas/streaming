@@ -39,7 +39,7 @@ private[bloom] final class DigestBloomFilter[T: ClassTag](
   length: Int,             // Length or capacity of the Bloom filter
   numHashFunctions: Int,   // Number of hash functions
   hashingAlgo: HashingAlgo = SHA1Algo()  // Hashing algorithm SHA1, MD5, ..
-) extends BloomFilter[T] {
+) extends TBloomFilter[T] {
   import DigestBloomFilter._
   require(hashingAlgo.isInstanceOf[SHA1Algo], s"Only SHA1 digest is currently supported")
 

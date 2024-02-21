@@ -11,21 +11,21 @@
  */
 package org.pipeline.bloom
 
+import org.apache.spark.sql.{Dataset, SparkSession}
+import org.apache.spark.util.sketch.BloomFilter
+
 
 /**
  *
  * @param capacity
- * @param falsePositiveRate
+ * @param targetFPRate
  * @tparam T
  */
 
-private[bloom] final class SparkBloomFilter[T](
-  capacity: Int,
-  falsePositiveRate: Float) extends BloomFilter[T] {
-  import org.apache.spark.util.sketch._
+private[bloom] final class SparkBloomFilter[T] private (bloomFilter: BloomFilter)
+  extends TBloomFilter[T] {
 
-  private[this] val bloomFilter = BloomFilter.create(capacity, falsePositiveRate)
-
+  def getExpectedFPRate: Double = bloomFilter.expectedFpp()
   override def mightContain(t: T): Boolean = bloomFilter.mightContain(t)
 
   override def add(t: T): Unit = bloomFilter.put(t)
@@ -33,4 +33,36 @@ private[bloom] final class SparkBloomFilter[T](
   override def addAll(ts: Array[T]): Unit =
     if(ts.nonEmpty)
       ts.foreach(add)
+}
+
+private[bloom] object SparkBloomFilter {
+
+  /**
+   *
+   * @param capacity
+   * @param targetFPRate
+   * @tparam T
+   * @return
+   */
+  def apply[T](capacity: Int, targetFPRate: Float): SparkBloomFilter[T] =
+    new SparkBloomFilter[T]( BloomFilter.create(capacity, targetFPRate))
+
+  /**
+   *
+   * @param data
+   * @param columnName
+   * @param capacity
+   * @param targetFPRate
+   * @param sparkSession
+   * @tparam T
+   * @return
+   */
+  def apply[T](
+    data: Dataset[T],
+    columnName: String,
+    capacity: Int,
+    targetFPRate: Double)(implicit sparkSession: SparkSession): SparkBloomFilter[T]= {
+    val filter = data.stat.bloomFilter(columnName, capacity, targetFPRate)
+    new SparkBloomFilter[T](filter)
+  }
 }

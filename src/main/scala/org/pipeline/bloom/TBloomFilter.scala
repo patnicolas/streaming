@@ -22,7 +22,7 @@ package org.pipeline.bloom
  *
  * @author Patrick Nicolas
  */
-trait BloomFilter[T]{
+trait TBloomFilter[T]{
   def add(t: T): Unit
 
   def addAll(ts: Array[T]): Unit
